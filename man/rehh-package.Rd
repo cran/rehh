@@ -6,12 +6,12 @@
 Searching for footprints of selection using Haplotype Homozygosity based tests
 }
 \description{
-Functions for the detection of footprints of selection on dense SNP data using Extended Homozygosity Haplotype (EHH) based tests. The package includes computation of EHH, iHS (within population) and Rsb (across pairs of populations) statistics. Various plotting functions are also included to facilate vizualisation and interpretation of the results.
+Functions for the detection of footprints of selection on dense SNP data using Extended Homozygosity Haplotype (EHH) based tests. The package includes computation of EHH, iHS (within population) and Rsb (across pairs of populations) statistics. Various plotting functions are also included to facilitate visualization and interpretation of the results.
 }
 \details{
 \tabular{ll}{
 Package: \tab rehh\cr
-Version: \tab 1.0\cr
+Version: \tab 1.1\cr
 License: \tab GPL(>=2)\cr
 Depends: \tab gplots , methods\cr
 }
@@ -45,7 +45,6 @@ wgscan.eut              Whole genome scan results for a pool of
 }
 \references{
    Gautier, M. and Vitalis, R. (2012). rehh: An R package to detect footprints of 
-   selection in genome-wide SNP data from haplotype structure. \emph{Bioinformatics}, accepted.
-% \emph{Bioinformatics}, \bold{20}, 3128--3143.
+   selection in genome-wide SNP data from haplotype structure. \emph{Bioinformatics}, \bold{28}(8), 1176--1177.
 }
 \keyword{ package }

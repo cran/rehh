@@ -48,7 +48,7 @@ void compute_EHH(int **data,
 					j = found = 0;
 					while ((j < haplotypes) && (!found)) {
 						k = down;
-						while((data[i][k] == haplotype[j][k]) && k <= up) {
+						while((k<=up) && (data[i][k] == haplotype[j][k])) {
 							++k;
 						}
 						if (k > up) {
@@ -132,7 +132,7 @@ void compute_EHHS(int **data,
 				j = found = 0;
 				while ((j < haplotypes) && (!found)) {
 					k = down;
-					while((data[i][k] == haplotype[j][k]) && k <= up) {
+					while((k<=up) && (data[i][k] == haplotype[j][k])) {
 						++k;
 					}
 					if (k > up) {

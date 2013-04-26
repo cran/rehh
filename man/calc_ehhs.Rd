@@ -22,8 +22,8 @@ in turn the computation of the integrated EHHS relative to map distances (iES).
 }
 \value{
   The returned value is a list containing the following components:
-  \item{ehhs}{A vector of nsnps colums containing EHHS estimates at each chromosome position relative to the focal SNP.}
-  \item{nhaplo_eval}{A matrix of two rows and nsnps colums containing the number of evaluated haplotypes at each chromosome position relative to the focal SNP for the ancestral (first row) and derived (second row) alleles.}
+  \item{ehhs}{A vector of nsnps columns containing EHHS estimates at each chromosome position relative to the focal SNP.}
+  \item{nhaplo_eval}{A matrix of two rows and nsnps columns containing the number of evaluated haplotypes at each chromosome position relative to the focal SNP for the ancestral (first row) and derived (second row) alleles.}
   \item{freqall1}{Frequency of the ancestral allele matrix for the focal SNP.}
   \item{ies}{Integrated EHHS (IES) over the chromosome.}
   }
@@ -40,7 +40,7 @@ in turn the computation of the integrated EHHS relative to map distances (iES).
 #example haplohh object (280 haplotypes, 1424 SNPs)
 #see ?haplohh_cgu_bta12 for details
 data(haplohh_cgu_bta12) 
-#computing EHH statisitics for the focal SNP at position 456
+#computing EHH statistics for the focal SNP at position 456
 #which displays a strong signal of selection
 res.ehhs<-calc_ehhs(haplohh_cgu_bta12,mrk=456)
 }

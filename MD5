@@ -1,4 +1,5 @@
-7a37fe3333b7b00e004e38be4ac5c089 *DESCRIPTION
+9eda3596baf2de613095cf7073e3aab7 *ChangeLog
+43a8c44d23f6273c9e55ecfe448c4652 *DESCRIPTION
 7184b8c33b73c1d73d6f59979e2bc09f *NAMESPACE
 66b19d927cd1910977ea9a424e808f09 *R/bifurcation.diagram.R
 5e13ba818983b8cb2227f593209f0ad2 *R/calc_ehh.R
@@ -19,8 +20,8 @@ c7450d209e5e28fd010cbf819daff970 *inst/bta12_cgu.hap
 967ad01ab376789623691df52f9da6c7 *inst/bta12_hapguess_switch.out
 0f0a48a088e9396eb5f910071752404d *inst/map.inp
 40e6f7e1e4b3c42113bd33fc7bf47e07 *man/bifurcation.diagram.Rd
-4ce29bb55f5c14592967322ab61ef181 *man/calc_ehh.Rd
-8342021ae3d0ba58b9023a0838e4de8e *man/calc_ehhs.Rd
+77147d026fc337a849783cad1f2ee3d4 *man/calc_ehh.Rd
+a6e674c9ce11f2f0a6d83cda2c072590 *man/calc_ehhs.Rd
 986b3fc2f01e6eb2d4d4896154ff5ea5 *man/data2haplohh.Rd
 ac1505aaaa9b9fbbc96f234216acdb13 *man/distribplot.Rd
 44b27e0a791be5fafb566e8a4d73f5f6 *man/haplohh-class.Rd
@@ -28,14 +29,14 @@ b95c45a34dbd6b6480e768dd7844c404 *man/haplohh_cgu_bta12.Rd
 02cb75fb3960c33d63f148d012bc54b2 *man/ies2rsb.Rd
 fc13e25715051cf157c81858b5c73db2 *man/ihh2ihs.Rd
 9104fbe8964e64d51965e7d646695bed *man/ihsplot.Rd
-ac6fa888fabed1ef5bd4002526872961 *man/make.example.files.Rd
-48693c017eeb098132d68f33b8b8ed62 *man/rehh-package.Rd
+d03d38fed02ff83e81198daa01c1f802 *man/make.example.files.Rd
+916d9427d0fd783259f206c2a2fc4b0a *man/rehh-package.Rd
 7049b50f122d7176097541aa0890dbb7 *man/rsbplot.Rd
 129675738cf3ca416e8afba38115a760 *man/scan_hh.Rd
 e1386dbc371f9e02682db399a757b92f *man/wgscan.cgu.Rd
 9554d23c2d20e5e2ec02c6bdb5911c31 *man/wgscan.eut.Rd
-05ebbbe0536c855adbb828e042dd5871 *src/ehh_utils.c
+24e42067c1759e98d35bf5d5f7830df6 *src/ehh_utils.c
 8990d49dfe459f062f81582dbf258a4e *src/ehh_utils.h
 f41f1d0cc587e35bfe4b3f8f5932df85 *src/r_ehh.c
 bf70ef94c905a2a24fff8a51df7df98e *src/r_ehhs.c
-5d4bf6c49d1f1e101652fb6454a39ba4 *src/r_scan_hh.c
+f7dbd9d25463fdbbd04c356a75a5213d *src/r_scan_hh.c

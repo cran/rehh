@@ -54,7 +54,7 @@ void r_scan_hh(int *Rdata,
 			}
 		}
 		EHH[focal_SNP][0] = EHH[focal_SNP][1] = 1.0;
-		number_haplotypes[focal_SNP][0] = number_haplotypes[focal_SNP][1] = 0;
+//		number_haplotypes[focal_SNP][0] = number_haplotypes[focal_SNP][1] = 0;
 		for (i = 0; i < *number_chromosomes; i++) {
 			if (data[i][focal_SNP] == 0) number_haplotypes[focal_SNP][0] += 1;
 			if (data[i][focal_SNP] == 1) number_haplotypes[focal_SNP][1] += 1;
@@ -139,7 +139,7 @@ void r_scan_hh(int *Rdata,
 			}
 		}
 		IES[focal_SNP] = integrate(map,EHHS,*number_SNPs,*min_EHHS);
-	Rprintf("SNP = %d \tout of\t %d SNPs\n",focal_SNP+1,*number_SNPs);
+//	Rprintf("SNP = %d \tout of\t %d SNPs\n",focal_SNP+1,*number_SNPs);
 	}
 	for (i = 0; i < *number_chromosomes; i++) {
 		free(data[i]);

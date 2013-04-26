@@ -1,0 +1,7 @@
+Changes from Version 1.0 to 1.1 [Apr 25 2013]
+
+* Minor modification of the rehh-package.Rd file
+
+* Printing of the advance of each site out of the total SNPs scanned when using scan_hh() function was disabled to save time and simplify screen output (particularly relevant for large data sets).
+
+* Minor bugs corrected in the ehh_utils.c and r_scan_hh.c codes. These bugs had no effect on the results but allowed a (very) small gain in computational speed.

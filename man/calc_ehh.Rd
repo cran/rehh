@@ -23,8 +23,8 @@ in turn the computation of the integrated EHH relative to map distances (iHH).
 \value{
   The returned value is a list containing the
   following components:
-  \item{ehh}{A matrix of two rows and nsnps colums containing EHH estimates at each chromosome position relative to the focal SNP for the ancestral (first row) and derived (second row) alleles.}
-  \item{nhaplo_eval}{A matrix of two rows and nsnps colums containing the number of evaluated haplotypes at each chromosome position relative to the focal SNP for the ancestral (first row) and derived (second row) alleles.}
+  \item{ehh}{A matrix of two rows and nsnps columns containing EHH estimates at each chromosome position relative to the focal SNP for the ancestral (first row) and derived (second row) alleles.}
+  \item{nhaplo_eval}{A matrix of two rows and nsnps columns containing the number of evaluated haplotypes at each chromosome position relative to the focal SNP for the ancestral (first row) and derived (second row) alleles.}
   \item{ihh}{A vector of two elements corresponding respectively to the iHH (integrated EHH) for the ancestral and derived allele.}
 }
 \references{

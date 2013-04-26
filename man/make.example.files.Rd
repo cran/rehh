@@ -3,7 +3,7 @@
 \title{Creating example input files}
 \description{
 This function allows to copy in the working directory three different example files:
- bta12_cgu.hap (an haplotype input file in standrad format),
+ bta12_cgu.hap (an haplotype input file in standard format),
  bta12_hapguess_switch.out (an haplotype input file in fastphase output format)
  and map.inp (a SNP information input file). 
 These files contains data for 280 haplotypes (originating from 140 individuals belonging to the Creole 
