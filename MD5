@@ -1,11 +1,11 @@
-9eda3596baf2de613095cf7073e3aab7 *ChangeLog
-43a8c44d23f6273c9e55ecfe448c4652 *DESCRIPTION
+54b159d8a10454c4a0cf24ffb9ec76e8 *ChangeLog
+444bd6724b7236569d4c4e50ae44d8b9 *DESCRIPTION
 7184b8c33b73c1d73d6f59979e2bc09f *NAMESPACE
 66b19d927cd1910977ea9a424e808f09 *R/bifurcation.diagram.R
 5e13ba818983b8cb2227f593209f0ad2 *R/calc_ehh.R
 f2ff441060f34c66e0ae54153d83468f *R/calc_ehhs.R
 4f67bfe59ff8ae6da4ae1b751eb2ef9f *R/data2haplohh.R
-972cf9b9dcf1cc8b08e4df944eb3856b *R/distribplot.R
+dba4ffd5df7da5f97536e7205e28ceb9 *R/distribplot.R
 85a4171cae44228896492839af39bb68 *R/ies2rsb.R
 b76e82e3b88c8c45377c0cc854bff0d2 *R/ihh2ihs.R
 662baf5629173558243cd7219a1926dd *R/ihsplot.R
