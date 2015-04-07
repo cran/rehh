@@ -1,3 +1,7 @@
+Changes from Version 1.11 to 1.12 [Apr 7 2015]
+
+* Minor modification of the CITATION file
+
 Changes from Version 1.1 to 1.11 [Aug 25 2013]
 
 * Minor modification of the distribplot.R file (call to plot.density was disabled)

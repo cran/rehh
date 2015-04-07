@@ -1,10 +1,10 @@
-54b159d8a10454c4a0cf24ffb9ec76e8 *ChangeLog
-444bd6724b7236569d4c4e50ae44d8b9 *DESCRIPTION
-7184b8c33b73c1d73d6f59979e2bc09f *NAMESPACE
+b01eb9aec55f1736b80b659514510c93 *ChangeLog
+1f708ce58f955564cb76e06f9560bda9 *DESCRIPTION
+bcdae995c3c93898c7f6adc04767cc5c *NAMESPACE
 66b19d927cd1910977ea9a424e808f09 *R/bifurcation.diagram.R
 5e13ba818983b8cb2227f593209f0ad2 *R/calc_ehh.R
 f2ff441060f34c66e0ae54153d83468f *R/calc_ehhs.R
-4f67bfe59ff8ae6da4ae1b751eb2ef9f *R/data2haplohh.R
+ae6d29a3c3fd66aba573924440851407 *R/data2haplohh.R
 dba4ffd5df7da5f97536e7205e28ceb9 *R/distribplot.R
 85a4171cae44228896492839af39bb68 *R/ies2rsb.R
 b76e82e3b88c8c45377c0cc854bff0d2 *R/ihh2ihs.R
@@ -15,7 +15,7 @@ df37a969a6c3282c7fd1be1a2690cfc5 *data/datalist
 4ff9b9f05e00e5a6555311a35f2ea999 *data/haplohh_cgu_bta12.RData
 ddd497430735de0aebb28752e2e65b6c *data/wgscan.cgu.RData
 9ad082e4c440f44cb88ed1be370cef9e *data/wgscan.eut.RData
-a12e0a716f3b894d57b18d5eb76515d4 *inst/CITATION
+47039ecd7d04ba08df80ffe3869b0309 *inst/CITATION
 c7450d209e5e28fd010cbf819daff970 *inst/bta12_cgu.hap
 967ad01ab376789623691df52f9da6c7 *inst/bta12_hapguess_switch.out
 0f0a48a088e9396eb5f910071752404d *inst/map.inp

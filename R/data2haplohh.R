@@ -156,7 +156,7 @@ test_fphase_2=grep("BEGIN COMMAND_LINE",out_fphase)
    res@haplo=matrix(as.numeric(tmp_haplos),res@nhap,res@nsnp)
   }
 
-#selection des haplos d'apres les données manquantes
+#selection des haplos d'apres les donnees manquantes
  if(min_perc_geno.hap<100){
    cat("Discard Haplotype with less than ",min_perc_geno.hap,"% of genotyped SNPs\n")
    hap_sel=(100*rowSums(res@haplo!=0)/res@nsnp)>=min_perc_geno.hap
@@ -170,7 +170,7 @@ test_fphase_2=grep("BEGIN COMMAND_LINE",out_fphase)
    }
  }
 
-#selection des snps d'apres les données manquantes
+#selection des snps d'apres les donnees manquantes
  if(min_perc_geno.snp<100){
    cat("Discard SNPs genotyped on less than ",min_perc_geno.snp,"% of haplotypes\n")
    snp_sel=(100*colSums(res@haplo!=0)/res@nhap)>=min_perc_geno.snp

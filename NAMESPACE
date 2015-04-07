@@ -12,3 +12,6 @@ export(ihsplot)
 export(make.example.files)
 export(rsbplot)
 export(scan_hh)
+
+import(gplots)
+import(methods)
