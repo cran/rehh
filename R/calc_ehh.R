@@ -30,7 +30,7 @@ calc_ehh<-function(haplohh,mrk,limhaplo=2,limehh=0.05,plotehh=TRUE,main_leg="EHH
      matplot(haplohh@position[sel_reg],t(ehh[,sel_reg]),col=c("red","blue"),lty=1,
              type="l",main=main_leg,bty="n",xlab="Position",ylab="EHH")
      abline(v=haplohh@position[mrk],lty=2)
-     smartlegend("left","top",c("Anc. Allele","Der. Allele"),col=c("red","blue"),bty="n",lty=1)
+     legend("left","top",c("Anc. Allele","Der. Allele"),col=c("red","blue"),bty="n",lty=1)
    }
    }
 
