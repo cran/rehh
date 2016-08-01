@@ -1,3 +1,11 @@
+Changes from Version 1.13 to 2.0.0 [July 30 2016]
+
+* Major modification of the algorithm to explore haplotype variability (more than one order of magnitude faster), including parallelization
+* Major modification of the data2haplohh function to improve reading efficiency and allele recoding. In addition, a new input data file format (haplotype.in.columns) is now available
+* Computation of xp-EHH
+* A vignette that details how to use the package is now included in the package
+* Several other minor modifications in other functions
+
 Changes from Version 1.12 to 1.13 [May 13 2015]
 
 * Removing smartlegend() calls (deprecated in new version of gplot) in calc_ehh.R and fistribplot.R

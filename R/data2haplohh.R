@@ -1,5 +1,5 @@
 setClass(Class = "haplohh",
-	representation(haplo = "matrix",position = "numeric",snp.name="character",chr.name = "numeric",nhap = "numeric",nsnp = "numeric")
+	representation(haplo = "matrix",position = "numeric",snp.name="character",chr.name = "character",nhap = "numeric",nsnp = "numeric")
 )
 
 
@@ -14,23 +14,25 @@ make.example.files <- function() {
      file.copy(system.file('bta12_hapguess_switch.out',package='rehh'),'bta12_hapguess_switch.out')
      file.copy(system.file('map.inp',package='rehh'),'map.inp')
      file.copy(system.file('bta12_cgu.hap',package='rehh'),'bta12_cgu.hap')
+     file.copy(system.file('bta12_cgu.thap',package='rehh'),'bta12_cgu.thap')
 }
 
-data2haplohh<-function(hap_file,map_file,min_maf=0,min_perc_geno.hap=100,min_perc_geno.snp=100,chr.name=NA,popsel=NA,recode.allele=FALSE){
+data2haplohh<-function(hap_file,map_file,min_maf=0,min_perc_geno.hap=100,min_perc_geno.snp=100,chr.name=NA,popsel=NA,recode.allele=FALSE,haplotype.in.columns=FALSE){
 res<-new("haplohh")
-
+if(min_perc_geno.hap<0 | min_perc_geno.hap>100){stop("The value for the argument min_perc_geno.hap should lie between 0 and 100")}
+if(min_perc_geno.snp<0 | min_perc_geno.snp>100){stop("The value for the argument min_perc_geno.snp should lie between 0 and 100")}
 #####Fichier map (verification)
-map<-read.table(map_file,row.names=1) #snp name, chromosome, position, allele ancestral, allele derive
+map<-read.table(map_file,row.names=1,colClasses="character") #snp name, chromosome, position, allele ancestral, allele derive
  if(ncol(map)!=4){
    cat("Wrong format for map data file: ",map_file,"\n Should contain 5 columns (Snp name, Chromosome Number, Position, Ancestral Allele and Derived Allele) and no header\n")
   stop("Conversion stopped")
  }else{
-   tmp_chr=unique(as.numeric(map[,1]))
+   tmp_chr=unique(as.character(map[,1]))
    if(length(tmp_chr)!=1 & is.na(chr.name)){
     cat("More than one chromosome name in Map file:",map_file,"\n")
        repeat {
-         cat('Which chromosome should be considered among:',tmp_chr,"\n")
-         chr.name <- scan(file = '',n = 1,what = integer(0),quiet = TRUE)
+         cat('Which chromosome should be considered among:\n',tmp_chr,"\n")
+         chr.name <- scan(file = '',n = 1,what = character(),quiet = TRUE)
          if (chr.name %in% tmp_chr) break
          }
     }
@@ -41,16 +43,16 @@ map<-read.table(map_file,row.names=1) #snp name, chromosome, position, allele an
      if(nrow(map)==0){
       cat("No SNPs mapping to chromosome ",chr.name," are found in the map file\n")
       tmp_chr=unique(as.character(map[,1]))
-      cat("Here is the list of chromosome names in the map file:",tmp_chr,"\n")
+      cat("Here is the list of chromosome names in the map file:\n",tmp_chr,"\n")
       stop("Conversion stopped")
       }
    #premier checks OK
-    res@chr.name<-chr.name
+    res@chr.name<-as.character(chr.name)
     res@snp.name<-tmp_nom
     tmp_pos<-as.numeric(map[,2])
 
     if(sum(diff(tmp_pos)<0)>0){
-      stop("SNP should be ordered on the map, check also that both haplotypes (column of haplo) and map (row of map) are ordered in the same way")}
+      stop("SNP should be ordered on the map, check also that both haplotypes (column of haplo)\nand map (row of map) are ordered in the same way")}
     if(sum(diff(tmp_pos)==0)>0){
       warning("Some SNPs map to the same position")}
     res@position<-tmp_pos
@@ -60,10 +62,22 @@ res@nsnp=nrow(map)
 cat("Map file seems OK:",res@nsnp," SNPs declared for chromosome",res@chr.name,"\n")
 
 ###Fichier haplo
-
-out_fphase<-scan(hap_file,what="character",sep="\n",quiet=TRUE,nlines=15)
-test_fphase_1=grep("fastPHASE",out_fphase)
-test_fphase_2=grep("BEGIN COMMAND_LINE",out_fphase)
+if(haplotype.in.columns){
+  cat("Haplotype are in columns with no header\n")
+  tmp.nhap=length(unlist(strsplit(readLines(hap_file,n=1),split="\t|\\s+"))) 
+  tmp_haplos=matrix(scan(hap_file,what="character",quiet=TRUE),nrow=tmp.nhap)
+#  tmp_haplos=t(as.matrix(read.table(hap_file,colClasses="numeric")))
+#  tmp_haplos=readChar(hap_file,file.info(hap_file)$size,useBytes=T)
+#  tmp_haplos=matrix(strsplit(gsub(tmp_haplos,pattern="\n|\t|\\s+",replacement=" "),split=" ",useBytes=T,fixed=T)[[1]],nrow=182)
+  tmp.nsnp=ncol(tmp_haplos)
+   if(tmp.nsnp!=res@nsnp){
+    cat("The number of snp in the haplotypes",tmp.nsnp," is not equal\nto the number of snps declared in the map file",res@nsnp,"\n")
+    stop("Conversion stopped")
+   }
+}else{
+ out_fphase<-scan(hap_file,what="character",sep="\n",quiet=TRUE,nlines=15)
+ test_fphase_1=grep("fastPHASE",out_fphase)
+ test_fphase_2=grep("BEGIN COMMAND_LINE",out_fphase)
 
  if(length(test_fphase_1)>0 & length(test_fphase_2)>0){ #fichier fastphase
   cat("Looks like a FastPHASE haplotype file\n")
@@ -85,7 +99,7 @@ test_fphase_2=grep("BEGIN COMMAND_LINE",out_fphase)
     cat("Haplotypes originate from ",length(liste_pop)," different populations in the fastPhase output file\n")
    
     if(!(popsel %in% pop_label)){
-     cat("Chosen pop. is not in the list of pop. number:",liste_pop,"\n")
+     cat("Chosen pop. is not in the list of pop. number:\n",liste_pop,"\n")
      popsel=NA
     }
     if(is.na(popsel)){ #on demande interactivement la pop a selectionner
@@ -103,7 +117,7 @@ test_fphase_2=grep("BEGIN COMMAND_LINE",out_fphase)
     if(!(is.na(popsel))){ #bizarre car pas de sous population observe
          cat('No popsel are thus considered:',liste_pop,"\n")
     }
-}
+ }
 
  nlignes=length(out_fphase) ; nind=nlignes/3 ; nhap=2*nind
  tmp_haplos=matrix(,nhap,res@nsnp)
@@ -122,42 +136,41 @@ test_fphase_2=grep("BEGIN COMMAND_LINE",out_fphase)
       }else{tmp_haplos[hap2_index,]=hap2}
    }
 
-}else{ #fichier au format standard
+ }else{ #fichier au format standard
    cat("Standard rehh input file assumed\n")
-   tmp_haplos=as.matrix(read.table(hap_file,row.names=1))
-   if(ncol(tmp_haplos)!=res@nsnp){
-    cat("The number of snp in the haplotypes",ncol(tmp_haplos)," is not equal to the number of snps declared in the map file",res@nsnp,"\n")
+   tmp.ncol=length(unlist(strsplit(readLines(hap_file,n=1),split="\t|\\s+"))) #retrocompatibilite: ca marchait avec la tabulation avant
+   tmp.nsnp=tmp.ncol-1 #retrocompatibilite: les haplos contiennent un ID
+   if(tmp.nsnp!=res@nsnp){
+    cat("The number of snp in the haplotypes",tmp.nsnp," is not equal\nto the number of snps declared in the map file",res@nsnp,"\n")
     stop("Conversion stopped")
-  }
-}
-
+   }
+   tmp_haplos=matrix(scan(hap_file,what="character",quiet=TRUE),ncol=tmp.ncol,byrow=TRUE)[,-1]
+ }
+ }
  res@nhap=nrow(tmp_haplos)
-
 ##recodage des alleles si necessaire
-   if(recode.allele){
-    cat("Please Wait: alleles are recoded according to map file as: 0 (missing data), 1 (ancestral allele) or 2 (derived allele)\n")
-    res@haplo=matrix(0,res@nhap,res@nsnp)
-    anc_allele=as.character(map[,3]) ; der_allele=as.character(map[,4])
-   for(i in 1:res@nsnp){
-      all_anc= (as.character(tmp_haplos[,i])==anc_allele[i])
-      all_der= (as.character(tmp_haplos[,i])==der_allele[i])
-      all_miss= ((all_anc + all_der)==0)
-      res@haplo[all_anc,i]=1 ; res@haplo[all_der,i]=2 ; res@haplo[all_miss,i]=0
-      tmp_nmiss=sum(all_miss)
-      if(tmp_nmiss>0){cat(tmp_nmiss," missing allele for SNP: ",res@snp.name[i],"\n")}
-      if(i%%10==0){cat("SNP #",i," out of",res@nsnp,"\n")}
-    }
+ if(recode.allele){
+  cat("Alleles are being recoded according to map file as:\n\t0 (missing data), 1 (ancestral allele) or 2 (derived allele)\n")
+  anc_allele=matrix(rep(map[,3],res@nhap),res@nhap,res@nsnp,byrow=TRUE)
+  all_anc=tmp_haplos==anc_allele
+  rm(anc_allele) 
+  der_allele=matrix(rep(map[,4],res@nhap),res@nhap,res@nsnp,byrow=TRUE)
+  all_der=tmp_haplos==der_allele
+  rm(der_allele)
+  rm(tmp_haplos) 
+  res@haplo=matrix(0,res@nhap,res@nsnp)
+  res@haplo[all_anc]=1 ; res@haplo[all_der]=2 
   }else{
-   if(sum(!(tmp_haplos==0 | tmp_haplos==1 | tmp_haplos==2 ))>0){
-        cat("Alleles are not coded in the appropriate format: 0 (missing data), 1 (ancestral allele) or 2 (derived allele)\n")
-        cat("Check your data or use recode.allele=TRUE option to recode according to the map information\n")
-        stop("Conversion stopped")
-      }
-   res@haplo=matrix(as.numeric(tmp_haplos),res@nhap,res@nsnp)
-  }
-
+   if(sum(!(tmp_haplos=="0" | tmp_haplos=="1" | tmp_haplos=="2" ))>0){
+    cat("Alleles are not coded in the appropriate format:\n\t0 (missing data), 1 (ancestral allele) or 2 (derived allele)\n")
+    cat("Check your data or use recode.allele=TRUE option to recode according to the map information\n")
+    stop("Conversion stopped")
+   }
+  res@haplo=matrix(as.numeric(tmp_haplos),res@nhap,res@nsnp)
+  rm(tmp_haplos) 
+ }
 #selection des haplos d'apres les donnees manquantes
- if(min_perc_geno.hap<100){
+# if( !(is.na(min_perc_geno.hap)) ){
    cat("Discard Haplotype with less than ",min_perc_geno.hap,"% of genotyped SNPs\n")
    hap_sel=(100*rowSums(res@haplo!=0)/res@nsnp)>=min_perc_geno.hap
    if(sum(hap_sel)==res@nhap){
@@ -168,14 +181,14 @@ test_fphase_2=grep("BEGIN COMMAND_LINE",out_fphase)
     res@nhap=sum(hap_sel)
     cat(res@nhap," Haplos remaining\n")
    }
- }
-
+   if(res@nhap==0){stop("No haplotype left after filtering of missing data: check allele coding (e.g., correspondance of allele coding between the map_inp and haplotype input file) data or relax the value of min_perc_geno.hap to allow for more missing data")}
+# }
 #selection des snps d'apres les donnees manquantes
- if(min_perc_geno.snp<100){
+# if( !(is.na(min_perc_geno.snp)) ){
    cat("Discard SNPs genotyped on less than ",min_perc_geno.snp,"% of haplotypes\n")
    snp_sel=(100*colSums(res@haplo!=0)/res@nhap)>=min_perc_geno.snp
    if(sum(snp_sel)==res@nsnp){
-    cat("No SNPs discarded\n")
+    cat("No SNP discarded\n")
    }else{
     cat(res@nsnp-sum(snp_sel)," SNPs discarded\n")
     res@haplo=res@haplo[,snp_sel]
@@ -184,16 +197,17 @@ test_fphase_2=grep("BEGIN COMMAND_LINE",out_fphase)
     res@snp.name=res@snp.name[snp_sel]
     cat(res@nsnp," SNPs remaining\n")
    }
- }
+   if(res@nsnp==0){stop("No SNP left after filtering of missing data: check allele coding (e.g., correspondance  ofallele coding between the map_inp and haplotype input file) data or relax the value of min_perc_geno.snp to allow for more missing data")}
+   # }
 
 #selection des snps sur MAF
  if(min_maf>0){
    cat("Discard SNPs with MAF below ",min_maf,"\n")
-   tmp_n1=colSums(res@haplo==1) ; tmp_maf=tmp_n1/(tmp_n1 + colSums(res@haplo==2))
-   tmp_maf[tmp_maf>0.5]=1-tmp_maf[tmp_maf>0.5]
+   tmp_n1=colSums(res@haplo==1) ; tmp_n=colSums(res@haplo!=0)
+   tmp_maf=0.5-abs(0.5-tmp_n1/tmp_n)
    snp_sel=tmp_maf>min_maf
    if(sum(snp_sel)==res@nsnp){
-    cat("No SNPs discarded\n")
+    cat("No SNP discarded\n")
    }else{
     cat(res@nsnp-sum(snp_sel)," SNPs discarded\n")
     res@haplo=res@haplo[,snp_sel]
@@ -202,6 +216,7 @@ test_fphase_2=grep("BEGIN COMMAND_LINE",out_fphase)
     res@snp.name=res@snp.name[snp_sel]
     cat(res@nsnp," SNPs remaining\n")
    }
+   rm(tmp_n1) ; rm(tmp_n) ; rm(tmp_maf)
  }
 
     cat("Data consists of",res@nhap,"haplotypes and",res@nsnp,"SNPs\n")

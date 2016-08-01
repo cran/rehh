@@ -1,18 +1,20 @@
 Package: rehh
 Maintainer: Mathieu Gautier <mathieu.gautier@supagro.inra.fr>
-Author: Mathieu Gautier and Renaud Vitalis
-Version: 1.13
+Author: Mathieu Gautier, Alexander Klassmann and Renaud Vitalis
+Version: 2.0.0
 License: GPL (>= 2)
 Title: Searching for Footprints of Selection using Haplotype
         Homozygosity Based Tests
 Description: Functions for the detection of footprints of selection on
         dense SNP data using Extended Homozygosity Haplotype (EHH)
         based tests. The package includes computation of EHH, iHS
-        (within population) and Rsb (across pairs of populations)
+        (within population) and Rsb or XP-EHH (across pairs of populations)
         statistics. Various plotting functions are also included to
         facilitate visualization and interpretation of the results.
 Depends: R (>= 2.10), gplots, methods
+Suggests: knitr, rmarkdown
+VignetteBuilder: knitr
 NeedsCompilation: yes
-Packaged: 2015-05-13 14:36:55 UTC; mathieu
+Packaged: 2016-08-01 12:46:28 UTC; mathieu
 Repository: CRAN
-Date/Publication: 2015-05-13 19:54:58
+Date/Publication: 2016-08-01 15:35:27

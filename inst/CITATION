@@ -5,12 +5,22 @@ vers <- paste("R package version", meta$Version)
 
 
 citEntry(entry="Article",
-         author = 	 "Gautier, M. and Vitalis, R.",
+         author = 	 "Gautier M. and Vitalis R.",
          title = 	 "rehh: An R package to detect footprints of selection in genome-wide SNP data from haplotype structure",
          journal = 	 "Bioinformatics",
          year = 	 2012,
+         volume =	 28,
+         number =	 8,
+         pages="1176-1177",
+         textVersion ="Gautier M. and Vitalis R. (2012). rehh: An R package to detect footprints of selection in genome-wide SNP data from haplotype structure. Bioinformatics, 28(8):1176-1177" )
+
+citEntry(entry="Article",
+         author = 	 "Gautier M., Klassmann A., and Vitalis R.",
+         title = 	 "rehh2.0: an improved version of the R package rehh to identify footprints of selection from haplotype structure",
+         journal = 	 "Molecular Ecology Resources",
+         year = 	 0,
          volume =	 0,
-         number =	 0,
-         pages="accepted",
-         textVersion ="Gautier, M. and Vitalis, R. (2012). rehh: An R package to detect footprints of selection in genome-wide SNP data from haplotype structure. Bioinformatics, accepted" )
+         number =	 "submitted",
+         pages="1176-1177",
+         textVersion ="Gautier M., Klassmann A., and Vitalis R. (2016). rehh: An R package to detect footprints of selection in genome-wide SNP data from haplotype structure. Molecular Ecology Resources, submitted" )
 

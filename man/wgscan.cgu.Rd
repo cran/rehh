@@ -6,7 +6,7 @@
 
 
 \description{
-  A matrix of 44,057 rows (SNPs) and 6 columns (Chromosome name, position of the SNP in bp, Frequency of the ancestral allele, iHH for the ancestral allele, iHH for the derived allele and iES).
+  A dataframe object with of 44,057 rows (SNPs) and 7 columns: i) chromosome name (CHR), ii) position of the SNP in bp (POSITION), iii) Ancestral allele frequency (freq_A), iv) iHH for the ancestral allele (iHH_A), v) iHH for the derived allele (iHH_D), vi) iES using the estimator by Tang et al. (2007) (iES_Tang_et_al_2007), vii) iES using the estimator by Sabeti et al. (2007) (iES_Sabeti_et_al_2007).
 }
 
 \usage{data(wgscan.cgu)}

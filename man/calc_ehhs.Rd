@@ -3,8 +3,10 @@
 \title{EHHS and iES computations at a given core SNP}
 \description{Compute site Extended Haplotype Homozygosity (EHHS) and integrated EHH (iES) for a given focal SNPs.}
 \usage{
-calc_ehhs(haplohh,mrk,limhaplo=2,limehhs=0.05,
-plotehhs=TRUE,main_leg="EHHS plot")
+calc_ehhs(haplohh, mrk, limhaplo = 2, limehhs = 0.05, plotehhs = TRUE, 
+    lty = 1, lwd = 1.5, col = c("blue", "red"), xlab = "Position", 
+    ylab = expression(Site ~ specific ~ italic(EHH) ~ (italic(EHHS))), 
+    cex.lab = 1.25, main = NA, cex.main = 1.5)
 }
 \arguments{
   \item{haplohh}{An object of class \code{haplohh} (see \code{data2haplohh}).}
@@ -13,7 +15,14 @@ plotehhs=TRUE,main_leg="EHHS plot")
                   haplotypes with missing data are removed from the computation. Hence as we compute EHH further from the core SNP, less haplotypes are expected}
   \item{limehhs}{Limit below which EHHS stops to be evaluated}
   \item{plotehhs}{If TRUE, EHHS estimates are plotted for each position}
-  \item{main_leg}{Legend of the EHHS plot}
+  \item{lty}{Line type for the EHHS_Sabeti_et_al_2007 and EHHS_Tang_et_al_2007 (respectively) curves}
+  \item{lwd}{Line width for the EHHS_Sabeti_et_al_2007 and EHHS_Tang_et_al_2007 (respectively) curves}
+  \item{col}{Color for the EHHS_Sabeti_et_al_2007 and EHHS_Tang_et_al_2007 (respectively) curves}
+  \item{xlab}{Legend for the x--axis}
+  \item{ylab}{Legend for the y--axis}
+  \item{cex.lab}{Size of the axis legend}
+  \item{main}{Main legend of the EHHS plot}
+  \item{cex.main}{Size of the main legend}
 }
 
 \details{
@@ -22,14 +31,18 @@ in turn the computation of the integrated EHHS relative to map distances (iES).
 }
 \value{
   The returned value is a list containing the following components:
-  \item{ehhs}{A vector of nsnps columns containing EHHS estimates at each chromosome position relative to the focal SNP.}
+  \item{EHHS_Tang_et_al_2007}{A vector of nsnps columns containing EHHS estimates at each chromosome position relative to the focal SNP computed as described in the Tang et al. (2007).}
+  \item{EHHS_Sabeti_et_al_2007}{A vector of nsnps columns containing EHHS estimates at each chromosome position relative to the focal SNP computed as described in the Sabeti et al. (2007).}
   \item{nhaplo_eval}{A matrix of two rows and nsnps columns containing the number of evaluated haplotypes at each chromosome position relative to the focal SNP for the ancestral (first row) and derived (second row) alleles.}
-  \item{freqall1}{Frequency of the ancestral allele matrix for the focal SNP.}
-  \item{ies}{Integrated EHHS (IES) over the chromosome.}
+  \item{IES_Sabeti_et_al_2007}{Integrated EHHS (computed using the estimator by Sabeti et al. (2007)) over the chromosome.}
+  \item{IES_Tang_et_al_2007}{Integrated EHHS (computed using the estimator by Tang et al. (2007)) over the chromosome.}
   }
 \references{
    Gautier, M. and Naves, M. (2011). Footprints of selection in the ancestral admixture of a New World
    Creole cattle breed. \emph{Molecular Ecology}, \bold{20}, 3128--3143.
+
+   Sabeti, P.C. et al. (2007). Genome-wide detection and characterization of positive selection in 
+   human populations. \emph{Nature}, \bold{449}, 913--918.
 
    Tang, K. and Thornton, K.R. and Stoneking, M. (2007). A New Approach for Using Genome Scans
    to Detect Recent Positive Selection in the Human Genome. \emph{Plos Biology}, \bold{7}, e171.

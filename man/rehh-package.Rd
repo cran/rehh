@@ -11,7 +11,7 @@ Functions for the detection of footprints of selection on dense SNP data using E
 \details{
 \tabular{ll}{
 Package: \tab rehh\cr
-Version: \tab 1.1\cr
+Version: \tab 2.0.0\cr
 License: \tab GPL(>=2)\cr
 Depends: \tab gplots , methods\cr
 }
@@ -27,14 +27,17 @@ calc_ehhs               EHHS and iES computations at a
 data2haplohh            Converting data into an object 
                         of class haplohh
 distribplot             Distribution of standardized 
-                        iHS or Rsb values
+                        iHS, Rsb or XP-EHH values
 haplohh_cgu_bta12       Example of an 'haplohh' object
 ies2rsb                 Compute Rsb (standardized ratio of 
+                        iES from two populations)
+ies2xpehh               Compute XP-EHH (standardized ratio of 
                         iES from two populations)
 ihh2ihs                 Compute iHS (standardized iHH)
 ihsplot                 Plot iHS over a genome
 make.example.files      Generate example input files
 rsbplot                 Plot Rsb over a genome
+xpehhplot               Plot XP-EHH over a genome
 scan_hh                 Computing EHH based statistics over 
                         a whole chromosome
 wgscan.cgu              Whole genome scan results for the CGU
@@ -44,7 +47,10 @@ wgscan.eut              Whole genome scan results for a pool of
 }
 }
 \references{
-   Gautier, M. and Vitalis, R. (2012). rehh: An R package to detect footprints of 
+   Gautier M., Klassmann A., and Vitalis R. (2016). rehh: An R package to detect footprints of selection in genome-wide SNP data from haplotype structure.
+   \emph{Molecular Ecology Resources}, submitted
+
+   Gautier M. and Vitalis R. (2012). rehh: An R package to detect footprints of 
    selection in genome-wide SNP data from haplotype structure. \emph{Bioinformatics}, \bold{28}(8), 1176--1177.
 }
 \keyword{ package }
