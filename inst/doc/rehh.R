@@ -240,7 +240,7 @@ axis(1, at = pos_labels, labels = lst_chrm, las = 1,cex.lab=cex.lab,cex.axis=cex
 abline(h = c(-ylim.scan, ylim.scan), lty = 2)
 par(mar = c(5, 5, 4, 2) + 0.1)
 plot(pos, data$"-log10(p-value)", pch = pch, cex = cex,las = 1, col = col_chr, xaxt = "n", xlab = "Chromosome", 
-         ylab = expression("-" * log[10] * "[1" ~ "-" ~"2" ~ "|" ~ Phi[scriptstyle(italic(iHS))] ~"-" ~ 0.5 * "|]"), cex.lab = cex.lab, main = main, cex.main = cex.main,cex.axis=cex.axis)
+         ylab = expression("-" * log[10] * "[1" ~ "-" ~"2" ~ "|" ~ Phi[scriptstyle(italic(Rsb))] ~"-" ~ 0.5 * "|]"), cex.lab = cex.lab, main = main, cex.main = cex.main,cex.axis=cex.axis)
 axis(1, at = pos_labels, labels = lst_chrm, las = 1,cex.lab=cex.lab,cex.axis=cex.axis)
 abline(h = c(-ylim.scan, ylim.scan), lty = 2)
 
@@ -270,7 +270,7 @@ head(cguVSeut.xpehh)
 
 ## ----xpehhplot,echo=FALSE,fig.align='center',fig.ext="png",fig.width=16,fig.height=12,fig.lp='fig:',fig.cap='Graphical output for the \\texttt{xpehhplot()} function',fig.pos="!h"----
 layout(matrix(1:2,2,1))
-plot.pval = TRUE; ylim.scan = 2; pch = 16; cex = 0.75; cex.lab = 1; main = "Rsb (CGU vs. EUT)"; cex.main = 1.;cex.axis=0.7
+plot.pval = TRUE; ylim.scan = 2; pch = 16; cex = 0.75; cex.lab = 1; main = "XPEHH (CGU vs. EUT)"; cex.main = 1.;cex.axis=0.7
 data = cguVSeut.xpehh
 lst_chrm <- unique(data$CHR) ; nbr_chrm <- length(lst_chrm) ; cum <- rep(0, (nbr_chrm + 1))
 if (nbr_chrm > 1) {
@@ -289,7 +289,7 @@ axis(1, at = pos_labels, labels = lst_chrm, las = 1,cex.lab=cex.lab,cex.axis=cex
 abline(h = c(-ylim.scan, ylim.scan), lty = 2)
 par(mar = c(5, 5, 4, 2) + 0.1)
 plot(pos, data$"-log10(p-value)", pch = pch, cex = cex,las = 1, col = col_chr, xaxt = "n", xlab = "Chromosome", 
-         ylab = expression("-" * log[10] * "[1" ~ "-" ~"2" ~ "|" ~ Phi[scriptstyle(italic(iHS))] ~"-" ~ 0.5 * "|]"), cex.lab = cex.lab, main = main, cex.main = cex.main,cex.axis=cex.axis)
+         ylab = expression("-" * log[10] * "[1" ~ "-" ~"2" ~ "|" ~ Phi[scriptstyle(italic(XPEHH))] ~"-" ~ 0.5 * "|]"), cex.lab = cex.lab, main = main, cex.main = cex.main,cex.axis=cex.axis)
 axis(1, at = pos_labels, labels = lst_chrm, las = 1,cex.lab=cex.lab,cex.axis=cex.axis)
 abline(h = c(-ylim.scan, ylim.scan), lty = 2)
 

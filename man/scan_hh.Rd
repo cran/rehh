@@ -2,13 +2,14 @@
 \alias{scan_hh}
 \title{Computing EHH based statistics over a whole chromosome}
 \description{Compute Extended Haplotype Homozygosity (EHH), site-specific EHH (EHHS), integrated EHH (iHH) and integrated EHHS (iES) for all SNPs of the chromosome (or linkage group).}
-\usage{scan_hh(haplohh,limhaplo=2,limehh=0.05,limehhs=0.05,threads=1)}
+\usage{scan_hh(haplohh,limhaplo=2,limehh=0.05,limehhs=0.05,maxgap=NA,threads=1)}
 \arguments{
   \item{haplohh}{An object of class \code{haplohh} (see \code{data2haplohh}).}
   \item{limhaplo}{Minimal number of haplotypes to continue computing EHH away from the core SNP. Useless, if no missing data. However, when some data are missing, 
                   haplotypes with missing data are removed from the computation. Hence as we compute EHH further from the core SNP, less haplotypes are expected}
   \item{limehh}{Limit below which EHH stops to be evaluated}
   \item{limehhs}{Limit below which EHHS stops to be evaluated}
+  \item{maxgap}{Maximum allowed gap in bp between two SNPs below which EHH and EHHS stop to be evaluated (default=NA, i.e., no limitation)}
   \item{threads}{Number of threads to parallelize compuation}
 }
 

@@ -3,7 +3,7 @@
 \title{EHHS and iES computations at a given core SNP}
 \description{Compute site Extended Haplotype Homozygosity (EHHS) and integrated EHH (iES) for a given focal SNPs.}
 \usage{
-calc_ehhs(haplohh, mrk, limhaplo = 2, limehhs = 0.05, plotehhs = TRUE, 
+calc_ehhs(haplohh, mrk, limhaplo = 2, limehhs = 0.05, maxgap=NA, plotehhs = TRUE, 
     lty = 1, lwd = 1.5, col = c("blue", "red"), xlab = "Position", 
     ylab = expression(Site ~ specific ~ italic(EHH) ~ (italic(EHHS))), 
     cex.lab = 1.25, main = NA, cex.main = 1.5)
@@ -14,6 +14,7 @@ calc_ehhs(haplohh, mrk, limhaplo = 2, limehhs = 0.05, plotehhs = TRUE,
   \item{limhaplo}{Minimal number of haplotypes to continue computing EHHS away from the core SNP. Useless, if no missing data. However, when some data are missing, 
                   haplotypes with missing data are removed from the computation. Hence as we compute EHH further from the core SNP, less haplotypes are expected}
   \item{limehhs}{Limit below which EHHS stops to be evaluated}
+  \item{maxgap}{Maximum allowed gap in bp between two SNPs below which EHHS stops to be evaluated (default=NA, i.e., no limitation)}
   \item{plotehhs}{If TRUE, EHHS estimates are plotted for each position}
   \item{lty}{Line type for the EHHS_Sabeti_et_al_2007 and EHHS_Tang_et_al_2007 (respectively) curves}
   \item{lwd}{Line width for the EHHS_Sabeti_et_al_2007 and EHHS_Tang_et_al_2007 (respectively) curves}

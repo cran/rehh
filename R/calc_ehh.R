@@ -1,8 +1,11 @@
-calc_ehh <- function(haplohh,mrk,limhaplo = 2,limehh = 0.05,plotehh = TRUE,lty = 1,lwd = 1.5,col = c("blue","red"),xlab = "Position",ylab = expression(Extended~haplotype~homozygosity~(italic(EHH))),cex.lab = 1.25,main = NA,cex.main = 1.5) {
+calc_ehh <- function(haplohh,mrk,limhaplo = 2,limehh = 0.05,maxgap = NA,plotehh = TRUE,lty = 1,lwd = 1.5,col = c("blue","red"),xlab = "Position",ylab = expression(Extended~haplotype~homozygosity~(italic(EHH))),cex.lab = 1.25,main = NA,cex.main = 1.5) {
+	
 	if (!(is.haplohh(haplohh))) {stop("The data are not formatted as a valid haplohh object... (see the data2haplohh() function)")} 
 	if (mrk < 1 | mrk > haplohh@nsnp) {stop(paste("The focal SNP index must lie between",1,"and",haplohh@nsnp))}
 	if (limhaplo < 2) {stop("limhaplo must be larger than 1")}
 	if (limehh < 0 | limehh > 1) {stop("limehh must lie between 0 and 1")}
+	if (is.na(maxgap)) {maxgap = (max(haplohh@position) + 1)}
+	
 	ehh <- nhaplo_eval <- matrix(0,nrow = haplohh@nsnp,ncol = 2)
 	ihh <- rep(0,2)
 	res.ehh <- .C("CALL_EHH",
@@ -13,6 +16,7 @@ calc_ehh <- function(haplohh,mrk,limhaplo = 2,limehh = 0.05,plotehh = TRUE,lty =
   				number_haplotypes = as.integer(nhaplo_eval),
   				min_number_haplotypes = as.integer(limhaplo),
   				min_EHH = as.double(limehh),
+  				max_gap = as.double(maxgap),
   				map = as.double(haplohh@position),
   				EHH = as.double(ehh),
   				IHH = as.double(ihh)

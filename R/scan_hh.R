@@ -1,8 +1,11 @@
-scan_hh<-function(haplohh,limhaplo = 2,limehh = 0.05,limehhs = 0.05,threads = 1) {
+scan_hh<-function(haplohh,limhaplo = 2,limehh = 0.05,limehhs = 0.05,maxgap = NA,threads = 1) {
+	
 	if (!(is.haplohh(haplohh))) {stop("The data are not formatted as a valid haplohh object... (see the data2haplohh() function)")} 
 	if (limhaplo < 2) {stop("limhaplo must be larger than 1")}
 	if (limehh < 0 | limehh > 1) {stop("limehh must lie between 0 and 1")}
 	if (limehhs < 0 | limehhs > 1) {stop("limehhs must lie between 0 and 1")}
+	if (is.na(maxgap)) {maxgap = (max(haplohh@position) + 1)}
+
 	ihh <- matrix(0.0,nrow = haplohh@nsnp,ncol = 2)
 	ies_tang <- ies_sabeti <- vector(mode = "numeric",length = haplohh@nsnp)
 	res_scan <- .C("CALL_SCAN_HH",
@@ -12,6 +15,7 @@ scan_hh<-function(haplohh,limhaplo = 2,limehh = 0.05,limehhs = 0.05,threads = 1)
 				min_number_haplotypes = as.integer(limhaplo),
 				min_EHH = as.double(limehh),
 				min_EHHS = as.double(limehhs),
+  				max_gap = as.double(maxgap),
 				map = as.double(haplohh@position),
 				IHH = as.double(ihh),
 				IES_TANG = as.double(ies_tang),

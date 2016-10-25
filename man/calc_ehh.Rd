@@ -3,7 +3,7 @@
 \title{EHH and iHH computations at a given core SNP}
 \description{Compute Extended Haplotype Homozygosity (EHH) and integrated EHH (iHH) for a given focal SNPs.}
 \usage{
-calc_ehh(haplohh, mrk, limhaplo = 2, limehh = 0.05, plotehh = TRUE, 
+calc_ehh(haplohh, mrk, limhaplo = 2, limehh = 0.05, maxgap=NA, plotehh = TRUE, 
     lty = 1, lwd = 1.5, col = c("blue", "red"), xlab = "Position", 
     ylab = expression(Extended ~ haplotype ~ homozygosity ~ (italic(EHH))), 
     cex.lab = 1.25, main = NA, cex.main = 1.5)
@@ -14,6 +14,7 @@ calc_ehh(haplohh, mrk, limhaplo = 2, limehh = 0.05, plotehh = TRUE,
   \item{limhaplo}{Minimal number of haplotypes to continue computing EHH away from the core SNP. Useless, if no missing data. However, when some data are missing, 
                   haplotypes with missing data are removed from the computation. Hence as we compute EHH further from the core SNP, less haplotypes are expected}
   \item{limehh}{Limit below which EHH stops to be evaluated}
+  \item{maxgap}{Maximum allowed gap in bp between two SNPs below which EHH stops to be evaluated (default=NA, i.e., no limitation)}
   \item{plotehh}{If TRUE, EHH estimates for both the ancestral and derived allele are plotted for each position}
   \item{lty}{Line type for the ancestral and derived allele iHH (respectively) curves}
   \item{lwd}{Line width for the ancestral and derived allele iHH (respectively) curves}

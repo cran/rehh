@@ -8,6 +8,7 @@ void CALL_EHHS(int *Rdata,
                int *tot_nbr_hapl,
                int *min_nbr_hapl,
                double *min_ehhs,
+               double *max_gap,
                double *map,
                double *ehhs_tang,
                double *ies_tang,
@@ -47,7 +48,7 @@ void CALL_EHHS(int *Rdata,
     ehhs_sabeti[j] = 0.0;                                                       // Initialize the `ehhs_sabeti' vector, for Sabeti et al.'s (2007) definition
     tot_nbr_hapl[j] = 0;                                                        // Initialize the total number of haplotypes [N.B: might be unnecessary, tot_nbr_hapl[focl_snp] = 0; should be sufficient...]
   }
-  compute_ehhs(data,*focl_snp,*nbr_snps,*nbr_chrs,tot_nbr_hapl,*min_nbr_hapl,*min_ehhs,ehhs_tang,ehhs_sabeti); // compute the EHHS for both Tang et al.'s (2007) and Sabeti et al.'s (2007) definitions
+  compute_ehhs(data,map,*focl_snp,*nbr_snps,*nbr_chrs,tot_nbr_hapl,*min_nbr_hapl,*min_ehhs,*max_gap,ehhs_tang,ehhs_sabeti); // compute the EHHS for both Tang et al.'s (2007) and Sabeti et al.'s (2007) definitions
   *ies_tang = integrate(map,ehhs_tang,*nbr_snps,*min_ehhs);                     // compute the IES, for Tang et al.'s (2007) definition
   *ies_sabeti = integrate(map,ehhs_sabeti,*nbr_snps,*min_ehhs);                 // compute the IES, for Sabeti et al.'s (2007) definition
   for (i = 0; i < *nbr_chrs; i++) {                                             // Free the memory for the `data' array

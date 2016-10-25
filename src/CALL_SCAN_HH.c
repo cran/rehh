@@ -10,6 +10,7 @@ void CALL_SCAN_HH(int *Rdata,
                   int *min_nbr_hapl,
                   double *min_ehh,
                   double *min_ehhs,
+                  double *max_gap,
                   double *map,
                   double *ihh_vect,
                   double *ies_tang_vect,
@@ -69,20 +70,20 @@ void CALL_SCAN_HH(int *Rdata,
       ehh[idx_thread][i] = 0.0;                                                 // Initialize the `ehh' vector
       tot_nbr_hapl[idx_thread][i] = 0;                                          // Initialize the total number of haplotypes [N.B: might be unnecessary, tot_nbr_hapl[j] = 0; should be sufficient...]
     }
-    compute_ehh(data,j,ANCSTRL,*nbr_snps,*nbr_chrs,tot_nbr_hapl[idx_thread],*min_nbr_hapl,*min_ehh,ehh[idx_thread]); // compute the EHH for the ancestral allele
+    compute_ehh(data,map,j,ANCSTRL,*nbr_snps,*nbr_chrs,tot_nbr_hapl[idx_thread],*min_nbr_hapl,*min_ehh,*max_gap,ehh[idx_thread]); // compute the EHH for the ancestral allele
     ihh_vect[j] = integrate(map,ehh[idx_thread],*nbr_snps,*min_ehh);            // compute the IHH for the ancestral allele
     for (i = 0; i < *nbr_snps; i++) {
       ehh[idx_thread][i] = 0.0;                                                 // Initialize the `ehh' vector
       tot_nbr_hapl[idx_thread][i] = 0;                                          // Initialize the total number of haplotypes [N.B: might be unnecessary, tot_nbr_hapl[j] = 0; should be sufficient...]
     }
-    compute_ehh(data,j,DERIVED,*nbr_snps,*nbr_chrs,tot_nbr_hapl[idx_thread],*min_nbr_hapl,*min_ehh,ehh[idx_thread]); // compute the EHH for the derived allele
+    compute_ehh(data,map,j,DERIVED,*nbr_snps,*nbr_chrs,tot_nbr_hapl[idx_thread],*min_nbr_hapl,*min_ehh,*max_gap,ehh[idx_thread]); // compute the EHH for the derived allele
     ihh_vect[j + *nbr_snps] = integrate(map,ehh[idx_thread],*nbr_snps,*min_ehh); // compute the IHH for the derived allele
     for (i = 0; i < *nbr_snps; i++) {
       ehhs_tang[idx_thread][i] = 0.0;                                           // Initialize the `ehhs' vector
       ehhs_sabeti[idx_thread][i] = 0.0;                                         // Initialize the `ehhs' vector
       tot_nbr_hapl[idx_thread][i] = 0;                                          // Initialize the total number of haplotypes [N.B: might be unnecessary, tot_nbr_hapl[j] = 0; should be sufficient...]
     }
-    compute_ehhs(data,j,*nbr_snps,*nbr_chrs,tot_nbr_hapl[idx_thread],*min_nbr_hapl,*min_ehhs,ehhs_tang[idx_thread],ehhs_sabeti[idx_thread]); // compute the EHHS for both Tang et al.'s (2007) and Sabeti et al.'s (2007) definitions
+    compute_ehhs(data,map,j,*nbr_snps,*nbr_chrs,tot_nbr_hapl[idx_thread],*min_nbr_hapl,*min_ehhs,*max_gap,ehhs_tang[idx_thread],ehhs_sabeti[idx_thread]); // compute the EHHS for both Tang et al.'s (2007) and Sabeti et al.'s (2007) definitions
     ies_tang_vect[j] = integrate(map,ehhs_tang[idx_thread],*nbr_snps,*min_ehhs); // compute the IES, using Tang et al.'s (2007) definition
     ies_sabeti_vect[j] = integrate(map,ehhs_sabeti[idx_thread],*nbr_snps,*min_ehhs); // compute the IES, using Sabeti et al.'s (2007) definition
   }

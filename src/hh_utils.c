@@ -1,6 +1,7 @@
 #include "hh_utils.h"
 
 void compute_ehh(short int **data,
+                 double *map,
                  int focl_snp,
                  int allele,
                  int nbr_snps,
@@ -8,10 +9,12 @@ void compute_ehh(short int **data,
                  int *tot_nbr_hapl,
                  int min_nbr_hapl,
                  double min_ehh,
+                 double max_gap,
                  double *ehh)
 
 {
   int i,j;
+  int previous;
   int nbr_dstnct_hapl;                                                          // Number of distinct haplotypes
   int *haplotype;
   int *refrnce_hapl;
@@ -42,7 +45,12 @@ void compute_ehh(short int **data,
       printf("\n");
     }
 #endif
+    previous = focl_snp;
     for (j = (focl_snp - 1); j >= 0; j--) {                                     // walk along the chromosome from the focal SNP to the left-hand side, ...
+      if (fabs(map[previous] - map[j]) > max_gap) {                             // If the map distance between two consecutive SNPs is larger than max_gap, ...
+        ehh[j] = 0.0;                                                           // ... then the EHH is nought, and ...
+        break;                                                                  // ... quit the loop
+      }
       updt_hapl(data,j,nbr_chrs,&tot_nbr_hapl[j],haplotype,&nbr_dstnct_hapl,refrnce_hapl,hapl_count); // ... and update the list of haplotypes
 #ifdef DEBUG
       {
@@ -67,6 +75,7 @@ void compute_ehh(short int **data,
         ehh[j] = 0.0;                                                           // ... then the EHH is nought, and ...
         break;                                                                  // ... quit the loop
       }
+      previous = j;
     }
     init_hapl(data,focl_snp,allele,UNDEFND,nbr_chrs,haplotype,&nbr_dstnct_hapl,refrnce_hapl,hapl_count); // initialize the array of haplotypes
 #ifdef DEBUG
@@ -82,7 +91,12 @@ void compute_ehh(short int **data,
       printf("\n");
     }
 #endif
+    previous = focl_snp;
     for (j = (focl_snp + 1); j < nbr_snps; j++) {                               // walk along the chromosome from the focal SNP to the right-hand side
+      if (fabs(map[previous] - map[j]) > max_gap) {                             // If the map distance between two consecutive SNPs is larger than max_gap, ...
+        ehh[j] = 0.0;                                                           // ... then the EHH is nought, and ...
+        break;                                                                  // ... quit the loop
+      }
       updt_hapl(data,j,nbr_chrs,&tot_nbr_hapl[j],haplotype,&nbr_dstnct_hapl,refrnce_hapl,hapl_count); // ... and update the list of haplotypes
 #ifdef DEBUG
       {
@@ -107,6 +121,7 @@ void compute_ehh(short int **data,
         ehh[j] = 0.0;                                                           // ... then the EHH is nought, and ...
         break;                                                                  // ... quit the loop
       }
+      previous = j;
     }
   }
   free(haplotype);
@@ -115,17 +130,20 @@ void compute_ehh(short int **data,
 }
 
 void compute_ehhs(short int **data,
+                  double *map,
                   int focl_snp,
                   int nbr_snps,
                   int nbr_chrs,
                   int *tot_nbr_hapl,
                   int min_nbr_hapl,
                   double min_ehhs,
+                  double max_gap,
                   double *ehhs_tang,
                   double *ehhs_sabeti)
 
 {
   int i,j;
+  int previous;
   int nbr_dstnct_hapl;                                                          // Number of distinct haplotypes
   int *haplotype;
   int *refrnce_hapl;
@@ -147,7 +165,13 @@ void compute_ehhs(short int **data,
     ehhs_tang[focl_snp] = 1.0;                                                  //... the EHHS (Tang et al's 2007) at the focal SNP is 1.0, by definition
     ehhs_sabeti[focl_snp] = 1.0;                                                //... the EHHS (Sabeti et al's 2007) at the focal SNP is 1.0, by definition
     init_hapl(data,focl_snp,ANCSTRL,DERIVED,nbr_chrs,haplotype,&nbr_dstnct_hapl,refrnce_hapl,hapl_count); // initialize the array of haplotypes (for the focal SNP)
+    previous = focl_snp;
     for (j = (focl_snp - 1); j >= 0; j--) {                                     // walk along the chromosome from the focal SNP to the left-hand side, ...
+      if (fabs(map[previous] - map[j]) > max_gap) {                             // If the map distance between two consecutive SNPs is larger than max_gap, ...
+        ehhs_tang[j] = 0.0;                                                     // ... then the EHHS (Tang et al's 2007) is nought, and ...
+        ehhs_sabeti[j] = 0.0;                                                   // ... then the EHHS (Sabeti et al's 2007) is nought, and ...
+        break;                                                                  // ... quit the loop
+      }
       updt_hapl(data,j,nbr_chrs,&tot_nbr_hapl[j],haplotype,&nbr_dstnct_hapl,refrnce_hapl,hapl_count); // ... and update the list of haplotypes
       for (i = 0; i < nbr_dstnct_hapl; i++) {
         hapl_snp[i] = data[ refrnce_hapl[i] ][focl_snp];
@@ -175,9 +199,16 @@ void compute_ehhs(short int **data,
         ehhs_sabeti[j] = 0.0;                                                   // ... then the EHHS (Sabeti et al's 2007) is nought, and ...
         break;                                                                  // ... quit the loop
       }
+      previous = j;
     }
     init_hapl(data,focl_snp,ANCSTRL,DERIVED,nbr_chrs,haplotype,&nbr_dstnct_hapl,refrnce_hapl,hapl_count); // initialize the array of haplotypes (for the focal SNP)
+    previous = focl_snp;
     for (j = (focl_snp + 1); j < nbr_snps; j++) {                               // walk along the chromosome from the focal SNP to the right-hand side
+      if (fabs(map[previous] - map[j]) > max_gap) {                             // If the map distance between two consecutive SNPs is larger than max_gap, ...
+        ehhs_tang[j] = 0.0;                                                     // ... then the EHHS (Tang et al's 2007) is nought, and ...
+        ehhs_sabeti[j] = 0.0;                                                   // ... then the EHHS (Sabeti et al's 2007) is nought, and ...
+        break;                                                                  // ... quit the loop
+      }
       updt_hapl(data,j,nbr_chrs,&tot_nbr_hapl[j],haplotype,&nbr_dstnct_hapl,refrnce_hapl,hapl_count); // ... and update the list of haplotypes
       for (i = 0; i < nbr_dstnct_hapl; i++) {
         hapl_snp[i] = data[ refrnce_hapl[i] ][focl_snp];
@@ -205,6 +236,7 @@ void compute_ehhs(short int **data,
         ehhs_sabeti[j] = 0.0;                                                   // ... then the EHHS (Sabeti et al's 2007) is nought, and ...
         break;                                                                  // ... quit the loop
       }
+      previous = j;
     }
   }
   free(haplotype);
