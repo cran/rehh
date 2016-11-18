@@ -25,7 +25,7 @@ calc_ehh <- function(haplohh,mrk,limhaplo = 2,limehh = 0.05,maxgap = NA,plotehh 
 	ehh = matrix(res.ehh$EHH,2,haplohh@nsnp,byrow = T)
 	rownames(ehh) = rownames(nhaplo_eval) = c("Ancestral allele","Derived allele")
 	colnames(ehh) = colnames(nhaplo_eval) = haplohh@snp.name
-	ihh = res.ehh$IHH
+	ihh = replace(res.ehh$IHH,which(res.ehh$IHH == -1),NA)
 	names(ihh) = c("Ancestral allele","Derived allele")
 	if (plotehh) {
 		sel_reg <- (colSums(nhaplo_eval) > 0)

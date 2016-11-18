@@ -1,4 +1,4 @@
-scan_hh<-function(haplohh,limhaplo = 2,limehh = 0.05,limehhs = 0.05,maxgap = NA,threads = 1) {
+scan_hh <- function(haplohh,limhaplo = 2,limehh = 0.05,limehhs = 0.05,maxgap = NA,threads = 1) {
 	
 	if (!(is.haplohh(haplohh))) {stop("The data are not formatted as a valid haplohh object... (see the data2haplohh() function)")} 
 	if (limhaplo < 2) {stop("limhaplo must be larger than 1")}
@@ -23,17 +23,14 @@ scan_hh<-function(haplohh,limhaplo = 2,limehh = 0.05,limehhs = 0.05,maxgap = NA,
 				number_threads = as.integer(threads)
 				)
 	tmp_n1 = colSums(haplohh@haplo == 1)
-#	tmp_freq = tmp_n1 / (tmp_n1 + colSums(haplohh@haplo == 2))
-#	RES_ALL = cbind(rep(haplohh@chr.name,haplohh@nsnp),haplohh@position,tmp_freq,matrix(res_scan$IHH,haplohh@nsnp,2),res_scan$IES_TANG,res_scan$IES_SABETI)
-#	rownames(RES_ALL) = haplohh@snp.name
-#	colnames(RES_ALL) = c("CHR","POSITION","freq_A","iHH_A","iHH_D","iES_Tang_et_al_2007","iES_Sabeti_et_al_2007")
-	freq_A=tmp_n1 / (tmp_n1 + colSums(haplohh@haplo == 2))
-	CHR=rep(haplohh@chr.name,haplohh@nsnp)
-	POSITION=haplohh@position
-	tmp.ihh=matrix(res_scan$IHH,haplohh@nsnp,2)
-	iHH_A=tmp.ihh[,1]
-	iHH_D=tmp.ihh[,2]
-	iES_Tang_et_al_2007=res_scan$IES_TANG
-	iES_Sabeti_et_al_2007=res_scan$IES_SABETI
+	freq_A = tmp_n1 / (tmp_n1 + colSums(haplohh@haplo == 2))
+	CHR = rep(haplohh@chr.name,haplohh@nsnp)
+	POSITION = haplohh@position
+	tmp.ihh = matrix(res_scan$IHH,haplohh@nsnp,2)
+	tmp.ihh[tmp.ihh == -1]=NA
+	iHH_A = tmp.ihh[,1]
+	iHH_D = tmp.ihh[,2]
+	iES_Tang_et_al_2007 = replace(res_scan$IES_TANG,which(res_scan$IES_TANG == -1),NA)
+	iES_Sabeti_et_al_2007 = replace(res_scan$IES_SABETI,which(res_scan$IES_SABETI == -1),NA)
 	return(data.frame(CHR,POSITION,freq_A,iHH_A,iHH_D,iES_Tang_et_al_2007,iES_Sabeti_et_al_2007,row.names=haplohh@snp.name,stringsAsFactors=FALSE))
 }

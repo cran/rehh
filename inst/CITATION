@@ -20,7 +20,7 @@ citEntry(entry="Article",
          journal = 	 "Molecular Ecology Resources",
          year = 	 0,
          volume =	 0,
-         number =	 "submitted",
+         number =	 "accepted",
          pages="1176-1177",
          textVersion ="Gautier M., Klassmann A., and Vitalis R. (2016). rehh: An R package to detect footprints of selection in genome-wide SNP data from haplotype structure. Molecular Ecology Resources, submitted" )
 

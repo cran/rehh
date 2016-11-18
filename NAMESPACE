@@ -15,10 +15,11 @@ export(rsbplot)
 export(scan_hh)
 export(xpehhplot)
 
+import(rehh.data)
 import(gplots)
 import(methods)
 importFrom("grDevices", "dev.new")
 importFrom("graphics", "abline", "axis", "curve", "legend", "lines","matplot", "par", "plot", "plot.new")
 importFrom("stats", "density", "dnorm", "median", "pnorm", "qqnorm","sd")
-importFrom("utils", "read.table", "tail")
+importFrom("utils", "read.table", "tail","unzip")
 

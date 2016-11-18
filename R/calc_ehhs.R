@@ -26,9 +26,9 @@ calc_ehhs <- function(haplohh,mrk,limhaplo = 2,limehhs = 0.05,maxgap = NA,ploteh
   				
 	nhaplo_eval = res.ehhs$number_haplotypes 
 	ehhs_tang = res.ehhs$EHHS_TANG
-	ies_tang = res.ehhs$IES_TANG
+	ies_tang = replace(res.ehhs$IES_TANG,which(res.ehhs$IES_TANG == -1),NA)
 	ehhs_sabeti = res.ehhs$EHHS_SABETI
-	ies_sabeti = res.ehhs$IES_SABETI
+	ies_sabeti = replace(res.ehhs$IES_SABETI,which(res.ehhs$IES_SABETI == -1),NA)
 	names(ehhs_tang) = names(ehhs_sabeti) = names(nhaplo_eval) = haplohh@snp.name
 	
 	if (plotehhs) {

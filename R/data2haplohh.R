@@ -11,10 +11,14 @@ is.haplohh <- function (x)
 
 
 make.example.files <- function() {
-     file.copy(system.file('bta12_hapguess_switch.out',package='rehh'),'bta12_hapguess_switch.out')
-     file.copy(system.file('map.inp',package='rehh'),'map.inp')
-     file.copy(system.file('bta12_cgu.hap',package='rehh'),'bta12_cgu.hap')
-     file.copy(system.file('bta12_cgu.thap',package='rehh'),'bta12_cgu.thap')
+     file.copy(system.file('bta12_hapguess_switch.out.zip',package='rehh.data'),'bta12_hapguess_switch.out.zip')
+     unzip('bta12_hapguess_switch.out.zip')
+     file.copy(system.file('map.inp.zip',package='rehh.data'),'map.inp.zip')
+     unzip('map.inp.zip')
+     file.copy(system.file('bta12_cgu.hap.zip',package='rehh.data'),'bta12_cgu.hap.zip')
+     unzip('bta12_cgu.hap.zip')
+     file.copy(system.file('bta12_cgu.thap.zip',package='rehh.data'),'bta12_cgu.thap.zip')
+     unzip('bta12_cgu.thap.zip')
 }
 
 data2haplohh<-function(hap_file,map_file,min_maf=0,min_perc_geno.hap=100,min_perc_geno.snp=100,chr.name=NA,popsel=NA,recode.allele=FALSE,haplotype.in.columns=FALSE){
@@ -222,8 +226,3 @@ if(haplotype.in.columns){
     cat("Data consists of",res@nhap,"haplotypes and",res@nsnp,"SNPs\n")
     return(res)
 }
-
-
-
-
-

@@ -1,3 +1,8 @@
+Changes from Version 2.0.1 to 2.0.2 [Nov 15 2016]
+
+* Option maxgap modified (functions return NA value if not satisfied)
+* Example data sets removed from the rehh package and included in the newly developed rehh.data package. The function make.example.files() was modified accordingly.
+
 Changes from Version 2.0.0 to 2.0.1 [Oct 24 2016]
 
 * Option maxgap added to the calc_ehh, calc_ehhs and scan_hh functions

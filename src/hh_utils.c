@@ -1,7 +1,6 @@
 #include "hh_utils.h"
 
 void compute_ehh(short int **data,
-                 double *map,
                  int focl_snp,
                  int allele,
                  int nbr_snps,
@@ -9,7 +8,6 @@ void compute_ehh(short int **data,
                  int *tot_nbr_hapl,
                  int min_nbr_hapl,
                  double min_ehh,
-                 double max_gap,
                  double *ehh)
 
 {
@@ -47,10 +45,6 @@ void compute_ehh(short int **data,
 #endif
     previous = focl_snp;
     for (j = (focl_snp - 1); j >= 0; j--) {                                     // walk along the chromosome from the focal SNP to the left-hand side, ...
-      if (fabs(map[previous] - map[j]) > max_gap) {                             // If the map distance between two consecutive SNPs is larger than max_gap, ...
-        ehh[j] = 0.0;                                                           // ... then the EHH is nought, and ...
-        break;                                                                  // ... quit the loop
-      }
       updt_hapl(data,j,nbr_chrs,&tot_nbr_hapl[j],haplotype,&nbr_dstnct_hapl,refrnce_hapl,hapl_count); // ... and update the list of haplotypes
 #ifdef DEBUG
       {
@@ -93,10 +87,6 @@ void compute_ehh(short int **data,
 #endif
     previous = focl_snp;
     for (j = (focl_snp + 1); j < nbr_snps; j++) {                               // walk along the chromosome from the focal SNP to the right-hand side
-      if (fabs(map[previous] - map[j]) > max_gap) {                             // If the map distance between two consecutive SNPs is larger than max_gap, ...
-        ehh[j] = 0.0;                                                           // ... then the EHH is nought, and ...
-        break;                                                                  // ... quit the loop
-      }
       updt_hapl(data,j,nbr_chrs,&tot_nbr_hapl[j],haplotype,&nbr_dstnct_hapl,refrnce_hapl,hapl_count); // ... and update the list of haplotypes
 #ifdef DEBUG
       {
@@ -130,14 +120,12 @@ void compute_ehh(short int **data,
 }
 
 void compute_ehhs(short int **data,
-                  double *map,
                   int focl_snp,
                   int nbr_snps,
                   int nbr_chrs,
                   int *tot_nbr_hapl,
                   int min_nbr_hapl,
                   double min_ehhs,
-                  double max_gap,
                   double *ehhs_tang,
                   double *ehhs_sabeti)
 
@@ -167,11 +155,6 @@ void compute_ehhs(short int **data,
     init_hapl(data,focl_snp,ANCSTRL,DERIVED,nbr_chrs,haplotype,&nbr_dstnct_hapl,refrnce_hapl,hapl_count); // initialize the array of haplotypes (for the focal SNP)
     previous = focl_snp;
     for (j = (focl_snp - 1); j >= 0; j--) {                                     // walk along the chromosome from the focal SNP to the left-hand side, ...
-      if (fabs(map[previous] - map[j]) > max_gap) {                             // If the map distance between two consecutive SNPs is larger than max_gap, ...
-        ehhs_tang[j] = 0.0;                                                     // ... then the EHHS (Tang et al's 2007) is nought, and ...
-        ehhs_sabeti[j] = 0.0;                                                   // ... then the EHHS (Sabeti et al's 2007) is nought, and ...
-        break;                                                                  // ... quit the loop
-      }
       updt_hapl(data,j,nbr_chrs,&tot_nbr_hapl[j],haplotype,&nbr_dstnct_hapl,refrnce_hapl,hapl_count); // ... and update the list of haplotypes
       for (i = 0; i < nbr_dstnct_hapl; i++) {
         hapl_snp[i] = data[ refrnce_hapl[i] ][focl_snp];
@@ -204,11 +187,6 @@ void compute_ehhs(short int **data,
     init_hapl(data,focl_snp,ANCSTRL,DERIVED,nbr_chrs,haplotype,&nbr_dstnct_hapl,refrnce_hapl,hapl_count); // initialize the array of haplotypes (for the focal SNP)
     previous = focl_snp;
     for (j = (focl_snp + 1); j < nbr_snps; j++) {                               // walk along the chromosome from the focal SNP to the right-hand side
-      if (fabs(map[previous] - map[j]) > max_gap) {                             // If the map distance between two consecutive SNPs is larger than max_gap, ...
-        ehhs_tang[j] = 0.0;                                                     // ... then the EHHS (Tang et al's 2007) is nought, and ...
-        ehhs_sabeti[j] = 0.0;                                                   // ... then the EHHS (Sabeti et al's 2007) is nought, and ...
-        break;                                                                  // ... quit the loop
-      }
       updt_hapl(data,j,nbr_chrs,&tot_nbr_hapl[j],haplotype,&nbr_dstnct_hapl,refrnce_hapl,hapl_count); // ... and update the list of haplotypes
       for (i = 0; i < nbr_dstnct_hapl; i++) {
         hapl_snp[i] = data[ refrnce_hapl[i] ][focl_snp];
@@ -343,12 +321,10 @@ void updt_hapl(short int** data,
             *nbr_dstnct_hapl -= 1;                                              // ... and decrease the number of distinct haplotypes by one
           }
           haplotype[i] = UNDEFND;                                               // ... then (if the data is missing at the SNP considered) the ith haplotype is undefined
-//          derived_hapl[ haplotype[i] ] = UNDEFND;                               // ... as well as the haplotype that derives from the ith haplotype
         }
         else {                                                                  // ... otherwise (if the ith haplotype is NOT a referenced copy of itself), ...
           hapl_count[ haplotype[i] ] -= 1;                                      // ... then decrease the haplotype count for haplotype[i]
           haplotype[i] = UNDEFND;                                               // ... and set the ith haplotype to the undefined state
-//          derived_hapl[ haplotype[i] ] = UNDEFND;                               // ... as well as the haplotype that derives from the ith haplotype
         }
       }
       else if (data[i][snp] != data[ refrnce_hapl[ haplotype[i] ] ][snp]) {     // If (at the position considered) the ith chromosome carries a new allele that differs from the referenced haplotype
@@ -429,15 +405,22 @@ double site_hapl_homzgsty(int tot_nbr_hapl,
 double integrate(double *x_axis,
                  double *y_axis,
                  int n,
-                 double threshold)
+                 double threshold,
+                 double max_gap)
 
 {
   int i;
   double height,width;
   double area = 0.0;
   
+  if ((y_axis[0] > threshold) || (y_axis[n - 1] > threshold)) {                 // If the EHH or EHHS is larger than the minimum value at either end of the chromosome, ...
+    return (UNDEFND);                                                           // ... then do not compute the integral, and quit
+  }
   for (i = 0; i < (n - 1); i++) {
     if ((y_axis[i] > threshold) || (y_axis[i + 1] > threshold)) {
+      if (fabs(x_axis[i + 1] - x_axis[i]) > max_gap) {                          // If a gap larger than max_gap exists within the 'support' of the EHH or EHHS, ...
+        return (UNDEFND);                                                       // ... then do not compute the integral, and quit
+      }
       if ((y_axis[i] > threshold) && (y_axis[i + 1] > threshold)) {
         height = y_axis[i] + y_axis[i + 1] - 2.0 * threshold;
         width = x_axis[i + 1] - x_axis[i];

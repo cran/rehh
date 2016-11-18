@@ -6,12 +6,12 @@
 Searching for footprints of selection using Haplotype Homozygosity based tests
 }
 \description{
-Functions for the detection of footprints of selection on dense SNP data using Extended Homozygosity Haplotype (EHH) based tests. The package includes computation of EHH, iHS (within population) and Rsb (across pairs of populations) statistics. Various plotting functions are also included to facilitate visualization and interpretation of the results.
+Functions for the detection of footprints of selection on dense SNP data using Extended Homozygosity Haplotype (EHH) based tests. The package includes computation of EHH, iHS (within population) and Rsb and XP-EHH (across pairs of populations) statistics. Various plotting functions are also included to facilitate visualization and interpretation of the results.
 }
 \details{
 \tabular{ll}{
 Package: \tab rehh\cr
-Version: \tab 2.0.0\cr
+Version: \tab 2.0.2\cr
 License: \tab GPL(>=2)\cr
 Depends: \tab gplots , methods\cr
 }
@@ -40,17 +40,15 @@ rsbplot                 Plot Rsb over a genome
 xpehhplot               Plot XP-EHH over a genome
 scan_hh                 Computing EHH based statistics over 
                         a whole chromosome
-wgscan.cgu              Whole genome scan results for the CGU
-                        (Creole from Guadeloupe island)
-wgscan.eut              Whole genome scan results for a pool of
-                        European taurine cattle
 }
 }
 \references{
    Gautier M., Klassmann A., and Vitalis R. (2016). rehh: An R package to detect footprints of selection in genome-wide SNP data from haplotype structure.
-   \emph{Molecular Ecology Resources}, submitted
+   \emph{Molecular Ecology Resources}, accepted
 
    Gautier M. and Vitalis R. (2012). rehh: An R package to detect footprints of 
    selection in genome-wide SNP data from haplotype structure. \emph{Bioinformatics}, \bold{28}(8), 1176--1177.
+   
+   Gautier M. and Naves M. (2011). Footprints of selection in the ancestral admixture of a New World Cattle breed. \emph{Molecular Ecology}, (20), 3128--3143.
 }
 \keyword{ package }
