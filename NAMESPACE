@@ -1,4 +1,4 @@
-useDynLib(rehh)
+useDynLib(rehh, .registration = TRUE)
 
 exportClasses(haplohh)
 export(bifurcation.diagram)
@@ -18,8 +18,7 @@ export(xpehhplot)
 import(rehh.data)
 import(gplots)
 import(methods)
-importFrom("grDevices", "dev.new")
-importFrom("graphics", "abline", "axis", "curve", "legend", "lines","matplot", "par", "plot", "plot.new")
+importFrom("grDevices", "dev.new","dev.list","dev.cur")
+importFrom("graphics", "abline", "axis", "curve", "legend", "lines","matplot", "par", "plot")
 importFrom("stats", "density", "dnorm", "median", "pnorm", "qqnorm","sd")
 importFrom("utils", "read.table", "tail","unzip")
-

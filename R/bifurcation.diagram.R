@@ -1,7 +1,21 @@
 bifurcation.diagram<-function(haplohh,mrk_foc,all_foc=1,nmrk_l=10,nmrk_r=10,limhapcount=10,refsize=0.1,linecol="blue",main_leg=NA,xlab_leg="Position"){
 
 if(!(is.haplohh(haplohh))){stop("Data oject is not of valid haplohh object... (see data2haplohh() function)")}
-if(nmrk_l<0 | nmrk_r<0){stop("nmrk_l and nmrk_r must be positive or null")}
+  if(is.numeric(mrk_foc)){
+    mrk_foc=as.integer(mrk_foc)
+    if(mrk_foc<1){
+      stop(paste0("No marker numbers smaller than 1 allowed"))
+    }
+    if(mrk_foc>haplohh@nsnp){
+      stop(paste0("The marker number ",mrk_foc," is bigger than the number of SNPs in the data set (",haplohh@nsnp,")"))
+    }
+  }else{
+    mrk_foc = as.character(mrk_foc)
+    if (!(mrk_foc %in% haplohh@snp.name)) {stop(paste0("A marker with name '",mrk_foc,"' is not contained in the data set"))}
+    mrk_foc = which(haplohh@snp.name == mrk_foc)
+  }
+
+  if(nmrk_l<0 | nmrk_r<0){stop("nmrk_l and nmrk_r must be positive or null")}
 if(limhapcount<1){stop("limhapcount must be >1")}
 
 if(is.na(main_leg)){
@@ -50,8 +64,8 @@ for(mrk in 1:nmrk_r){
 }
 }
 
-rownames(haplo_der_r)=haplo_der_r[,1] # ; rownames(haplo_anc)=haplo_anc[,1] 
-haplo_der_r=haplo_der_r[,-1] #; haplo_anc=haplo_anc[,-1]  
+rownames(haplo_der_r)=haplo_der_r[,1] # ; rownames(haplo_anc)=haplo_anc[,1]
+haplo_der_r=haplo_der_r[,-1] #; haplo_anc=haplo_anc[,-1]
 #calcul coordonnees des haplo
 coord_r=matrix(0,nrow(det_haplo_r),2) ; rownames(coord_r)=det_haplo_r[,1] ; colnames(coord_r)=c("X","Y")
 for(i in nmrk_r:0){
@@ -103,8 +117,8 @@ for(mrk in 1:nmrk_l){
 }
 }
 
-rownames(haplo_der_l)=haplo_der_l[,1] # ; rownames(haplo_anc)=haplo_anc[,1] 
-haplo_der_l=haplo_der_l[,-1] #; haplo_anc=haplo_anc[,-1]  
+rownames(haplo_der_l)=haplo_der_l[,1] # ; rownames(haplo_anc)=haplo_anc[,1]
+haplo_der_l=haplo_der_l[,-1] #; haplo_anc=haplo_anc[,-1]
 #calcul coordonnees des haplo
 coord_l=matrix(0,nrow(det_haplo_l),2) ; rownames(coord_l)=det_haplo_l[,1] ; colnames(coord_l)=c("X","Y")
 for(i in nmrk_l:0){
@@ -139,7 +153,7 @@ if(nmrk_r>0){
   for(i in (nmrk_r-1):0){
    tmp_haplo=det_haplo_r[as.numeric(det_haplo_r[,3])==i,1]
     for(hap in tmp_haplo){
-     x0=coord_r[hap,1] ; y0=coord_r[hap,2] 
+     x0=coord_r[hap,1] ; y0=coord_r[hap,2]
       for(j in 1:as.numeric(haplo_der_r[hap,1])){
         tmp_lwd=lwd_adjust[haplo_der_r[hap,1+j]]
         x1=coord_r[haplo_der_r[hap,1+j],1] ; y1=coord_r[haplo_der_r[hap,1+j],2]
@@ -155,7 +169,7 @@ if(nmrk_l>0){
  for(i in (nmrk_l-1):0){
   tmp_haplo=det_haplo_l[as.numeric(det_haplo_l[,3])==i,1]
     for(hap in tmp_haplo){
-     x0=coord_l[hap,1] ; y0=coord_l[hap,2] 
+     x0=coord_l[hap,1] ; y0=coord_l[hap,2]
       for(j in 1:as.numeric(haplo_der_l[hap,1])){
         tmp_lwd=lwd_adjust[haplo_der_l[hap,1+j]]
         x1=coord_l[haplo_der_l[hap,1+j],1] ; y1=coord_l[haplo_der_l[hap,1+j],2]

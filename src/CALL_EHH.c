@@ -7,6 +7,7 @@ void CALL_EHH(int *Rdata,
               int *nbr_chrs,
               int *tot_nbr_hapl,
               int *min_nbr_hapl,
+              int *discard_integration_at_border,
               double *min_ehh,
               double *max_gap,
               double *map,
@@ -47,8 +48,8 @@ void CALL_EHH(int *Rdata,
   }
 	compute_ehh(data,*focl_snp,ANCSTRL,*nbr_snps,*nbr_chrs,tot_nbr_hapl,*min_nbr_hapl,*min_ehh,ehh); // compute the EHH for the ancestral allele
   compute_ehh(data,*focl_snp,DERIVED,*nbr_snps,*nbr_chrs,tot_nbr_hapl + *nbr_snps,*min_nbr_hapl,*min_ehh,ehh + *nbr_snps); // compute the EHH for the derived allele
-  ihh[ANCSTRL] = integrate(map,ehh,*nbr_snps,*min_ehh,*max_gap);                // compute the IHH for the ancestral allele
-  ihh[DERIVED] = integrate(map,ehh + *nbr_snps,*nbr_snps,*min_ehh,*max_gap);    // compute the IHH for the derived allele
+  ihh[ANCSTRL] = integrate(map,ehh,*nbr_snps,*min_ehh,*max_gap,*discard_integration_at_border);         // compute the IHH for the ancestral allele
+  ihh[DERIVED] = integrate(map,ehh + *nbr_snps,*nbr_snps,*min_ehh,*max_gap,*discard_integration_at_border);    // compute the IHH for the derived allele
   for (i = 0; i < *nbr_chrs; i++) {                                             // Free the memory for the `data' array
 		free(data[i]);
 	}

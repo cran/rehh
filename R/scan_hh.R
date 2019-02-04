@@ -1,4 +1,4 @@
-scan_hh <- function(haplohh,limhaplo = 2,limehh = 0.05,limehhs = 0.05,maxgap = NA,threads = 1) {
+scan_hh <- function(haplohh,limhaplo = 2,limehh = 0.05,limehhs = 0.05,maxgap = NA,discard_integration_at_border = TRUE,threads = 1) {
 	
 	if (!(is.haplohh(haplohh))) {stop("The data are not formatted as a valid haplohh object... (see the data2haplohh() function)")} 
 	if (limhaplo < 2) {stop("limhaplo must be larger than 1")}
@@ -13,6 +13,7 @@ scan_hh <- function(haplohh,limhaplo = 2,limehh = 0.05,limehhs = 0.05,maxgap = N
 				number_SNPs  = as.integer(haplohh@nsnp),
 				number_chromosomes = as.integer(haplohh@nhap),
 				min_number_haplotypes = as.integer(limhaplo),
+				discard_integration_at_border = as.integer(discard_integration_at_border),
 				min_EHH = as.double(limehh),
 				min_EHHS = as.double(limehhs),
   				max_gap = as.double(maxgap),

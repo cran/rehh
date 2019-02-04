@@ -15,4 +15,4 @@ void init_hapl(short int **data,int snp,int frst_allele,int scnd_allele,int nbr_
 void updt_hapl(short int **data,int snp,int nbr_chrs,int *tot_nbr_hapl,int *haplotype,int *nbr_dstnct_hapl,int *refrnce_hapl,int *hapl_count);
 double hapl_homzgsty(int tot_nbr_hapl,int nbr_dstnct_hapl,int *hapl_count);
 double site_hapl_homzgsty(int tot_nbr_hapl,int nbr_dstnct_hapl,int *hapl_count,int *hapl_snp);
-double integrate(double *x_axis,double *y_axis,int n,double threshold,double max_gap);
+double integrate(double *x_axis,double *y_axis,int n,double threshold,double max_gap,int discard_integration_at_border);

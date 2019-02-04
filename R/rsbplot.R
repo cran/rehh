@@ -27,15 +27,17 @@ rsbplot <- function(data,plot.pval = TRUE,ylim.scan = 2,pch = 16,cex = 0.5,cex.l
 	}
 	col_chr <- data$CHR
 	if (nbr_chrm > 1) {
-		dev.new()
-		plot.new()
+	    if (!is.null(names(dev.list())) && ((names(dev.cur()) == "windows") | (names(dev.cur()) == "X11") | (names(dev.cur()) == "quartz"))) {
+   	    		dev.new()
+    	}
 		par(mar = c(5,5,4,2) + 0.1)
 		plot(pos,data[,3],pch = pch,cex = cex,las = 1,col = col_chr,xaxt = "n",xlab = "Chromosome",ylab = expression(italic(Rsb)),cex.lab = cex.lab,main = main,cex.main = cex.main,cex.axis=cex.axis)
 		axis(1,at = pos_labels,labels = lst_chrm,las = 1,cex.lab=cex.lab,cex.axis=cex.axis)
 		abline(h = c(-ylim.scan,ylim.scan),lty = 2)
 		if (plot.pval) {
-			dev.new()
-			plot.new()
+		    if (!is.null(names(dev.list())) && ((names(dev.cur()) == "windows") | (names(dev.cur()) == "X11") | (names(dev.cur()) == "quartz"))) {
+   	    			dev.new()
+    		}
 			par(mar = c(5,5,4,2) + 0.1)
 			plot(pos,data[,4],pch = pch,cex = cex,las = 1,col = col_chr,xaxt = "n",xlab = "Chromosome",ylab = expression(-log[10]~"("*italic(p)*"-value)"),cex.lab = cex.lab,main = main,cex.main = cex.main,cex.axis=cex.axis)
 			axis(1,at = pos_labels,labels = lst_chrm,las = 1,cex.lab=cex.lab,cex.axis=cex.axis)
@@ -59,14 +61,16 @@ rsbplot <- function(data,plot.pval = TRUE,ylim.scan = 2,pch = 16,cex = 0.5,cex.l
 			scale <- 1e9
 			unit = "(Gb)"
 		}
-		dev.new()
-		plot.new()
+	    if (!is.null(names(dev.list())) && ((names(dev.cur()) == "windows") | (names(dev.cur()) == "X11") | (names(dev.cur()) == "quartz"))) {
+   	    		dev.new()
+    	}
 		par(mar = c(5,5,4,2) + 0.1)
 		plot(pos / scale,data[,3],pch = pch,col = col_chr,xlab = paste("Position",unit),ylab = expression(italic(Rsb)),cex.lab = cex.lab,main = main,cex.main = cex.main,cex.axis=cex.axis)
 		abline(h = c(-ylim.scan,ylim.scan),lty = 2)
 		if (plot.pval) {
-			dev.new()
-			plot.new()
+		    if (!is.null(names(dev.list())) && ((names(dev.cur()) == "windows") | (names(dev.cur()) == "X11") | (names(dev.cur()) == "quartz"))) {
+   		    		dev.new()
+    		}
 			par(mar = c(5,5,4,2) + 0.1)
 			plot(pos / scale,data[,4],pch = pch,col = col_chr,xlab = paste("Position",unit),ylab = expression(-log[10]~"("*italic(p)*"-value)"),cex.lab = cex.lab,main = main,cex.main = cex.main,cex.axis=cex.axis)
 			abline(h = c(-ylim.scan,ylim.scan),lty = 2)

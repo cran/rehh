@@ -19,15 +19,17 @@ ihsplot <- function(ihsdata,plot.pval = TRUE,ylim.scan = 2,pch = 16,cex = 0.5,ce
 	}
 	col_chr <- data$CHR
 	if (nbr_chrm > 1) {
-		dev.new()
-		plot.new()
+	    if (!is.null(names(dev.list())) && ((names(dev.cur()) == "windows") | (names(dev.cur()) == "X11") | (names(dev.cur()) == "quartz"))) {
+   	    		dev.new()
+    	}
 		par(mar = c(5,5,4,2) + 0.1)
 		plot(pos,data$iHS,pch = pch,cex = cex,las = 1,col = col_chr,xaxt = "n",xlab = "Chromosome",ylab = expression(italic(iHS)),cex.lab = cex.lab,main = main,cex.main = cex.main,cex.axis=cex.axis)
 		axis(1,at = pos_labels,labels = lst_chrm,las = 1,cex.lab=cex.lab,cex.axis=cex.axis)
 		abline(h = c(-ylim.scan,ylim.scan),lty = 2)
 		if (plot.pval) {
-			dev.new()
-			plot.new()
+	 	   if (!is.null(names(dev.list())) && ((names(dev.cur()) == "windows") | (names(dev.cur()) == "X11") | (names(dev.cur()) == "quartz"))) {
+   	    			dev.new()
+    		}
 			par(mar = c(5,5,4,2) + 0.1)
 			plot(pos,data$"-log10(p-value)",pch = pch,cex = cex,las = 1,col = col_chr,xaxt = "n",xlab = "Chromosome",ylab = expression("-"*log[10]*"[1"~"-"~"2"~"|"~Phi[scriptstyle(italic(iHS))]~"-"~0.5*"|]"),cex.lab = cex.lab,main = main,cex.main = cex.main,cex.axis=cex.axis)
 			axis(1,at = pos_labels,labels = lst_chrm,las = 1,cex.lab=cex.lab,cex.axis=cex.axis)
@@ -51,14 +53,16 @@ ihsplot <- function(ihsdata,plot.pval = TRUE,ylim.scan = 2,pch = 16,cex = 0.5,ce
 			scale <- 1e9
 			unit = "(Gb)"
 		}
-		dev.new()
-		plot.new()
+	    if (!is.null(names(dev.list())) && ((names(dev.cur()) == "windows") | (names(dev.cur()) == "X11") | (names(dev.cur()) == "quartz"))) {
+   	    		dev.new()
+    	}
 		par(mar = c(5,5,4,2) + 0.1)
 		plot(pos / scale,data$iHS,pch = pch,col = col_chr,xlab = paste("Position",unit),ylab = expression(italic(iHS)),cex.lab = cex.lab,main = main,cex.main = cex.main,cex.axis=cex.axis)
 		abline(h = c(-ylim.scan,ylim.scan),lty = 2)
 		if (plot.pval) {
-			dev.new()
-			plot.new()
+	  	  if (!is.null(names(dev.list())) && ((names(dev.cur()) == "windows") | (names(dev.cur()) == "X11") | (names(dev.cur()) == "quartz"))) {
+   	    			dev.new()
+    		}
 			par(mar = c(5,5,4,2) + 0.1)
 			plot(pos / scale,data$"-log10(p-value)",pch = pch,col = col_chr,xlab = paste("Position",unit),ylab = expression("-"*log[10]*"[1"~"-"~"2"~"|"~Phi[scriptstyle(italic(iHS))]~"-"~0.5*"|]"),cex.lab = cex.lab,main = main,cex.main = cex.main,cex.axis=cex.axis)
 			abline(h = c(-ylim.scan,ylim.scan),lty = 2)

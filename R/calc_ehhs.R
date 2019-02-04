@@ -1,7 +1,19 @@
-calc_ehhs <- function(haplohh,mrk,limhaplo = 2,limehhs = 0.05,maxgap = NA,plotehhs = TRUE,lty = 1,lwd = 1.5,col = c("blue","red"),xlab = "Position",ylab = expression(Site~specific~italic(EHH)~(italic(EHHS))),cex.lab = 1.25,main = NA,cex.main = 1.5) {
+calc_ehhs <- function(haplohh,mrk,limhaplo = 2,limehhs = 0.05,maxgap = NA,discard_integration_at_border = TRUE,plotehhs = TRUE,lty = 1,lwd = 1.5,col = c("blue","red"),xlab = "Position",ylab = expression(Site~specific~italic(EHH)~(italic(EHHS))),cex.lab = 1.25,main = NA,cex.main = 1.5) {
 
-	if (!(is.haplohh(haplohh))) {stop("The data are not formatted as a valid haplohh object... (see the data2haplohh() function)")} 
-	if (mrk < 1 | mrk > haplohh@nsnp) {stop(paste("The focal SNP index must lie between",1,"and",haplohh@nsnp))}
+	if (!(is.haplohh(haplohh))) {stop("The data are not formatted as a valid haplohh object... (see the data2haplohh() function)")}
+  if(is.numeric(mrk)){
+    mrk=as.integer(mrk)
+    if(mrk<1){
+      stop(paste0("No marker numbers smaller than 1 allowed"))
+    }
+    if(mrk>haplohh@nsnp){
+      stop(paste0("The marker number ",mrk," is bigger than the number of SNPs in the data set (",haplohh@nsnp,")"))
+    }
+  }else{
+    mrk = as.character(mrk)
+    if (!(mrk %in% haplohh@snp.name)) {stop(paste0("A marker with name '",mrk,"' is not contained in the data set"))}
+    mrk = which(haplohh@snp.name == mrk)
+  }
 	if (limhaplo < 2) {stop("limhaplo must be larger than 1")}
 	if (limehhs < 0 | limehhs > 1) {stop("limehhs must lie between 0 and 1")}
 	if (is.na(maxgap)) {maxgap = (max(haplohh@position) + 1)}
@@ -15,6 +27,7 @@ calc_ehhs <- function(haplohh,mrk,limhaplo = 2,limehhs = 0.05,maxgap = NA,ploteh
   				number_chromosomes = as.integer(haplohh@nhap),
   				number_haplotypes = as.integer(nhaplo_eval),
   				min_number_haplotypes = as.integer(limhaplo),
+				discard_integration_at_border = as.integer(discard_integration_at_border),
   				min_EHHS = as.double(limehhs),
   				max_gap = as.double(maxgap),
   				map = as.double(haplohh@position),
@@ -23,14 +36,14 @@ calc_ehhs <- function(haplohh,mrk,limhaplo = 2,limehhs = 0.05,maxgap = NA,ploteh
   				EHHS_SABETI = as.double(ehhs_sabeti),
   				IES_SABETI = as.double(ies_sabeti)
   				)
-  				
-	nhaplo_eval = res.ehhs$number_haplotypes 
+
+	nhaplo_eval = res.ehhs$number_haplotypes
 	ehhs_tang = res.ehhs$EHHS_TANG
 	ies_tang = replace(res.ehhs$IES_TANG,which(res.ehhs$IES_TANG == -1),NA)
 	ehhs_sabeti = res.ehhs$EHHS_SABETI
 	ies_sabeti = replace(res.ehhs$IES_SABETI,which(res.ehhs$IES_SABETI == -1),NA)
 	names(ehhs_tang) = names(ehhs_sabeti) = names(nhaplo_eval) = haplohh@snp.name
-	
+
 	if (plotehhs) {
 		sel_reg <- (nhaplo_eval > 0)
 		if (sum(sel_reg) > 0) {
@@ -50,15 +63,16 @@ calc_ehhs <- function(haplohh,mrk,limhaplo = 2,limehhs = 0.05,maxgap = NA,ploteh
 				scale <- 1e9
 				unit = "(Gb)"
 			}
-			dev.new()
-			plot.new()
+		    if (!is.null(names(dev.list())) && ((names(dev.cur()) == "windows") | (names(dev.cur()) == "X11") | (names(dev.cur()) == "quartz"))) {
+   		    		dev.new()
+    		}
 			par(mar = c(5,5,4,2) + 0.1)
-			plot(haplohh@position[sel_reg] / scale,ehhs_sabeti[sel_reg],col = col[1],type = "l",lty = lty,lwd = lwd,main = main,bty = "n",xlab = paste(xlab,unit),ylab = ylab,cex.lab = cex.lab, cex.lab = cex.main)
+			plot(haplohh@position[sel_reg] / scale,ehhs_sabeti[sel_reg],col = col[1],type = "l",lty = lty,lwd = lwd,main = main,bty = "n",xlab = paste(xlab,unit),ylab = ylab,cex.lab = cex.lab, cex.lab = cex.main, ylim=c(0,1))
 			lines(haplohh@position[sel_reg] / scale,ehhs_tang[sel_reg],col = col[2],lty = lty,lwd = lwd)
 			abline(v = haplohh@position[mrk] / scale,lty = 2)
 			if (haplohh@position[mrk] > sum(range(haplohh@position[sel_reg])) / 2) {
 				legend("topleft",c("Sabeti et al. (2007)","Tang et al. (2007)"),col = col,bty = "n",lty = lty,lwd = lwd)
-				
+
 			}
 			else {
 				legend("topright",c("Sabeti et al. (2007)","Tang et al. (2007)"),col = col,bty = "n",lty = lty,lwd = lwd)

@@ -1,19 +1,22 @@
-  %\VignetteEngine{knitr::knitr}
-  %\VignetteIndexEntry{How to use rehh}
-  %\usepackage[utf8]{inputenc}
 ---
-title: "Vignette for the package *rehh* (version 2+)"
+title: "Vignette for the package *rehh* (version 2.0.3)"
 author: "Mathieu Gautier, Alexander Klassmann and Renaud Vitalis"
-date: "24/10/2016"
+date: "01/02/2019"
 output:
-  html_document:
-    toc: yes
   pdf_document:
+    toc: yes
     fig_caption: yes
     number_sections: yes
+  html_document:
     toc: yes
-csl: genetics.csl
+    fig_caption: yes
+    number_sections: yes
 bibliography: vignette.bib
+csl: genetics.csl
+vignette: >
+  %\VignetteIndexEntry{How to use rehh}
+  %\usepackage[utf8]{inputenc}
+  %\VignetteEngine{knitr::knitr}
 ---
 
 ```{r setup, include=FALSE}
@@ -21,86 +24,81 @@ knitr::opts_chunk$set(comment=">")
 ```
 
 \newpage
-This vignette is aimed at presenting additional information on the R package \emph{rehh} by describing how to use it to perform whole genome scan for footprints of selection using statistics related to the Extended Haplotype Homozygosity (EHH) [@Sabeti2002]. Importantly, the current implementation of tests assumes markers are bi-allelic.
 
-The \emph{rehh} package is currently available for most platforms (Linux, MS Windows and MacOSX) from the CRAN repository (\url{http://cran.r-project.org/}) and may be installed using standard procedure. Once the package has been successfully installed on your system, it can be loaded using the following command:
+This vignette describes how the R package *REHH* can be applied to perform whole genome scans for footprints of selection using statistics related to the *Extended Haplotype Homozygosity* (EHH) [@Sabeti2002].
+
+The current implementation of the package needs biallelic genetic markers as input. Typically, albeit not necessarily, these will be SNPs.
+
+The *rehh* package is currently available for most platforms (Linux, MS Windows and MacOSX) from the CRAN repository [https://cran.r-project.org/](https://cran.r-project.org/) and may be installed using a standard procedure. Once the package has been successfully installed on your system, it can be loaded by:
 ```{r message=FALSE}
 library(rehh)
 ```
 
-#Input Files
-\label{make.example.files}
+#Input Files {#make.example.files}
 
-The package \emph{rehh} basically requires as input:
+The package *rehh* requires as input:
 
-1. haplotype data file(s) (in three possible format) for each population of interest (see \ref{hap.file})
+1. a haplotype data file (in three possible formats) for each population of interest (see \ref{hap.file})
 2. a SNP information file (see \ref{map.file})
 
-**Important Note: For a given chromosome, SNPs are assumed to be ordered in the same way in both the haplotype file (columns) and the SNP information file.**
+**Important Note: For a given chromosome, SNPs are assumed to be ordered in the same way in the haplotype and SNP information files.**
 
-For illustration purposes, example files that originate from a previously published study on the Creole cattle breed from Guadeloupe (CGU) [@Gautier2011] are provided in the package and can be copied in the working directory with the following command:
+For illustration purposes, example files that originate from a previously published study on the Creole cattle breed from Guadeloupe (CGU) [@Gautier2011] are provided in the package and can be copied in the working directory with the command:
 ```{r results='hide'}
 make.example.files()
 ```
 
-In the following examples, the command \texttt{make.example.file()} is assumed to have been run (see above) so that example files are in the working directory.
+Throughout this vignette, this command is assumed to have been run so that the example files are in the working directory.
 
-##Haplotype data file
-\label{hap.file}
+##Haplotype data file {#hap.file}
 
 Three haplotype input file formats are supported:
 
-1.  a standard haplotype format. Each line represents a haplotype (the first element being an haplotype identifier) with SNP genotype in columns as in the example file \texttt{bta12\_cgu.hap} created when running the function \texttt{make.example.files()} and that consists of 280 haplotypes (identifier 1 to 280) of 1424 SNPs each. See \ref{LoadDataEx1} for a detailed example.
-2.  A (transposed) format with haplotype in columns and SNPs in row as in the example file \texttt{bta12\_cgu.thap}  created when running the function \texttt{make.example.files()}. Note that this format is similar to the one produced by the phasing program \emph{SHAPEIT2} [@OConnell2014].  See \ref{LoadDataEx2} for a detailed example.
-3.  the output file format from the phasing program \emph{fastPHASE} [@Scheet2006] as in the \texttt{bta12\_hapguess\_switch.out} example file  created when running the function \texttt{make.example.files()}. Note that haplotypes might originate from several different populations (i.e., if the -u \emph{fastPHASE} option was used).  See \ref{LoadDataEx3} for a detailed example.
+1.  a standard haplotype format. Each line represents a haplotype (the first element being an haplotype identifier) with SNP genotype in columns as in the example file `bta12_cgu.hap` containing 280 haplotypes (identifier 1 to 280) with 1424 SNPs each (see section \ref{LoadDataEx1}).
+2.  a (transposed) format with haplotypes in columns and SNPs in rows as in the example file `bta12_cgu.thap`. This format is similar to the one produced by the phasing program *SHAPEIT2* [@OConnell2014] (see section \ref{LoadDataEx2}).
+3.  the output file format from the phasing program *fastPHASE* [@Scheet2006] as in the `bta12_hapguess_switch.out` example file. Note that this file format allows to include haplotypes from several populations (i.e., if the -u *fastPHASE* option was used) (see section \ref{LoadDataEx3}).
 
-By default alleles are assumed to be coded as 0 (missing data), 1 (ancestral allele) or 2 (derived allele). Recoding of the alleles in this format, according to the SNP information data file (see \ref{map.file}) can be performed with the \texttt{recode.allele} option of the function \texttt{data2haplohh()} (see \ref{LoadData}).
+By default alleles are assumed to be coded as 0 (missing data), 1 (ancestral allele) or 2 (derived allele). Other encodings can be recoded into this format, using the SNP information data file (see \ref{map.file}) and the `recode.allele` option of the function `data2haplohh()` (see \ref{LoadData}).
 
-##SNP information data file
-\label{map.file}
+##SNP information file {#map.file}
 
-This data file should contain SNP information as in the \texttt{map.inp} example file created when running the function \texttt{make.example.files()}. Each line contains five columns corresponding to:
-
-1. the SNP name
-2. the SNP chromosome (or scaffold) of origin
-3. the SNP position on the chromosome (or scaffold). Note that it is up to the user to choose either physical or genetic map positions (if available).
-4. the SNP ancestral allele (as coded in the haplotype input file)
-5. the SNP derived alleles (as coded in the haplotype input file)
-
-The fourth and fifth columns (allele coding) should be filled in but the corresponding information is only used when activating the \texttt{recode.allele} option of the function \texttt{data2haplohh()} (see \ref{LoadData}). In that case, for each SNP, the allele specified in the fourth (respectively fifth) column will be recoded as 1 (respectively 2), any other allele name will be recoded as 0 (i.e., missing data). More importantly, it should be noticed that the ancestral or derived allele information associated to this coding are only relevant for within population tests (based on \emph{iHS}). In other words, if one is only interested in across-population tests (based on \emph{Rsb} or \emph{xpEHH}), assignment of the two SNP alleles in the fourth and fifth column may be performed randomly. 
-
-As an illustration, the following R command displays the first five row of the \texttt{map.inp} example file created when running the function \texttt{make.example.files()}:
+The SNP information file should contain columns without header as in the `map.inp` example:
 
 ```{r}
 head(read.table("map.inp"))
 ```
 
+For each SNP the five columns correspond to:
 
-##Loading data files
-\label{LoadData}
-The \texttt{data2haplohh()} function allows to convert data file into an R object of class \texttt{haplohh} subsequently used by the functions of the \emph{rehh} package. The following main options are available to recode alleles or select SNPs (based on Minor Allele Frequency or percentage of missing data) and haplotypes (based on percentage of missing data): 
+1. name/identifier
+2. chromosome (or scaffold) of origin
+3. position on the chromosome (or scaffold). Note that it is up to the user to choose either physical or genetic map positions (if available).
+4. ancestral allele (as coded in the haplotype input file)
+5. derived allele (as coded in the haplotype input file)
 
-1. **Allele recoding option**: This option is activated with \texttt{recode.allele=TRUE} and allows to recode haplotype according to the ancestral and derived allele definition available in the SNP information file (fourth and fifth columns) as: 0 (missing data), 1 (ancestral allele) or 2 (derived allele). 
-2. **Discard haplotypes with a high amount of missing data**. If haplotypes contain missing data (which is generally not the case since most phasing programs allow imputing missing genotypes), it is possible to discard those with less \texttt{min\_perc\_geno.hap} \% of the SNPs genotyped. By default \texttt{min\_perc\_geno.hap=100} meaning that only completely phased haplotypes are retained.   
-3. **Discard SNPs with a high amount of missing data**. It is possible to discard SNPs genotyped on less than \texttt{min\_perc\_geno.snp} \% of the haplotypes. By default \texttt{min\_perc\_geno.snp=100} meaning that only fully genotyped SNPs are retained.
-4. **Discard SNPs with a low Minor Allele Frequency**. It is possible to discard SNPs with a MAF below \texttt{min\_maf}. This is generally not recommended and by default \texttt{min\_maf=0} meaning that all SNPs are retained.\footnote{The arguments \texttt{min\_perc\_geno.hap}, \texttt{min\_perc\_geno.snp} and \texttt{min\_maf} are evaluated in this order.}
+The fourth and fifth columns (allele coding) should be always filled in, although the corresponding information is only of relevance when the `recode.allele` option of the function `data2haplohh()` is used (see \ref{LoadData}). In that case, the allele encoding in the haplotype file will be replaced by either 1 (ancestral) if the allele is found in the fourth column of the info file, 2 (derived) if it is found on the fifth column and 0 (missing data) otherwise. The information about ancestral or derived status is relevant only for within population tests (based on *iHS*). If one is interested exclusively in cross-population tests (based on *Rsb* or *XP-EHH*), assignment of the two alleles to the fourth and fifth column may be done at random. 
+
+##Loading data files {#LoadData}
+The `data2haplohh()` function converts data files into an R object of class `haplohh` subsequently used by several functions of the *rehh* package. The following main options are available to recode alleles or select SNPs (based on Minor Allele Frequency or percentage of missing data) and haplotypes (based on percentage of missing data): 
+
+1. **Allele recoding option**: This option is activated with `recode.allele=TRUE` and in this case recodes the haplotype. The allele coding of the haplotype file is replaced by 0 (missing data), 1 (ancestral allele) or 2 (derived allele) according to the whether the allele coding is given at the fourth or fifth column in the corresponding row of the SNP information file. 
+2. **Discard haplotypes with a high amount of missing data**. If haplotypes contain missing data (which typically doesn't occurr since most phasing programs allow imputing missing genotypes), it is possible to discard those with a fraction of less than `min_perc_geno.hap` of SNPs genotyped. By default `min_perc_geno.hap=100` meaning that only completely phased haplotypes are retained.
+3. **Discard SNPs with a high amount of missing data**. It is possible to discard individual SNPs genotyped on a fraction of less than `min_perc_geno.snp` of haplotypes. By default `min_perc_geno.snp=100` meaning that only fully genotyped SNPs are retained.
+4. **Discard SNPs with a low Minor Allele Frequency**. It is possible to discard SNPs with a MAF below `min_maf`. This is generally not recommended and by default `min_maf=0` meaning that all SNPs are retained.\footnote{The arguments \texttt{min\_perc\_geno.hap}, \texttt{min\_perc\_geno.snp} and \texttt{min\_maf} are evaluated in this order.}
 
 More details about the different arguments of the function are available in the documentation accessible using the command:
 ```{r}
 ?data2haplohh
 ```
 
-In the following we detail three different examples based on the example data files provided with the package (see \ref{make.example.files}).
-
-###Example 1: reading haplotype file in standard format
-\label{LoadDataEx1}
-In this example, the example haplotype input file \texttt{bta12\_cgu.hap} (standard format) and SNP information input files \texttt{map.inp} are converted into an \texttt{haplohh} object named \texttt{hap}. Because the map file contains information for SNPs mapping to other chromosomes than the one of interest (BTA12), we use the option \texttt{chr.name=12}. Allele recoding is activated (\texttt{recode.allele=TRUE}) to allow recoding alleles in the \emph{rehh} format (0,1 or 2).
+###Example 1: reading haplotype file in standard format {#LoadDataEx1}
+In this example, the haplotype input file `bta12_cgu.hap` (in a standard haplotype format) and SNP information input file `map.inp` are converted into an `haplohh` object named `hap`. Because the map file contains information for SNPs mapping to multiple chromosomes we have to specify that the haplotype input file is about chromosome 12 by setting the option `chr.name=12`. Allele recoding is activated (`recode.allele=TRUE`) to recode alleles given in the haplotype file as nucleotides to 0, 1 or 2.
 ```{r }
 hap<-data2haplohh(hap_file="bta12_cgu.hap",map_file="map.inp",
                   recode.allele=TRUE,chr.name=12)
 ```
 
-If no value is specified for \texttt{chr.name} argument and more than one chromosome is detected in the map file, the function asks interactively which chromosome to choose:
+If no value is specified for the `chr.name` argument and more than one chromosome is detected in the map file, the function asks interactively which chromosome to choose:
 
 ```{r eval=FALSE}
 hap<-data2haplohh(hap_file="bta12_cgu.hap",map_file="map.inp",
@@ -116,36 +114,34 @@ cat("More than one chromosome name in Map file: map.inp\nWhich chromosome should
 hap<-data2haplohh(hap_file="bta12_cgu.hap",map_file="map.inp",recode.allele=TRUE,chr.name=12)
 ```
 
-Finally, as an example of error message, the following message is prompted if the number of SNPs in the chromosome (for instance when a wrong chromosome is declared) does not correspond to the one in the haplotype file:
+Finally, as an example of an error message, the following message is prompted if the number of SNPs for the chromosome in the info file does not correspond to the one in the haplotype file (for instance when a wrong chromosome is specified):
 
 ```{r error=TRUE}
 hap<-data2haplohh(hap_file="bta12_cgu.hap",map_file="map.inp",
                   recode.allele=TRUE,chr.name=18)
 ```
 
-###Example 2: reading haplotype file in transposed format (\emph{SHAPIT2}--like)
-\label{LoadDataEx2}
+###Example 2: reading haplotype file in transposed format (*SHAPIT2*--like) {#LoadDataEx2}
 
-In this example, the example haplotype input file \texttt{bta12\_cgu.thap} (transposed format) and SNP information input files \texttt{map.inp} are converted into an \texttt{haplohh} object named \texttt{hap}. Setting \texttt{haplotype.in.columns=TRUE} informs the function that the haplotype file is in transposed format:
+In this example, the haplotype input file `bta12_cgu.thap` (transposed format) and the SNP information input file `map.inp` are converted to an `haplohh` object named `hap`. Setting `haplotype.in.columns=TRUE` informs the function that the haplotype file is in transposed format:
 ```{r}
 hap<-data2haplohh(hap_file="bta12_cgu.thap",map_file="map.inp",haplotype.in.columns=TRUE,
                   recode.allele=TRUE,chr.name=12)
 ```
 
-###Example 3: reading haplotype file in \emph{fastPHASE} output format
-\label{LoadDataEx3}
-In this example, the example \emph{fastPHASE} output file \texttt{bta12\_hapguess\_switch.out} and SNP information input files \texttt{map.inp} are 
-converted into a \texttt{haplohh} object named \texttt{haplo}. As explained above we use the option \texttt{chr.name=12}. 
-Because, haplotypes originate from several populations (the -u \emph{fastPHASE} option was used), we specify the population of interest 
-(in our example the 280 haplotypes from the CGU population, see above) using the option \texttt{popsel=7} 
-(7 corresponding to the code of CGU in the example \emph{fastPHASE} input files).
+###Example 3: reading haplotype file in *fastPHASE* output format {#LoadDataEx3}
+In this example, the *fastPHASE* output file `bta12_hapguess_switch.out` and the SNP information input file `map.inp` are 
+converted into a `haplohh` object named `hap`. As explained above we use the option `chr.name=12`. 
+Because haplotypes originated here from several populations (the -u *fastPHASE* option was used), we specify the population of interest 
+(in our example the 280 haplotypes from the CGU population, see above) using the option `popsel=7`
+(7 corresponding to the code of CGU in the example *fastPHASE* input file).
 
 ```{r}
 hap<-data2haplohh(hap_file="bta12_hapguess_switch.out",map_file="map.inp",
                   recode.allele=TRUE,popsel=7,chr.name=12)
 ```
 
-If no value is specified for the \texttt{popsel} argument and more than one population is detected in the \emph{fastPHASE} output file, the function asks interactively which population to chose:
+If no value is specified for the `popsel` argument and more than one population is detected in the *fastPHASE* output file, the function asks interactively which population to chose:
 
 ```{r eval=FALSE}
 hap<-data2haplohh(hap_file="bta12_hapguess_switch.out",map_file="map.inp",
@@ -162,62 +158,86 @@ cat("Map file seems OK: 1424  SNPs declared for chromosome 12\nLooks like a Fast
 hap<-data2haplohh(hap_file="bta12_hapguess_switch.out",map_file="map.inp",recode.allele=TRUE,popsel=7,chr.name=12)
 ```
 
-#Computing \emph{EHH}-based statistics for individual markers with the \texttt{calc\_ehh()}, \texttt{calc\_ehhs()} and \texttt{scan\_hh()} functions
-##Definition and Computation
+#Computing *EHH*, *EHHS* and their "integrals" *iHH* and *iES*: the `calc_ehh()`, `calc_ehhs()` and `scan_hh()` functions
 
-###The (allele-specific) Extended Haplotype Homozygosity (\emph{EHH})
-\label{EHH}
-For a given core allele (i.e., the ancestral or derived allele) at a focal SNP, the (allele--specific) extended haplotype homozygosity (\emph{EHH}) is defined as the probability that two randomly chosen chromosomes (carrying the core allele considered) are identical by descent (as assayed by homozygosity at all SNPs) over a given surrounding chromosome region [@Sabeti2002]. The \emph{EHH} thus aims at measuring to which extent an extended haplotype is transmitted without recombination. In practice, the \emph{EHH} ($\mathrm{EHH}_{s,t}$) of a tested core allele $a_s$ ($a_s=1$ or $a_s=2$) for a focal SNP $s$ over the chromosome interval extending to SNP $t$ is computed as:
+##Definition and computation
+
+###The (allele-specific) Extended Haplotype Homozygosity (*EHH*) {#EHH}
+For a given core allele (either ancestral or derived) at a focal SNP, the (allele--specific) extended haplotype homozygosity (*EHH*) is defined as the probability that two randomly chosen chromosomes (carrying the core allele considered) are identical by descent (as assayed by homozygosity at all SNPs) over a given surrounding chromosomal region [@Sabeti2002]. The *EHH* aims at measuring to which extent an extended haplotype is transmitted without mutation and recombination. It is computed for a given core allele $a$ (ancestral or derived) of a focal SNP $s$ over the chromosomal stretch extending to some SNP $t$:
 \begin{equation}
 \label{ehh.def}
-\mathrm{EHH}_{s,t}=\frac{1}{n_{a_s}(n_{a_s}-1)}\sum\limits_{k=1}^{K_{a_s,t}}n_k(n_k-1)
+\mathrm{EHH}_{s,t}^a=\frac{1}{n_{a}(n_a-1)}\sum\limits_{k=1}^{K^a_{s,t}}n_k(n_k-1)
 \end{equation}
-where $n_{a_s}$ represents the number of haplotype carrying the core allele $a_s$, $K_{a_s,t}$ represents the number of different extended haplotypes (from SNP $s$ to SNP $t$) carrying $a_s$ and $n_k$ is the number of the extended haplotype $k$ (i.e., $n_{a_s}=\sum\limits_{k=1}^{K_{a_s,t}}n_k$).
+where $n_a$ represents the number of chromosomes carrying the core allele $a$, $K^a_{s,t}$ represents the number of **different** extended haplotypes that can be discerned among these chromosomes from SNP $s$ to SNP $t$, and $n_k$ refers to the number of chromosomes pertaining to the $k$-th such extended haplotype (it yields $n_a=\sum\limits_{k=1}^{K^a_{s,t}}n_k$).
 
-###The integrated (allele-specific) \emph{EHH} (\emph{iHH})
-\label{iHH}
-By definition, irrespective of the allele considered, \emph{EHH} starts at 1, and decays monotonically to 0 with increasing distance from the focal SNP. For a given core allele, the integrated \emph{EHH} (\emph{iHH}) is defined as the area under the \emph{EHH} curve with respect to map position [@Voight2006]\footnote{In their seminal paper, Voight et al. considered genetic distances and apply a penalty (proportional to physical distances) for successive SNPs separated by more than 20 kb. In addition, they did not compute \emph{iHH} if any physical distance between a pair of neighboring SNPs was above 200 kb. We did not implement such an approach in \emph{rehh} although this might easily be done (providing relevant information is available for the genome of interest) by modifying the positions of the markers in SNP information input file.}. In \emph{rehh}, \emph{iHH} is computed using the trapezoid method. In practice, the integral might only be computed for the regions of the curve above an arbitrarily small \emph{EHH} value (e.g., \emph{EHH}>0.05). 
+###The integrated (allele-specific) *EHH* (*iHH*) {#iHH}
+By definition, irrespective of the allele considered, *EHH* starts at 1, and decays monotonically to 0 with increasing distance from the focal SNP. For a given core allele, the integrated *EHH* (*iHH*) is defined as the area under the *EHH* curve with respect to map position [@Voight2006]\footnote{In their seminal paper, Voight et al. considered genetic distances and apply a penalty (proportional to physical distances) for successive SNPs separated by more than 20 kb. In addition, they did not compute *iHH* if any physical distance between a pair of neighboring SNPs was above 200 kb. Only the latter can be specified in *rehh*.}. In *rehh*, *iHH* is computed using the trapezoid method. In practice, the integral is often truncated if the value of *EHH* reaches a certain lower threshold, e.g. 0.05. 
 
-###The site-specific Extended Haplotype Homozygosity (\emph{EHHS})
-\label{EHHS}
-For a given core SNP, the (site--specific) extended haplotype homozygosity (\emph{EHHS}) is defined as the probability that two randomly chosen chromosomes are identical by descent (as assayed by homozygosity at all SNPs) over a given surrounding chromosome region. \emph{EHHS}  might roughly be viewed as linear combination of the \emph{EHH}'s for the two alternative alleles with weights function of the corresponding allele frequencies. Two different \emph{EHHS} estimators further denoted as $\mathrm{EHHS}^{\text{Sab}}$ [@Sabeti2007] and $\mathrm{EHHS}^{\text{Tang}}$ [@Tang2007] have been proposed. For a focal SNP $s$ over a chromosome interval extending to SNP $t$, these are computed as (following the same notation as above):
+###The (site-specific) Extended Haplotype Homozygosity (*EHHS*) {#EHHS}
+An extended homozygosity can be defined for the whole set of chromosomes of a sample. In this case, 
+the quantity is aimed to reflect the probability that any two randomly chosen chromosomes are identical by descent over a given surrounding chromosomal region of a focal SNP. In contrast to the allele-specific *EHH* defined above, the chromosomes are not devided with respect to their allele at the focal SNP. In order to distinguish this quantity from that defined in the previous section, we adopt the naming by [@Tang2007] as *site--specific* EHH, abbreviated by *EHHS*. Note, however that this quantity is sometimes referred to as *EHH*, too, and there is no agreed notation in the literature.
+
+*EHHS* was used in genome scans in two versions: un-normalized by [@Sabeti2007] and normalized by [@Tang2007].
+
+In line with [@Sabeti2007] we define
 \begin{equation}
 \label{ehhssab.def}
-\mathrm{EHHS}^{\text{Sab}}_{s,t}=\frac{1}{n_s(n_s-1)}\sum\limits_{a_s=1}^{a_s=2}\left(\sum\limits_{k=1}^{K_{a_s,t}}n_k(n_k-1)\right)
+\mathrm{EHHS}^{\text{Sab}}_{s,t}=\frac{1}{n_s(n_s-1)}\left(\sum\limits_{k=1}^{K_{s,t}}n_k(n_k-1)\right)
 \end{equation}
-where $n_s=\sum\limits_{a_s=1}^{a_s=2}n_{a_s}$ and
+where we re-use notation from above and let $n_s$ refer to the number of chromosomes at SNP $s$. If there are no missing values at that SNP, this is simply the number of chromosomes in the sample.
+
+[@Tang2007] proposed an apparently different estimator for the normalized EHHS, namely
 \begin{equation}
 \label{ehhstang.def}
-\mathrm{EHHS}^{\text{Tang}}_{s,t}=\frac{1-h_{hap}^{(s,t)}}{1-h_{all}^{(s)}}
+\mathrm{EHHS}^{\text{Tang}}_{s,t}=\frac{1-h_{s,t}}{1-h_s}
 \end{equation}
 where:
 
-1. $h_{all}^{(s)}=\frac{n_s}{n_s-1}\left(1-\frac{1}{n_s^2}\sum\limits_{a_s=1}^{a_s=2}n_{a_s}^2 \right )$ is an estimator of the focal SNP heterozygosity
-2. $h_{hap}^{(s,t)}=\frac{n_s}{n_s-1}\left(1-\frac{1}{n_s^2}\sum\limits_{a_s=1}^{a_s=2}\left(\sum\limits_{k=1}^{K_{a_s,t}}n_k^2 \right )\right)$ is an estimator of haplotype heterozygosity across the chromosome region extending from SNP $s$ to SNP $t$. 
+1. $h_s=\frac{n_s}{n_s-1}\left(1-\frac{1}{n_s^2}\left(\sum\limits_{k=1}^{K_{s,s}}n_k^2 \right )\right)=\frac{n_s}{n_s-1}\left(1-\frac{1}{n_s^2}\left(n_{a1}^2+n_{a2}^2\right) \right)$ is an estimator of the focal SNP heterozygosity with $a1$ and $a2$ referring to the numbers of the two alleles at SNP $s$ ($n_{a1}+n_{a2}=n_s$).
 
-###The integrated \emph{EHHS} (\emph{iES})
-\label{iES}
-As for the \emph{EHH} (see \ref{iHH}), \emph{EHHS} starts at 1 and decays monotonically to 0 with increasing distance from the focal SNP. For a given focal SNP, and in a similar fashion as the \emph{iHH}, \emph{iES} is defined as the integrated \emph{EHHS} [@Tang2007]. Depending on the \emph{EHHS} estimator considered (respectively, $\mathrm{EHHS}^{\text{Sab}}$ and $\mathrm{EHHS}^{\text{Tang}}$), two different \emph{iES} estimators, that we further denoted as $\mathrm{iES}^{\text{Sab}}$ and $\mathrm{iES}^{\text{Tang}}$ respectively, can be computed. As for \emph{iHH}, the  \emph{iES} integral is computed using the trapezoid method and might only be computed for the regions of the curve above an arbitrarily small \emph{EHHS} value (e.g., \emph{EHHS}>0.05). 
+2. $h_{s,t}=\frac{n_s}{n_s-1}\left(1-\frac{1}{n_s^2}\left(\sum\limits_{k=1}^{K_{s,t}}n_k^2 \right )\right)$ is an estimator of haplotype heterozygosity across the chromosome region extending from SNP $s$ to SNP $t$. 
+
+However both definitions are in fact equivalent, because it holds
+$\mathrm{EHHS}^{\text{Sab}}_{s,t}=1-h_{s,t}$ and hence
+\begin{equation}
+\mathrm{EHHS}^{\text{Tang}}_{s,t}=\frac{\mathrm{EHHS}^{\text{Sab}}_{s,t}}{\mathrm{EHHS}^{\text{Sab}}_{s,s}}\;.
+\end{equation}
+Thus $\mathrm{EHHS}^{\text{Tang}}_{s,t}$ is just normalized in order to yield 1 at the focal SNP $s$. Note that the normalization factor depends on the frequency of the two alleles at the focal SNP and consequently is not constant over the whole data set.
+
+Furthermore, we note that *EHHS* and *EHH* are related by
+\begin{equation}
+\mathrm{EHHS}^{\text{Sab}}_{s,t}=\frac{n_{a1}(n_{a1}-1)}{n_s(n_s-1)}\mathrm{EHH}_{s,t}^{a1}+\frac{n_{a2}(n_{a2}-1)}{n_s(n_s-1)}\mathrm{EHH}^{a2}_{s,t}\;.
+\end{equation}
+*EHHS* might hence be viewed as a linear combination of the *EHH*'s of the two alternative focal alleles, weighted by roughly the square of the focal allele frequencies.
+
+###The integrated *EHHS* (*iES*) {#iES}
+As for the *EHH* (see \ref{iHH}), $EHHS^{\text{Tang}}$ starts at 1 and decays monotonically to 0 with increasing distance from the focal SNP. For a given focal SNP, analogously to *iHH*, *iES* is defined as the integrated *EHHS* [@Tang2007]. Depending on wether un-normalized or normalized *EHHS* is used (respectively, $\mathrm{EHHS}^{\text{Sab}}$ or $\mathrm{EHHS}^{\text{Tang}}$), we yield two different values for *iES* that we denote by $\mathrm{iES}^{\text{Sab}}$ and $\mathrm{iES}^{\text{Tang}}$ respectively. As for *iHH*, the *iES* integral is computed using the trapezoid method and is often computed only for the region where EHHS lies over a given threshold (e.g., *EHHS*>0.05). 
 
 ###Dealing with missing data
 
-In the computation of both \emph{EHH} and \emph{EHHS} from a focal SNP $s$ to a SNP $t$, only extended haplotypes with no missing data are considered. As a consequence, the number of extended haplotypes retained to compute these two statistics might decrease with distance from the focal SNP. However if the number of available extended haplotypes falls below a threshold (e.g., \texttt{limhaplo}=5), \emph{EHH} and \emph{EHHS} are not computed further. Note however that most phasing programs (such as \emph{fastPHASE} or \emph{SHAPEIT2}) allow to impute missing genotypes resulting in phased haplotypes with no missing data.
+In the computation of both *EHH* and *EHHS* from a focal SNP $s$ to a SNP $t$, only extended haplotypes with no missing data are considered. As a consequence, the number of extended haplotypes retained to compute these two statistics might decrease with increasing distance of $t$ from the focal SNP $s$. If the number of available extended haplotypes falls below a threshold, computation of *EHH* and *EHHS* stops. Note however that most phasing programs (such as *fastPHASE* or *SHAPEIT2*) allow to impute missing genotypes resulting in phased haplotypes with no missing data.
 
-##The function \texttt{calc\_ehh()}
-\label{calcehh}
-The \texttt{calc\_ehh()} function allows to compute \emph{EHH} for both the ancestral ($a_s=1$) and derived ($a_s=2$) alleles at the $s^\text{th}$ SNP relative to each SNP ($t$) upstream and downstream and corresponding \emph{iHH}. The two options \texttt{limehh} and \texttt{limhaplo} allow to specify condition to stop computing \emph{EHH} (see \ref{EHH}). By default \texttt{limehh}=0.05 and \texttt{limhaplo}=2. Finally, if \texttt{plotehh=TRUE}, the decay of \emph{EHH} for both the ancestral and derived alleles is plotted against SNP map position (\texttt{main\_leg} allows to change the plot legend). More details are available in the R documentation by using the command:
+##The function `calc_ehh()` {#calcehh}
+The `calc_ehh()` function computes *EHH* for both ancestral and derived alleles of a focal SNP $s$ relative to any other SNP $t$ upstream or downstream. The corresponding integral *iHH* of these *EHH* values is returned as well. The two options `limehh` and `limhaplo` allow to specify conditions to truncate computing *EHH* (see \ref{EHH}). By default `limehh`=0.05 and `limhaplo`=2. If the border of the chromosome is reached, but *EHH* has not yet decayed below `limehh`, calculation of *iHH* is discarded in order to avoid border effects. This behaviour can be turned off by setting `discard_integration_at_border` to `FALSE`. Large "gaps" between consecutive SNPs can be caused by problems in sequencing or SNP calling and may lead to spuriously long extended haplotypes. To account for this, the option `maxgap` can be used to stop integration at gaps that are greater than the specified size. Again, if `discard_integration_at_border` is set to `TRUE`, no value is reported. Finally, if `plotehh=TRUE`, the decay of *EHH* for both ancestral and derived allele is plotted against the SNP map position. More details are available in the R documentation by using the command:
 ```{r eval=FALSE}
 ?calc_ehh
 ```
-In the following example,the \emph{EHH} statistics are computed for both the ancestral and derived allele of the $456^{\text{th}}$ focal SNP. Note that the \texttt{haplohh\_cgu\_bta12} object was generated using the \texttt{data2haplohh()} function with the example input files (\ref{LoadDataEx1}). For convenience, it is stored as an example object (accessible with the R function \texttt{data}) as shown below:
-```{r, fig.align='center',fig.keep='all'}
+In the following example, *EHH* is computed around the SNP with name "F1205400". Note that the `haplohh_cgu_bta12` object was generated using the `data2haplohh()` function with the example input files (\ref{LoadDataEx1}). For convenience, it is stored as an example object (accessible with the R function `data`) as shown below:
+```{r, ehhplot,fig.align='center',out.height="7cm",fig.cap='Graphical output of the \\texttt{calc\\_ehh()} function',fig.pos='!h',fig.lp='fig:',fig.keep='all'}
 #example haplohh object (280 haplotypes, 1424 SNPs) see ?haplohh_cgu_bta12 for details
 data(haplohh_cgu_bta12)
-#computing EHH statistics for the focal SNP at position 456 
-#which display a strong signal of selection
-res.ehh<-calc_ehh(haplohh_cgu_bta12,mrk=456) 
+#computing EHH statistics for the focal SNP with name "F1205400" 
+#which displays a strong signal of selection
+res.ehh<-calc_ehh(haplohh_cgu_bta12,mrk="F1205400") 
 ```
-The five different elements of the resulting \texttt{res.ehh} object are as follows:
+The output contained in `res.ehh` is a list with four elements: 
+
+1. a matrix with *EHH* values along the chromosome for ancestral and derived allele of the focal SNP. 
+2. a matrix showing how many chromosomes contributed at each position to the calculation of ancestral resp. derived EHH. These numbers decrease with increasing distance to the focal SNP, since missing values for a genotype at a certain SNP exclude the corresponding chromosome from further calculations. If one of the thresholds, either the minimum number of chrosomsomes (`limhaplo`) or the minimal value of *EHH* (`limehh`), is reached, no chromosomes are evaluated any more.
+3. the frequency of the ancestral allele at the focal SNP
+4. a vector with ancestral and derived *iHH*, i.e. the integrals over the *EHH* curves defined by the values given in 1.
+
+
 ```{r}
 res.ehh$ehh[1:2,454:458]
 ```
@@ -230,30 +250,30 @@ res.ehh$freq_all1
 ```{r}
 res.ehh$ihh
 ```
-In addition, as \texttt{plotehh=TRUE} by default, we obtain the following plot (Figure \ref{fig:ehhplot}):
-```{r ehhplot,echo=FALSE,fig.align='center',,out.height="7cm",fig.cap='Graphical output for the \\texttt{calc\\_ehh()} function',fig.pos='!h',fig.lp='fig:'}
-sel_reg <- (colSums(res.ehh$nhaplo_eval) > 0) ; mrk=456
-matplot(haplohh_cgu_bta12@position[sel_reg]/1000000, t(res.ehh$ehh[, sel_reg]),col = c("red", "blue"), lty = 1, type = "l",main = "", bty = "n", xlab = "Position (Mb)",ylab = expression(Extended ~ haplotype ~ homozygosity ~ (italic(EHH))))
-abline(v = haplohh_cgu_bta12@position[mrk]/1000000, lty = 2)
-legend("topleft", c("Ancestral Allele", "Derived Allele"),col = c("red", "blue"), bty = "n", lty = 1)
-```
+In addition, as `plotehh=TRUE` by default, we obtain Figure \ref{fig:ehhplot}.
 
-##The function \texttt{calc\_ehhs()}
+##The function `calc_ehhs()`
 
-The \texttt{calc\_ehhs()} function allows to compute the \emph{EHHS} (both the $\mathrm{EHHS}^{\text{Sab}}$ and $\mathrm{EHHS}^{\text{Tang}}$ estimators) at the $s^\text{th}$ SNP relative to each SNP ($t$) upstream and downstream. This function also compute the corresponding \emph{iES} ($\mathrm{iES}^{\text{Sab}}$ and $\mathrm{iES}^{\text{Tang}}$ estimators respectively). The two options \texttt{limehhs} and \texttt{limhaplo} allow to specify condition to stop computing \emph{EHHS} (see \ref{EHHS}). By default \texttt{limehhs}=0.05 and \texttt{limhaplo}=2. Finally, if \texttt{plotehhs=TRUE}, the decay of \emph{EHHS} is plotted against SNP map position (\texttt{main\_leg} allows to change the plot legend). More details are available in the R documentation by using the command:
+The `calc_ehhs()` function computes $\mathrm{EHHS}^{\text{Sab}}$ and $\mathrm{EHHS}^{\text{Tang}}$ around the focal SNP $s$ relative to each other SNP $t$. This function also computes the corresponding integrals $\mathrm{iES}^{\text{Sab}}$ and $\mathrm{iES}^{\text{Tang}}$ respectively. The two options `limehhs` and `limhaplo` allow to specify conditions to truncate computing *EHHS* (see \ref{EHHS}). By default `limehhs`=0.05 and `limhaplo`=2. If the border of the chromosome is reached, but *EHHS* has not yet decayed below `limehhs`, calculation of *iES* is discarded in order to avoid border effects. This behaviour can be turned off by setting `discard_integration_at_border` to `FALSE`. Large "gaps" between consecutive SNPs can be caused by problems in sequencing or SNP calling and may lead to spuriously long extended haplotypes. To account for this, the option `maxgap` can be used to stop integration at gaps that are greater than the specified size. Again, if `discard_integration_at_border` is set to `TRUE`, no value is reported. Finally, if `plotehhs=TRUE`, the decay of *EHHS* is plotted against SNP map position. More details are available in the R documentation by using the command:
 ```{r, eval=FALSE}
 ?calc_ehhs
 ```
-In the following example, the \emph{EHHS} statistics are computed for the $456^{\text{th}}$ focal SNP on the \texttt{haplohh\_cgu\_bta12} object defined above (see \ref{calcehh}) was generated using the \texttt{data2haplohh()} function with the example input files (see \ref{LoadDataEx1}) described above. For convenience, it is stored as an example object (accessible with the R function \texttt{data}).
+In the following example, the *EHHS* statistics are computed around the SNP with name "F1205400" on the `haplohh_cgu_bta12` object already mentioned above.
 
-```{r}
-#example haplohh object (280 haplotypes, 1424 SNPs) see ?haplohh_cgu_bta12 for details
+```{r ehhsplot,fig.align='center',out.height="7cm",fig.cap='Graphical output of the \\texttt{calc\\_ehhs()} function',fig.pos='!h',fig.lp='fig:'}
 data(haplohh_cgu_bta12)
-#computing EHH statistics for the focal SNP at position 456
-#which display a strong signal of selection
-res.ehhs<-calc_ehhs(haplohh_cgu_bta12,mrk=456)
+res.ehhs<-calc_ehhs(haplohh_cgu_bta12,mrk="F1205400")
 ```
-The five different elements of the resulting \texttt{res.ehhs} object are as follows:
+
+The output contained in `res.ehhs` is a list with five elements: 
+
+1. a vector with $\mathrm{EHHS}^{\text{Sab}}$ values along the chromosome around the focal SNP. 
+2. a vector with $\mathrm{EHHS}^{\text{Tang}}$ values along the chromosome around the focal SNP. 
+3. a vector showing how many chromosomes contributed at each position to the calculation of EHHS. The number decreases with increasing distance to the focal SNP, since missing values for a genotype at a certain SNP exclude the corresponding chromosome from further calculations. If one of the thresholds, either the minimum number of chrosomsomes (`limhaplo`) or the minimal value
+of EHHS (`limehhs`), is reached, no chromosomes are evaluated any more.
+4. $\mathrm{iES}^{\text{Sab}}$, i.e. the integral over the EHHS curve defined by the values given in 1.
+5. $\mathrm{iES}^{\text{Tang}}$, i.e. the integral over the EHHS curve defined by the values given in 2.
+
 ```{r}
 res.ehhs$EHHS_Sabeti_et_al_2007[453:459] 
 ```
@@ -269,363 +289,306 @@ res.ehhs$IES_Tang_et_al_2007
 ```{r}
 res.ehhs$IES_Sabeti_et_al_2007
 ```
-In addition, as \texttt{plotehh=TRUE} by default, we obtain the following plot (Figure \ref{fig:ehhsplot}):
-```{r ehhsplot,echo=FALSE,fig.align='center',out.height="7cm",fig.cap='Graphical output for the \\texttt{calc\\_ehhs()} function',fig.pos='!h',fig.lp='fig:'}
-sel_reg <- (colSums(res.ehh$nhaplo_eval) > 0) ; mrk=456
-plot(haplohh_cgu_bta12@position[sel_reg]/1000000, res.ehhs$EHHS_Sabeti_et_al_2007[sel_reg],col = "red", lty = 1, type = "l",main = "", bty = "n", xlab = "Position (Mb)",ylab = expression(Site ~ specific ~ italic(EHH) ~ (italic(EHHS)) ))
-lines(haplohh_cgu_bta12@position[sel_reg]/1000000, res.ehhs$EHHS_Tang_et_al_2007[sel_reg], col = "blue")
-abline(v = haplohh_cgu_bta12@position[mrk]/1000000, lty = 2)
-legend("topleft", c("Sabeti et al. (2007)", "Tang et al. (2007)"),col = c("red", "blue"), bty = "n", lty = 1)
-```
+In addition, as `plotehh=TRUE` by default, we obtain Figure \ref{fig:ehhsplot}.
 
-##The function \texttt{scan\_hh()}
-\label{fun.scanhh}
-The \texttt{scan\_hh()} function allows to efficiently compute \emph{IHH} (for both the ancestral and derived alleles) and \emph{IES} (both the $\mathrm{iES}^{\text{Sab}}$ and $\mathrm{iES}^{\text{Tang}}$ estimators) for all the SNPs in the \texttt{haplohh} object considered. The options \texttt{limehh}, \texttt{limehhs} and \texttt{limhaplo} specify conditions to stop computing \emph{EHH} and \emph{EHHS}. By default \texttt{limehh}=\texttt{limehhs}=0.05 and \texttt{limhaplo}=2. Finally, the option \texttt{threads}, set by dafault to \texttt{threads}=1, allows to specify the number of available threads to parallelize computation (parallelization being carried out over SNPs).
-For instance to scan the \texttt{haplohh\_cgu\_bta12} object (containing data on 1424 SNPs for 280 haplotypes), one may use the following command:
+##The function `scan_hh()` {#fun.scanhh}
+The `scan_hh()` function efficiently computes *iHH* for both the ancestral and derived alleles as well as $\mathrm{iES}^{\text{Sab}}$ and $\mathrm{iES}^{\text{Tang}}$ for all SNPs in the `haplohh` object. The options `limehh`, `limehhs` and `limhaplo` specify conditions to stop computing *EHH* and *EHHS*. By default `limehh`=`limehhs`=0.05 and `limhaplo`=2. If the border of the chromosome is reached, but *EHH(S)* has not yet decayed below `limehh(s)`, calculation of *iHH* resp. *iES* is discarded in order to avoid border effects. This behaviour can be turned off by setting `discard_integration_at_border` to `FALSE`. Large "gaps" between consecutive SNPs can be caused by problems in sequencing or SNP calling and may lead to spuriously long extended haplotypes. To account for this, the option `maxgap` can be used to stop integration at gaps that are greater than the specified size. Again, if `discard_integration_at_border` is set to `TRUE`, no value is reported. Finally, the option `threads`, set by default to 1, allows to specify the number of threads to parallelize computation (parallelization being carried out over SNPs).
+For instance in order to scan the `haplohh_cgu_bta12` object (containing data on 1424 SNPs for 280 haplotypes), one may use the following command:
 ```{r,eval=TRUE}
 data(haplohh_cgu_bta12)
 res.scan<-scan_hh(haplohh_cgu_bta12)
 ```
-The resulting object \texttt{res.scan} is a data frame with \texttt{haplohh\_cgu\_bta12\@nsnp} (number of SNPs declared in the \texttt{haplohh} object) and seven columns giving for each SNP:
+The resulting object `res.scan` is a data frame with `haplohh_cgu_bta12@nsnp` (the number of SNPs declared in the `haplohh` object) rows and seven columns yielding for each focal SNP in turn:
 
-1. The SNP chromosome of origin
-2. The SNP position
-3. The SNP ancestral allele frequency
-4. The estimated \emph{IHH} for the ancestral allele (\emph{IHH\_A})
-5. The estimated \emph{IHH} for the derived allele (\emph{IHH\_D})
-6. The estimated $\mathrm{iES}^{\text{Tang}}$
-7. The estimated $\mathrm{iES}^{\text{Sab}}$.
+1. Chromosome
+2. Position
+3. Ancestral allele frequency
+4. *iHH* for the ancestral allele
+5. *iHH* for the derived allele
+6. $\mathrm{iES}^{\text{Tang}}$
+7. $\mathrm{iES}^{\text{Sab}}$.
 
-As an example, the following R codes provide the dimension and the first five rows of the \texttt{res.scan} data frame obtained above:
+As an example, the following R code provides the dimension and a segment of the `res.scan` data frame obtained above:
 ```{r}
 dim(res.scan)
 ```
 ```{r}
-head(res.scan)
+res.scan[453:459,]
 ```
-Note that running \texttt{scan\_hh()} is more efficient than running \texttt{calc\_ehh()} and \texttt{calc\_ehhs()} in turn as shown in the example below (\texttt{scan\_hh()}:.
+Note that `scan_hh()` is more efficient than `calc_ehh()` and `calc_ehhs()` applied consecutively for each SNP as can be seen by running the two code snippets below:
 ```{r}
 system.time(res.scan<-scan_hh(haplohh_cgu_bta12))
 ```
 ```{r}
 foo<-function(haplo){
-res.ihh=res.ies=matrix(0,haplo@nsnp,2)
-for(i in 1:length(haplo@position)){
-  res.ihh[i,]=calc_ehh(haplo,mrk=i,plotehh=FALSE)$ihh
-  tmp=calc_ehhs(haplo,mrk=i,plotehhs=FALSE)
-  res.ies[i,1]=tmp$IES_Tang_et_al_2007
-  res.ies[i,2]=tmp$IES_Sabeti_et_al_2007  
-}
-list(res.ies=res.ies,res.ihh=res.ihh)
+  res.ihh=res.ies=matrix(0,haplo@nsnp,2)
+  for(i in 1:haplo@nsnp){
+    res.ihh[i,]=calc_ehh(haplo,mrk=haplo@snp.name[i],plotehh=FALSE)$ihh
+    tmp=calc_ehhs(haplo,mrk=haplo@snp.name[i],plotehhs=FALSE)
+    res.ies[i,1]=tmp$IES_Tang_et_al_2007
+    res.ies[i,2]=tmp$IES_Sabeti_et_al_2007  
+  }
+  list(res.ies=res.ies,res.ihh=res.ihh)
 }
 system.time(res.scan2<-foo(haplohh_cgu_bta12))
 ```
-Note however that the same results are obtained (since the same options were used) as illustrated by the following R code:
+Nevertheless, results are the same:
 ```{r}
-sum(res.scan2$res.ihh[,1]!=res.scan[,4]) + sum(res.scan2$res.ihh[,2]!=res.scan[,5]) +
-sum(res.scan2$res.ies[,1]!=res.scan[,6]) + sum(res.scan2$res.ies[,2]!=res.scan[,7])
+identical(res.scan2$res.ihh[,1],res.scan[,4])
+identical(res.scan2$res.ihh[,2],res.scan[,5])
+identical(res.scan2$res.ies[,1],res.scan[,6])
+identical(res.scan2$res.ies[,2],res.scan[,7])
 ```
-#Computing \emph{iHS}, \emph{Rsb} and \emph{xpEHH}: the \texttt{ihh2ihs()},\texttt{ies2rsb()} and \texttt{ies2xpehh()} functions
+#Computing *iHS*, *Rsb* and *XP-EHH*: the `ihh2ihs()`, `ies2rsb()` and `ies2xpehh()` functions
 
-##Within population test: the \emph{iHS}
-###Definition
-\label{def.ihs}
-Let $\mathrm{UniHS}$ represent the log-ratio of the  \emph{iHH} for its ancestral (\emph{iHH}$_a$) and derived (\emph{iHH}$_d$) alleles:
-$$\mathrm{UniHS}=\log\left(\frac{\mathrm{iHH}_a}{\mathrm{iHH}_d}\right)$$
-The \emph{iHS} of a given focal SNP $s$ ($\mathrm{iHS}(s)$) is then defined as its standardized $\mathrm{UniHS}$ ($\mathrm{UniHS}(s)$) following [@Voight2006]:
-$$\mathrm{iHS}(s)=\frac{\mathrm{UniHS}(s) - \mu^{p_s}_\mathrm{UniHS}}{\sigma^{p_s}_\mathrm{UniHS}}$$
-where $\mu^{p_s}_\mathrm{UniHS}$ and $\sigma^{p_s}_\mathrm{UniHS}$ represent the average and standard deviation of the  $\mathrm{UniHS}$ computed over all the SNPs with a derived allele frequency $p_s$ similar to that of the core SNP $s$. In practice, the derived allele frequencies are generally binned so that each bin are large enough (e.g., >10 SNPs) to obtain reliable estimate of  $\mu^{p_s}_\mathrm{UniHS}$ and $\sigma^{p_s}_\mathrm{UniHS}$.
+##The *iHS* within-population statistic
 
-Note that the \emph{iHS} is constructed to have an approximately standard Gaussian distribution and to be comparable across SNPs regardless of their underlying allele frequencies. Hence, one may further transform \emph{iHS} into $p_\mathrm{iHS}$ [@Gautier2011]:
+###Definition {#def.ihs}
+The abbreviation *iHS* refers to "integrated haplotype homozygosity score". Let $\mathrm{uniHS}$ represent the un-standardized log-ratio of ancestral *iHH*$_a$ to derived *iHH*$_d$ of a certain focal SNP $s$:
+$$\mathrm{uniHS}=\log\left(\frac{\mathrm{iHH}_a}{\mathrm{iHH}_d}\right)$$
+Following [@Voight2006] we perform a standardization by setting:
+$$\mathrm{iHS}=\frac{\mathrm{uniHS} - \mu^{p_s}_\mathrm{uniHS}}{\sigma^{p_s}_\mathrm{uniHS}}$$
+where $\mu^{p_s}_\mathrm{uniHS}$ and $\sigma^{p_s}_\mathrm{uniHS}$ represent the average and standard deviation of the $\mathrm{uniHS}$ computed over all the SNPs with a derived allele frequency $p_s$ similar to that of the SNP $s$. In practice, the derived allele frequencies are binned so that each bin contains a large enough number of SNPs (e.g., >10) to obtain reliable estimates of $\mu^{p_s}_\mathrm{uniHS}$ and $\sigma^{p_s}_\mathrm{uniHS}$.
+
+Note that the *iHS* is constructed to have an approximately standard Gaussian distribution and to be comparable across SNPs regardless of their underlying allele frequencies. Hence, one may further transform *iHS* into $p_\mathrm{iHS}$ [@Gautier2011]:
 $$p_\mathrm{iHS}=-\log_{10}\left(1-2|\Phi\left(\mathrm{iHS}\right)-0.5|\right)$$
-where $\Phi\left(x\right)$ represents the Gaussian cumulative distribution function. Assuming most of the genotyped SNPs behave neutrally (i.e., the genome-wide empirical \emph{iHS} distribution is a fair approximation of the neutral distribution), $p_\mathrm{iHS}$ might thus be interpreted as a two-sided P-value (on a $-\log_{10}$ scale) associated to the neutral hypothesis of no selection.
+where $\Phi\left(x\right)$ represents the Gaussian cumulative distribution function. Assuming most of the genotyped SNPs behave neutrally (i.e., the genome-wide empirical *iHS* distribution is a fair approximation of the neutral distribution), $p_\mathrm{iHS}$ might thus be interpreted as a two-sided P-value (on a $-\log_{10}$ scale) associated to the neutral hypothesis of no selection.
 
-###The function \texttt{ihh2ihs()}
-\label{cgu.ihs}
-The \texttt{ihh2ihs()} function allows to compute \emph{iHS} using a matrix of \emph{iHH} statistics (for both the ancestral and derived alleles) in the same format as obtained from the \texttt{scan\_hh()} function (see \ref{fun.scanhh}). The argument \texttt{minmaf} allows to remove SNPs according to their MAF (by default SNPs with a MAF<\texttt{minmaf}=0.05 are discarded from the standardization). The argument \texttt{freqbin} controls the size of the allele frequency bins used to perform standardization (see \ref{def.ihs}). More precisely allele frequency bins vary from \texttt{minmaf} to 1-\texttt{minmaf} per step of size \texttt{freqbin} (by default \texttt{freqbin}=0.025).  Note that if \texttt{freqbin} is set to 0 (e.g., with a large number of SNPs and few haplotypes), standardization is performed considering each observed frequency as a frequency class.
+###The function `ihh2ihs()` {#cgu.ihs}
+The `ihh2ihs()` function computes *iHS* using a matrix of *iHH* statistics (for both the ancestral and derived alleles) as obtained by the `scan_hh()` function (see \ref{fun.scanhh}). The argument `minmaf` allows to remove SNPs according to their MAF (by default SNPs with a MAF<`minmaf`=0.05 are discarded from the standardization). The argument `freqbin` controls the size (or number) of the allele frequency bins used to perform standardization (see \ref{def.ihs}). More precisely, allele frequency bins are built from `minmaf` to 1-`minmaf` in steps of size `freqbin` (by default `freqbin`=0.025). If instead an integer of 1 or greater is specified, a corresponding number of equally spaced bins is created. If `freqbin` is set to 0, standardization is performed considering each observed frequency as a discrete frequency class, which is useful in case that there are only a few different haplotypes.
 
-For instance, to perform a whole genome scan one might run \texttt{scan\_hh()} in turn on haplotype data from each chromosome and concatenate the resulting matrices before standardization. In the following example, we assume that the haplotype files are named as \texttt{hap\_chr\_i.pop1} where the chromosome number $i$ goes from 1 to 29 and the SNP information file is named \texttt{snp.info}. The R code below then generates a matrix \texttt{wg.res} with \emph{iHH$_a$} and \emph{iHH$_d$} estimates for all SNPs in an appropriate format to perform standardization with the \texttt{ihh2ihs} function:
+For instance, to perform a whole genome scan one might run `scan_hh()` on haplotype data from each chromosome and concatenate the resulting matrices before standardization. In the following example, we assume that the haplotype files are named as `hap_chr_i.pop1` where the chromosome number $i$ goes from 1 to 29 and the SNP information file is named `snp.info`. The R code below then generates a matrix `wg.res` with $iHH_a$ and $iHH_d$ estimates for all SNPs in an appropriate format to perform standardization with the `ihh2ihs()` function:
 ```{r,eval=FALSE}
 for(i in 1:29){
- hap_file=paste("hap_chr_",i,".pop1",sep="")
- data<-data2haplohh(hap_file="hap_file","snp.info",chr.name=i)
- res<-scan_hh(data)
- if(i==1){wg.res<-res}else{wg.res<-rbind(wg.res,res)}
-   }
+  hap_file=paste("hap_chr_",i,".pop1",sep="")
+  data<-data2haplohh(hap_file="hap_file","snp.info",chr.name=i)
+  res<-scan_hh(data)
+  if(i==1){wg.res<-res}else{wg.res<-rbind(wg.res,res)}
+}
 wg.ihs<-ihh2ihs(wg.res)
 ```
-As a matter of illustration, results of a similar genome scan [@Gautier2011] are provided as example data sets. The following R code allows to compute the \emph{iHS} for the CGU population:
+For illustration, $iHH$ values of a whole genome scan [@Gautier2011] are provided as example data. The following R code computes the *iHS* for the CGU population:
 ```{r}
 data(wgscan.cgu)
 ## results from a genome scan (44,057 SNPs) see ?wgscan.eut and ?wgscan.cgu for details
 ihs.cgu<-ihh2ihs(wgscan.cgu)
 ```
-The corresponding object \texttt{ihs.cgu} is a list with two elements corresponding to
+The resulting object `ihs.cgu` is a list with two elements:
 
-1. a matrix of SNP \emph{iHS} and the corresponding $p_\mathrm{iHS}$  (P-values in a $-\log_10$ scale assuming the \emph{iHS} are normally distributed under the neutral hypothesis).  For instance, the five first rows of the \texttt{ihs.cgu\$iHS} data frame are displayed below using the following R command:
+1. a matrix of SNP *iHS* and corresponding $p_\mathrm{iHS}$  (P-values in a $-\log_{10}$ scale assuming the *iHS* are normally distributed under the neutral hypothesis).  For instance, the first rows of the `ihs.cgu$iHS` data frame are displayed below using the R command:
 ```{r}
 head(ihs.cgu$iHS)
 ```
-2.a matrix summarizing the allele frequency bins. For instance, the five first rows of the \texttt{ihs.cgu\$frequency.class} data frame are displayed below using the following R command:
+
+2. a matrix summarizing the allele frequency bins. For instance, the first rows of the `ihs.cgu$frequency.class` data frame are displayed below:
 ```{r}
 head(ihs.cgu$frequency.class)
 ```
 
-###Manhattan plot of the results: the function \texttt{ihsplot()}
+###Manhattan plot of the results: the function `ihsplot()`
 
-The \texttt{ihsplot()} function allows to draw a Manhattan plot of the Whole Genome scan results as stored in the list object produced by the function \texttt{ihh2ies()}.  Various options are available to modify the graphical display (see \texttt{?ihsplot}).
-```{r,eval=FALSE}
-ihsplot(ihs.cgu,plot.pval=TRUE,ylim.scan=2,main="iHS (CGU cattle breed)") 
-
-```
-
-```{r ,echo=FALSE,fig.ext="png",fig.align='center',fig.width=16,fig.height=12,fig.cap='Graphical output for the \\texttt{ihsplot()} function'}
+The function `ihsplot()` draws a Manhattan plot of the Whole Genome Scan results returned by the function `ihh2ihs()`.  Various options are available to modify the graphical display (see `?ihsplot`). Figure \ref{fig:ihsplot} was drawn using the following R code:
+```{r ihsplot,fig.align='center',fig.width=16,fig.height=12,fig.lp='fig:',fig.cap='Graphical output of the \\texttt{ihsplot()} function',fig.pos='!h'}
 layout(matrix(1:2,2,1))
-plot.pval = TRUE; ylim.scan = 2; pch = 16; cex = 0.75; cex.lab = 1; main = "iHS (CGU cattle breed)"; cex.main = 1.;cex.axis=0.7
-data = ihs.cgu$iHS
-lst_chrm <- unique(data$CHR) ; nbr_chrm <- length(lst_chrm) ; cum <- rep(0, (nbr_chrm + 1))
-if (nbr_chrm > 1) {
-  for (i in 1:nbr_chrm) {cum[i + 1] <- tail(data$POSITION[data$CHR == lst_chrm[i]],n = 1)}
-}
-cum <- cumsum(cum) ; pos <- rep(0, length(data$CHR)) ; pos_labels <- rep(0, nbr_chrm)
-for (i in 1:nbr_chrm) {
-  pos[data$CHR == lst_chrm[i]] <- data$POSITION[data$CHR ==lst_chrm[i]] + cum[which(lst_chrm == lst_chrm[i])]
-  pos_labels[i] <- (cum[i] + cum[i + 1])/2
-}
-col_chr <- data$CHR
-par(mar = c(5, 5, 4, 2) + 0.1)
-plot(pos, data$iHS, pch = pch, cex = cex, las = 1, col = col_chr,xaxt = "n", xlab = "Chromosome", ylab = expression(italic(iHS)), 
-     cex.lab = cex.lab, main = main, cex.main = cex.main,cex.axis=cex.axis)
-axis(1, at = pos_labels, labels = lst_chrm, las = 1,cex.lab=cex.lab,cex.axis=cex.axis)
-abline(h = c(-ylim.scan, ylim.scan), lty = 2)
-par(mar = c(5, 5, 4, 2) + 0.1)
-plot(pos, data$"-log10(p-value)", pch = pch, cex = cex,las = 1, col = col_chr, xaxt = "n", xlab = "Chromosome", 
-         ylab = expression("-" * log[10] * "[1" ~ "-" ~"2" ~ "|" ~ Phi[scriptstyle(italic(iHS))] ~"-" ~ 0.5 * "|]"),            cex.lab = cex.lab, main = main, cex.main = cex.main,cex.axis=cex.axis)
-axis(1, at = pos_labels, labels = lst_chrm, las = 1,cex.lab=cex.lab,cex.axis=cex.axis)
-abline(h = c(-ylim.scan, ylim.scan), lty = 2)
+ihsplot(ihs.cgu,plot.pval=TRUE,ylim.scan=2,main="iHS (CGU cattle breed)")
 ```
 
-##The \emph{Rsb}--based pairwise population test 
-###Definition
-For a given SNP $s$, let $$\mathrm{LRiES}(s)^{\text{Tang}}=\log\left(\frac{\mathrm{iES}_\text{pop1}(s)^{\text{Tang}}}{\mathrm{iES}_\text{pop2}(s)^{\text{Tang}}}\right)$$ represent the log-ratio of the $\mathrm{iES}_\text{pop1}(s)^{\text{Tang}}$ and $\mathrm{iES}_\text{pop2}(s)^{\text{Tang}}$ computed in the pop1 and pop2 populations (see \ref{iES}).
+##The *Rsb* pairwise population statistic
 
-The \emph{Rsb} for a given focal SNP is then defined as the standardized  $\mathrm{LRiES}(s)^{\text{Tang}}$ [@Tang2007]:
+###Definition {#def.rsb}
+
+The abbreviation *Rsb* stands for "ratio of EHHS between populations".
+For a given SNP $s$, let $$\mathrm{LRiES}^{\text{Tang}}=\log\left(\frac{\mathrm{iES}_\text{pop1}^{\text{Tang}}}{\mathrm{iES}_\text{pop2}^{\text{Tang}}}\right)$$ represent the log-ratio of the $\mathrm{iES}^{\text{Tang}}$ values computed in the pop1 and pop2 populations (see \ref{iES}).
+
+The *Rsb* for a given focal SNP is then defined as the standardized  $\mathrm{LRiES}^{\text{Tang}}$ [@Tang2007]:
 
 \begin{equation}
-\mathrm{rSB}(s)=\frac{\mathrm{LRiES}(s)^{\text{Tang}} - \text{med}_{\mathrm{LRiES}^{\text{Tang}}}}{\sigma_{\mathrm{LRiES}^{\text{Tang}}}}
+\mathrm{Rsb}=\frac{\mathrm{LRiES}^{\text{Tang}} - \text{med}_{\mathrm{LRiES}^{\text{Tang}}}}{\sigma_{\mathrm{LRiES}^{\text{Tang}}}}
 \end{equation}
-where $\text{med}_{\mathrm{LRiES}^{\text{Tang}}}$ and $\sigma_{\mathrm{LRiES}^{\text{Tang}}}$ represent the median and standard deviation of the $\mathrm{LRiES}(s)^{\text{Tang}}$ computed over all the analyzed SNPs. Note that the median is used instead of the mean because it is less sensitive to extreme data points [@Tang2007]. 
-More  importantly, it should be noticed that the information about the ancestral and derived status of alleles at the focal SNP is not needed.
+where $\text{med}_{\mathrm{LRiES}^{\text{Tang}}}$ and $\sigma_{\mathrm{LRiES}^{\text{Tang}}}$ represent the median and standard deviation of the $\mathrm{LRiES}(s)^{\text{Tang}}$ computed over all analyzed SNPs. Note that we follow [@Tang2007] in using the median instead of the mean (hence in contrast to the definitions of *iHS* and *XP-EHH*). They assume that this might increase the robustness against different demographic scenarios. 
+It should be noticed, too, that the information about ancestral/derived status of alleles at the focal SNP does not figure in the formula. Furthermore, in contrast with $iHS$, no binning is performed.
 
-As for the \emph{iHS} (see \ref{def.ihs}), \emph{Rsb} is constructed to have an approximately standard Gaussian distribution and may further be transformed into $p_\mathrm{rSB}$:
+As *iHS* (see \ref{def.ihs}), *Rsb* is constructed to have an approximately standard Gaussian distribution and may further be transformed into $p_\mathrm{Rsb}$:
 \begin{equation}
-p_\mathrm{rSB}=-\log_{10}\left(1-2|\Phi\left(\mathrm{rSB}\right)-0.5|\right)
+p_\mathrm{Rsb}=-\log_{10}\left(1-2|\Phi\left(\mathrm{Rsb}\right)-0.5|\right)
 \end{equation}
-where $\Phi\left(x\right)$ represents the Gaussian cumulative distribution function. Assuming most of the genotyped SNPs behave neutrally (i.e., the genome-wide empirical \emph{Rsb} distribution is a fair approximation of their corresponding neutral distributions), $p_\mathrm{rSB}$ might thus be interpreted as a two-sided P-value (in a $-\log_{10}$ scale) associated to the neutral hypothesis of no selection.
-Alternatively, $p_\mathrm{rSB}$ might also be computed [@Gautier2011]:
+where $\Phi\left(x\right)$ represents the Gaussian cumulative distribution function. Assuming most of the genotyped SNPs behave neutrally (i.e., the genome-wide empirical *Rsb* distribution is a fair approximation of their corresponding neutral distributions), $p_\mathrm{Rsb}$ might thus be interpreted as a two-sided P-value (in a $-\log_{10}$ scale) associated to the neutral hypothesis of no selection.
+Alternatively, $p_\mathrm{Rsb}$ might also be computed [@Gautier2011]:
 \begin{equation}
-p\prime_\mathrm{rSB}=-\log_{10}\left(|\Phi\left(\mathrm{rSB}\right)|\right)
+p\prime_\mathrm{Rsb}=-\log_{10}\left(|\Phi\left(\mathrm{Rsb}\right)|\right)
 \end{equation}
-$p\prime_\mathrm{rSB}$ and $p\prime_\mathrm{rSB}$ might then be interpreted as a one-sided P-value (in a $-\log_{10}$ scale) allowing the identification of those sites displaying a significantly high extended haplotype homozygosity in population $pop2$ (represented in the denominator of the corresponding $\mathrm{LRiES}$) relatively to the $pop1$ reference population.
+$p\prime_\mathrm{Rsb}$ and $p\prime_\mathrm{Rsb}$ might then be interpreted as a one-sided P-value (in a $-\log_{10}$ scale) allowing the identification of those sites displaying a significantly high extended haplotype homozygosity in population $pop2$ (represented in the denominator of the corresponding $\mathrm{LRiES}$) relatively to the $pop1$ reference population.
 
-###The function \texttt{ies2rsb()}
-\label{res.rsb}
+###The function `ies2rsb()` {#res.rsb}
 
-The \texttt{ies2rsb()} function allows to compute \emph{Rsb} using two data frames containing the \emph{iES} statistics for each of the two populations considered in the same format as the one obtained after running the \texttt{scan\_hh()} function (see \ref{fun.scanhh}).
-For instance, to perform a genome scan one might first run for each population \texttt{scan\_hh()} in turn on haplotype data from each chromosome and concatenate the resulting matrices. In the following example, we assume that the haplotype files are named as \texttt{hap\_chr\_i.pop1} and  \texttt{hap\_chr\_i.pop2} where $i$ is the chromosome number (going from 1 to 29), the suffixes pop1 and pop2 indicate the population of origin and the SNP information file is named \texttt{snp.info}. The R code below then generates two data frames (\texttt{wg.res.pop1} and \texttt{wg.res.pop2}) containing the results from all SNPs in the appropriate format to compute \emph{Rsb} with the \texttt{ies2rsb()} function:
+The `ies2rsb()` function computes *Rsb* using two data frames containing the *iES* statistics for each of the two populations considered in the same format as obtained by running the `scan_hh()` function (see \ref{fun.scanhh}).
+In order to perform a genome-wide scan one might first run for each population `scan_hh()` on haplotype data from each chromosome and then concatenate the resulting matrices. In the following example, we assume that the haplotype files are named as `hap_chr_i.pop1` and  `hap_chr_i.pop2` where $i$ is the chromosome number (going from 1 to 29), the suffixes pop1 and pop2 indicate the population of origin and the SNP information file is named `snp.info`. The R code below then generates two data frames (`wg.res.pop1` and `wg.res.pop2`) containing the results from all SNPs in the appropriate format to compute *Rsb* with the `ies2rsb()` function:
 
 ```{r,eval=FALSE}
 for(i in 1:29){
- hap_file=paste("hap_chr_",i,".pop1",sep="")
- data<-data2haplohh(hap_file="hap_file","snp.info",chr.name=i)
- res<-scan_hh(data)
- if(i==1){wg.res.pop1<-res}else{wg.res.pop1<-rbind(wg.res.pop1,res)}
- hap_file=paste("hap_chr_",i,".pop2",sep="")
- data<-data2haplohh(hap_file="hap_file","snp.info",chr.name=i)
- res<-scan_hh(data)
- if(i==1){wg.res.pop2<-res}else{wg.res.pop2<-rbind(wg.res.pop2,res)}
- }
+  hap_file=paste("hap_chr_",i,".pop1",sep="")
+  data<-data2haplohh(hap_file="hap_file","snp.info",chr.name=i)
+  res<-scan_hh(data)
+  if(i==1){wg.res.pop1<-res}else{wg.res.pop1<-rbind(wg.res.pop1,res)}
+  hap_file=paste("hap_chr_",i,".pop2",sep="")
+  data<-data2haplohh(hap_file="hap_file","snp.info",chr.name=i)
+  res<-scan_hh(data)
+  if(i==1){wg.res.pop2<-res}else{wg.res.pop2<-rbind(wg.res.pop2,res)}
+}
 wg.rsb<-ies2rsb(wg.res.pop1,wg.res.pop2)
 ```
-As a matter of illustration, one may consider results from a similar genome scan [@Gautier2011] provided as example data sets and compute for each SNP the \emph{Rsb} between the CGU and EUT populations as follows:
+For illustration, we take $iES$ values from a genome scan [@Gautier2011] provided as example data and compute for each SNP the *Rsb* between the CGU and EUT populations as follows:
 ```{r}
 data(wgscan.cgu) ; data(wgscan.eut)
 ## results from a genome scan (44,057 SNPs) see ?wgscan.eut and ?wgscan.cgu for details
 cguVSeut.rsb<-ies2rsb(wgscan.cgu,wgscan.eut,"CGU","EUT")
 ```
 
-The resulting object \texttt{cguVSeut.rsb} is a data frame with of SNP \emph{Rsb} (and corresponding P-Values assuming \emph{Rsb} are normally distributed under the neutral hypothesis). Note that either bilateral (default) or unilateral might be performed (\texttt{method} argument). The five first rows of the \texttt{cguVSeut.rsb} data frame are displayed below using the following R command:
+The resulting object `cguVSeut.rsb` is a data frame which shows for each SNP its *Rsb* and corresponding P-Values assuming *Rsb* are normally distributed under the neutral hypothesis. The P-value might be either bilateral (default) or unilateral (specified by the `method` argument). The first rows of the `cguVSeut.rsb` data frame are displayed below using the following R command:
 
 ```{r}
 head(cguVSeut.rsb)
 ```
-###Manhattan plot of the results: the function \texttt{rsbplot()}
 
-The \texttt{rsbplot()} function allows to draw a Manhattan plot of the Whole Genome scan results as stored in the data frame produced by the function \texttt{ies2rsb()}.  Various options are available to modify the graphical display (see \texttt{?rsbplot}). As an example, the Figure \ref{fig:rsbplot} below provides the output of the function \texttt{rsbplot} for the \emph{xpEHH} computed above across the CGU and EUT populations (see \ref{res.rsb}).  Figure \ref{fig:rsbplot} was drawn using the following R code:
-```{r,eval=FALSE}
+###Manhattan plot of the results: the function `rsbplot()`
+
+The `rsbplot()` function draws a Manhattan plot of the Whole Genome Scan results as obtained by the function `ies2rsb()`.  Various options are available to modify the graphical display (see `?rsbplot`). As an example, Figure \ref{fig:rsbplot} below provides the output of the function `rsbplot()` for the *Rsb* computed above across the CGU and EUT populations (see \ref{res.rsb}). It was drawn using the following R code:
+```{r,rsbplot,fig.align='center',fig.width=16,fig.height=12,fig.lp='fig:',fig.cap='Graphical output of the \\texttt{rsbplot()} function',fig.pos='!h'}
+layout(matrix(1:2,2,1))
 rsbplot(cguVSeut.rsb,plot.pval=TRUE)
 ```
 
-```{r rsbplot,echo=FALSE,fig.ext="png",fig.align='center',fig.width=16,fig.height=12,fig.lp='fig:',fig.cap='Graphical output for the \\texttt{rsbplot()} function',fig.pos='!h'}
-layout(matrix(1:2,2,1))
-plot.pval = TRUE; ylim.scan = 2; pch = 16; cex = 0.75; cex.lab = 1; main = "Rsb (CGU vs. EUT)"; cex.main = 1.;cex.axis=0.7
-data = cguVSeut.rsb
-lst_chrm <- unique(data$CHR) ; nbr_chrm <- length(lst_chrm) ; cum <- rep(0, (nbr_chrm + 1))
-if (nbr_chrm > 1) {
-  for (i in 1:nbr_chrm) {cum[i + 1] <- tail(data$POSITION[data$CHR == lst_chrm[i]],n = 1)}
-}
-cum <- cumsum(cum) ; pos <- rep(0, length(data$CHR)) ; pos_labels <- rep(0, nbr_chrm)
-for (i in 1:nbr_chrm) {
-  pos[data$CHR == lst_chrm[i]] <- data$POSITION[data$CHR ==lst_chrm[i]] + cum[which(lst_chrm == lst_chrm[i])]
-  pos_labels[i] <- (cum[i] + cum[i + 1])/2
-}
-col_chr <- data$CHR
-par(mar = c(5, 5, 4, 2) + 0.1)
-plot(pos, data[,3], pch = pch, cex = cex, las = 1, col = col_chr,xaxt = "n", xlab = "Chromosome", ylab = expression(italic(Rsb)), 
-     cex.lab = cex.lab, main = main, cex.main = cex.main,cex.axis=cex.axis)
-axis(1, at = pos_labels, labels = lst_chrm, las = 1,cex.lab=cex.lab,cex.axis=cex.axis)
-abline(h = c(-ylim.scan, ylim.scan), lty = 2)
-par(mar = c(5, 5, 4, 2) + 0.1)
-plot(pos, data$"-log10(p-value)", pch = pch, cex = cex,las = 1, col = col_chr, xaxt = "n", xlab = "Chromosome", 
-         ylab = expression("-" * log[10] * "[1" ~ "-" ~"2" ~ "|" ~ Phi[scriptstyle(italic(Rsb))] ~"-" ~ 0.5 * "|]"), cex.lab = cex.lab, main = main, cex.main = cex.main,cex.axis=cex.axis)
-axis(1, at = pos_labels, labels = lst_chrm, las = 1,cex.lab=cex.lab,cex.axis=cex.axis)
-abline(h = c(-ylim.scan, ylim.scan), lty = 2)
-```
-
-##The \emph{xpEHH}--based pairwise population test 
+##The *XP-EHH* pairwise population statistic
 ###Definition
-The \emph{xpEHH} statistics [@Sabeti2007] is similar to the \emph{Rsb} except that it is based on the $\mathrm{iES}_\text{pop2}(s)^{\text{Sab}}$ (instead of $\mathrm{iES}_\text{pop2}(s)^{\text{Tang}}$) estimator of the \emph{iES} (see \ref{iES}). Hence, for or a given SNP $s$, let $$\mathrm{LRiES}(s)^{\text{Sab}}=\log\left(\frac{\mathrm{iES}_\text{pop1}(s)^{\text{Sab}}}{\mathrm{iES}_\text{pop2}(s)^{\text{Sab}}}\right)$$ represent the log-ratio of the $\mathrm{iES}_\text{pop1}(s)^{\text{Sab}}$ and $\mathrm{iES}_\text{pop2}(s)^{\text{Sab}}$ computed in the pop1 and pop2 populations (see \ref{iES}).
+The *XP-EHH* (cross-population EHH) statistic [@Sabeti2007] is similar to *Rsb* except that it is based on $\mathrm{iES}^{\text{Sab}}$ instead of $\mathrm{iES}^{\text{Tang}}$ (see \ref{iES}). Hence, for or a given SNP $s$, let $$\mathrm{LRiES}^{\text{Sab}}=\log\left(\frac{\mathrm{iES}_\text{pop1}^{\text{Sab}}}{\mathrm{iES}_\text{pop2}^{\text{Sab}}}\right)$$ represent the log-ratio of the $\mathrm{iES}^{\text{Sab}}$ values computed in the pop1 and pop2 populations (see \ref{iES}).
 
-The \emph{xpEHH} for a given focal SNP is then defined as the standardized  $\mathrm{LRiES}(s)^{\text{Sab}}$ [@Sabeti2007]:
+The *XP-EHH* for a given focal SNP is then defined as the standardized  $\mathrm{LRiES}^{\text{Sab}}$ [@Sabeti2007]:
 
 \begin{equation}
-\mathrm{rSB}(s)=\frac{\mathrm{LRiES}(s)^{\text{Sab}} - \text{med}_{\mathrm{LRiES}^{\text{Sab}}}}{\sigma_{\mathrm{LRiES}^{\text{Sab}}}}
+\mathrm{XP-EHH}=\frac{\mathrm{LRiES}^{\text{Sab}} - \text{mean}_{\mathrm{LRiES}^{\text{Sab}}}}{\sigma_{\mathrm{LRiES}^{\text{Sab}}}}
 \end{equation}
-where $\text{med}_{\mathrm{LRiES}^{\text{Sab}}}$ and $\sigma_{\mathrm{LRiES}^{\text{Sab}}}$ represent the median and standard deviation of the $\mathrm{LRiES}(s)^{\text{Sab}}$ computed over all the analyzed SNPs. 
-More  importantly, it should be noticed that the information about the ancestral and derived status of alleles at the focal SNP is not needed.
+where $\text{mean}_{\mathrm{LRiES}^{\text{Sab}}}$ and $\sigma_{\mathrm{LRiES}^{\text{Sab}}}$ represent the mean and standard deviation of $\mathrm{LRiES}^{\text{Sab}}$ computed over all analyzed SNPs. 
+As with *Rsb*, the information about the ancestral and derived status of alleles at the focal SNP does not figure in the formula and no binning is performed.
 
-As for the \emph{iHS} (see \ref{def.ihs}) and \emph{Rsb}, \emph{xpEHH} is constructed to have an approximately standard Gaussian distribution and may further be transformed into $p_\mathrm{xpEHH}$:
+As with *iHS* (see \ref{def.ihs}) and *Rsb* (see \ref{def.rsb}), *XP-EHH* is constructed to have an approximately standard Gaussian distribution and may further be transformed into $p_\mathrm{XP-EHH}$:
 \begin{equation}
-p_\mathrm{xpEHH}=-\log_{10}\left(1-2|\Phi\left(\mathrm{xpEHH}\right)-0.5|\right)
+p_\mathrm{XP-EHH}=-\log_{10}\left(1-2|\Phi\left(\mathrm{XP-EHH}\right)-0.5|\right)
 \end{equation}
-where $\Phi\left(x\right)$ represents the Gaussian cumulative distribution function. Assuming most of the genotyped SNPs behave neutrally (i.e., the genome-wide empirical \emph{xpEHH} distribution is a fair approximation of their corresponding neutral distributions), $p_\mathrm{xpEHH}$ might thus be interpreted as a two-sided P-value (in a $-\log_{10}$ scale) associated to the neutral hypothesis of no selection.
-Alternatively, $p_\mathrm{xpEHH}$ might also be computed [@Gautier2011]:
+where $\Phi\left(x\right)$ represents the Gaussian cumulative distribution function. Assuming most of the genotyped SNPs behave neutrally (i.e., the genome-wide empirical *XP-EHH* distribution is a fair approximation of their corresponding neutral distributions), $p_\mathrm{XP-EHH}$ might thus be interpreted as a two-sided P-value (in a $-\log_{10}$ scale) associated to the neutral hypothesis of no selection.
+Alternatively, $p_\mathrm{XP-EHH}$ might also be computed [@Gautier2011]:
 \begin{equation}
-p\prime_\mathrm{xpEHH}=-\log_{10}\left(|\Phi\left(\mathrm{xpEHH}\right)|\right)
+p\prime_\mathrm{XP-EHH}=-\log_{10}\left(|\Phi\left(\mathrm{XP-EHH}\right)|\right)
 \end{equation}
-$p\prime_\mathrm{xpEHH}$ and $p\prime_\mathrm{xpEHH}$ might then be interpreted as a one-sided P-value (in a $-\log_{10}$ scale) allowing the identification of those sites displaying a significantly high extended haplotype homozygosity in population $pop2$ (represented in the denominator of the corresponding $\mathrm{LRiES}$) relatively to the $pop1$ reference population.
+$p\prime_\mathrm{XP-EHH}$ and $p\prime_\mathrm{XP-EHH}$ might then be interpreted as a one-sided P-value (in a $-\log_{10}$ scale) allowing the identification of those sites displaying a significantly high extended haplotype homozygosity in population $pop2$ (represented in the denominator of the corresponding $\mathrm{LRiES}$) relatively to the $pop1$ reference population.
 
-###The function \texttt{ies2xpehh()}
-\label{res.xpehh}
+###The function `ies2xpehh()` {#res.xpehh}
 
-The \texttt{ies2xpehh()} function allows to compute \emph{xpEHH} using two data frames containing the \emph{iES} statistics for each of the two populations considered in the same format as the one obtained after running the \texttt{scan\_hh()} function (see \ref{fun.scanhh}).
-For instance, to perform a genome scan one might first run for each population \texttt{scan\_hh()} in turn on haplotype data from each chromosome and concatenate the resulting matrices. In the following example, we assume that the haplotype files are named as \texttt{hap\_chr\_i.pop1} and  \texttt{hap\_chr\_i.pop2} where $i$ is the chromosome number (going from 1 to 29), the suffixes pop1 and pop2 indicate the population of origin and the SNP information file is named \texttt{snp.info}. The R code below then generates two data frames (\texttt{wg.res.pop1} and \texttt{wg.res.pop2}) containing the results from all SNPs in the appropriate format to compute \emph{Rsb} with the \texttt{ies2rsb()} function:
+The `ies2xpehh()` function computes *XP-EHH* using two data frames containing the *iES* statistics for each of the two populations in the format as obtained by running the `scan_hh()` function (see \ref{fun.scanhh}).
+For instance, to perform a genome scan one might first run for each population `scan_hh()` in turn on haplotype data from each chromosome and concatenate the resulting matrices. In the following example, we assume that the haplotype files are named as `hap_chr_i.pop1` and  `hap_chr_i.pop2` where $i$ is the chromosome number (going from 1 to 29), the suffixes pop1 and pop2 indicate the population of origin and the SNP information file is named `snp.info`. The R code below then generates two data frames (`wg.res.pop1` and `wg.res.pop2`) containing the results from all SNPs in the appropriate format to compute *Rsb* with the `ies2rsb()` function:
 
 ```{r,eval=FALSE}
 for(i in 1:29){
- hap_file=paste("hap_chr_",i,".pop1",sep="")
- data<-data2haplohh(hap_file="hap_file","snp.info",chr.name=i)
- res<-scan_hh(data)
- if(i==1){wg.res.pop1<-res}else{wg.res.pop1<-rbind(wg.res.pop1,res)}
- hap_file=paste("hap_chr_",i,".pop2",sep="")
- data<-data2haplohh(hap_file="hap_file","snp.info",chr.name=i)
- res<-scan_hh(data)
- if(i==1){wg.res.pop2<-res}else{wg.res.pop2<-rbind(wg.res.pop2,res)}
- }
+  hap_file=paste("hap_chr_",i,".pop1",sep="")
+  data<-data2haplohh(hap_file="hap_file","snp.info",chr.name=i)
+  res<-scan_hh(data)
+  if(i==1){wg.res.pop1<-res}else{wg.res.pop1<-rbind(wg.res.pop1,res)}
+  hap_file=paste("hap_chr_",i,".pop2",sep="")
+  data<-data2haplohh(hap_file="hap_file","snp.info",chr.name=i)
+  res<-scan_hh(data)
+  if(i==1){wg.res.pop2<-res}else{wg.res.pop2<-rbind(wg.res.pop2,res)}
+}
 wg.xpehh<-ies2xpehh(wg.res.pop1,wg.res.pop2)
 ```
-As a matter of illustration, one may consider results from a similar genome scan [@Gautier2011] provided as example data sets and compute for each SNP the \emph{xpEHH} between the CGU and EUT populations as follows:
+For illustration, we consider the $iES$ values of a genome scan [@Gautier2011] provided as example data and compute for each SNP the *XP-EHH* between the CGU and EUT populations as follows:
 ```{r}
 data(wgscan.cgu) ; data(wgscan.eut)
 ## results from a genome scan (44,057 SNPs) see ?wgscan.eut and ?wgscan.cgu for details
 cguVSeut.xpehh<-ies2xpehh(wgscan.cgu,wgscan.eut,"CGU","EUT")
 ```
 
-The resulting object \texttt{cguVSeut.xpehh} is a data frame with of SNP \emph{xpEHH} (and corresponding P-values assuming \emph{xpEHH} are normally distributed under the neutral hypothesis). Note that either bilateral (default) or unilateral might be performed (\texttt{method} argument). The five first rows of this data frame are displayed below using the following R command:
+The resulting object `cguVSeut.xpehh` is a data frame containing for each SNP the *XP-EHH* and corresponding P-value assuming *XP-EHH* are normally distributed under the neutral hypothesis. The P-value might be either bilateral (default) or unilateral (as specified by the `method` argument). The first rows of this data frame are displayed below:
 
 ```{r}
 head(cguVSeut.xpehh)
 ```
-###Manhattan plot of the results: the function \texttt{xpehhplot()}
+###Manhattan plot of the results: the function `xpehhplot()`
 
-The \texttt{xpehhplot()} function allows to draw a Manhattan plot of the Whole Genome scan results as stored in the data frame produced by the function \texttt{ies2xpehh()}.  Various options are available to modify the graphical display (see \texttt{?xpehhplot}).
-As an example, the Figure \ref{fig:xpehhplot} below provides the output of the function \texttt{xpehhplot} for the \emph{xpEHH} computed above across the CGU and EUT populations (see \ref{res.xpehh}).  Figure \ref{fig:xpehhplot} was drawn using the following R code:
+The `xpehhplot()` draws a Manhattan plot of the Whole Genome Scan results produced by the function `ies2xpehh()`.  Various options are available to modify the graphical display (see `?xpehhplot`).
+As an example, Figure \ref{fig:xpehhplot} provides the output of the function `xpehhplot` for the *XP-EHH* computed above across the CGU and EUT populations (see \ref{res.xpehh}). It was drawn by:
 
-```{r,eval=FALSE}
+```{r,xpehhplot,fig.align='center',fig.width=16,fig.height=12,fig.lp='fig:',fig.cap='Graphical output of the \\texttt{xpehhplot()} function',fig.pos="!h"}
+layout(matrix(1:2,2,1))
 xpehhplot(cguVSeut.xpehh,plot.pval=TRUE)
 ```
 
-```{r xpehhplot,echo=FALSE,fig.align='center',fig.ext="png",fig.width=16,fig.height=12,fig.lp='fig:',fig.cap='Graphical output for the \\texttt{xpehhplot()} function',fig.pos="!h"}
-layout(matrix(1:2,2,1))
-plot.pval = TRUE; ylim.scan = 2; pch = 16; cex = 0.75; cex.lab = 1; main = "XPEHH (CGU vs. EUT)"; cex.main = 1.;cex.axis=0.7
-data = cguVSeut.xpehh
-lst_chrm <- unique(data$CHR) ; nbr_chrm <- length(lst_chrm) ; cum <- rep(0, (nbr_chrm + 1))
-if (nbr_chrm > 1) {
-  for (i in 1:nbr_chrm) {cum[i + 1] <- tail(data$POSITION[data$CHR == lst_chrm[i]],n = 1)}
-}
-cum <- cumsum(cum) ; pos <- rep(0, length(data$CHR)) ; pos_labels <- rep(0, nbr_chrm)
-for (i in 1:nbr_chrm) {
-  pos[data$CHR == lst_chrm[i]] <- data$POSITION[data$CHR ==lst_chrm[i]] + cum[which(lst_chrm == lst_chrm[i])]
-  pos_labels[i] <- (cum[i] + cum[i + 1])/2
-}
-col_chr <- data$CHR
-par(mar = c(5, 5, 4, 2) + 0.1)
-plot(pos, data[,3], pch = pch, cex = cex, las = 1, col = col_chr,xaxt = "n", xlab = "Chromosome", ylab = expression(italic(XPEHH)), 
-     cex.lab = cex.lab, main = main, cex.main = cex.main,cex.axis=cex.axis)
-axis(1, at = pos_labels, labels = lst_chrm, las = 1,cex.lab=cex.lab,cex.axis=cex.axis)
-abline(h = c(-ylim.scan, ylim.scan), lty = 2)
-par(mar = c(5, 5, 4, 2) + 0.1)
-plot(pos, data$"-log10(p-value)", pch = pch, cex = cex,las = 1, col = col_chr, xaxt = "n", xlab = "Chromosome", 
-         ylab = expression("-" * log[10] * "[1" ~ "-" ~"2" ~ "|" ~ Phi[scriptstyle(italic(XPEHH))] ~"-" ~ 0.5 * "|]"), cex.lab = cex.lab, main = main, cex.main = cex.main,cex.axis=cex.axis)
-axis(1, at = pos_labels, labels = lst_chrm, las = 1,cex.lab=cex.lab,cex.axis=cex.axis)
-abline(h = c(-ylim.scan, ylim.scan), lty = 2)
-```
-###\emph{xpEHH} vs. \emph{Rsb} comparison:
+###*Rsb* vs. *XP-EHH* comparison:
 
-A plot of the \emph{xpEHH} against \emph{Rsb} estimates across the CGU and EUT populations (see \ref{res.xpehh} and \ref{res.rsb} respectively) is represented in the Figure \ref{fig:comp} below. This figure was generated using the following R code:
+A plot of the *Rsb* against *XP-EHH* values across the CGU and EUT populations (see \ref{res.rsb} and \ref{res.xpehh} respectively) is represented in Figure \ref{fig:comp}. Marked in red is the SNP that was used repeatedly in the examples above. The plot was generated using the following R code:
 
-```{r comp,echo=TRUE,fig.align='center',fig.ext="png",out.height="7cm",fig.lp='fig:',fig.cap='Comparison of the XPEHH and Rsb estimates across the CGU and EUT populations',fig.pos="!h"}
-plot(cguVSeut.rsb[,3],cguVSeut.xpehh[,3],xlab="Rsb",ylab="XPEHH",pch=16,
-    cex=0.5,cex.lab=0.75,cex.axis=0.75)
+```{r comp,echo=TRUE,fig.align='center',fig.width=6,fig.height=6,out.height="8cm",fig.lp='fig:',fig.cap='Comparison of Rsb and XP-EHH values across the CGU and EUT populations',fig.pos="!h"}
+plot(cguVSeut.rsb[,3],cguVSeut.xpehh[,3],xlab="Rsb",ylab="XP-EHH",pch=".",
+     xlim=c(-7.5,7.5),ylim=c(-7.5,7.5))
+points(cguVSeut.rsb["F1205400",3],cguVSeut.xpehh["F1205400",3],col="red")
 abline(a=0,b=1,lty=2)
 ```
-##Visual inspection of the standardized scores distribution: the function \texttt{distribplot()}
 
-The \texttt{distribplot} function allows to easily visualize the distributions of the standardized scores (either \emph{iHS}, \emph{Rsb} or \emph{xpEHH}) and compare them to the standard Gaussian distribution. As an example, the Figure \ref{fig:distribplot} below provides the output the function \texttt{distribplot} when considering the \emph{iHS} estimates obtained for the CGU population (see \ref{cgu.ihs}) using the following R code:
+\clearpage
+\newpage
 
-```{r,eval=FALSE}
+##Visual inspection of the standardized scores distribution: the function `distribplot()`
+
+The `distribplot()` function allows to visualize the distributions of the standardized scores (either *iHS*, *Rsb* or *XP-EHH*) and compare them to the standard Gaussian distribution. As an example, Figure \ref{fig:distribplot} below provides the output the function `distribplot()` when considering the *iHS* estimates obtained for the CGU population (see \ref{cgu.ihs}) using the following R code:
+
+```{r,distribplot,fig.align='center',fig.width=6,fig.height=12,out.height="14cm",fig.lp='fig:',fig.cap='Graphical output of the function \\texttt{distribplot}',fig.pos="!h"}
+layout(matrix(1:2,2,1))
 distribplot(ihs.cgu$iHS[,3],xlab="iHS")
 ```
+\clearpage
+\newpage 
 
-```{r distribplot,echo=FALSE,fig.align='center',fig.width=7,out.height="7cm",fig.height=7,fig.lp='fig:',fig.cap='Graphical output for the function \\texttt{distribplot}',fig.pos="!h"}
-layout(matrix(1:2,2,1))
-data=ihs.cgu$iHS[,3]
-lty = 1;lwd = 1.5;col = c("blue","red");main = "Genome-wide distribution";xlab = "iHS";cex.main = 1.5;cex.lab = 1.25;qqplot = TRUE
-plot(density(data,na.rm = TRUE),main = main,xlab = xlab,col = col[1],lty = lty,lwd = lwd,cex.main = cex.main,cex.lab = cex.lab)
-	curve(dnorm,col = col[2],add = TRUE)
-	legend("topright",c("Observed","Gaussian"),bty = "n",col = col,lty = lty,lwd = lwd)
-	if (qqplot) {
-		par(mar = c(5,5,4,2) + 0.1)
-		qqnorm(data[!is.na(data)],cex.main = cex.main,cex.lab = cex.lab,pch = 16,cex = 0.75)
-     abline(a=0,b=1,lty=2)
-    }
-```
+#Visualizing haplotype structure around a focal SNP: the `bifurcation.diagram()` function
 
-#Visualizing haplotype structure around a core allele: the function \texttt{bifurcation.diagram()}
+The function `bifurcation.diagram()` draws haplotype bifurcation diagrams [@Sabeti2002] that visualize the decay of *EHH* around a focal SNP. A stark contrast of ancestral and derived bifurcation diagrams should correspond to outlier values of *iHS*. Within the plot, the root (focal SNP) is identified by a vertical dashed line. 
+The diagram is bi-directional, portraying decay along both sides of the focal SNP. Moving in one direction, each marker is an opportunity for a bifurcation to occurr further differentiating between extended haplotypes. The thickness of the lines corresponds to the number of chromosomes with the same haplotype.
 
-The function \texttt{bifurcation.diagram()} function draws haplotype bifurcation diagrams [@Sabeti2002] that allow to better understand the origin of an observed footprints of selection. Such diagrams indeed consist in plotting the breakdown of LD at increasing distances from the core allele at the selected focal SNPs. The root (focal SNP) of each diagram is the core allele and is here identified by a vertical dashed line. 
-The diagram is bi-directional, portraying both centromere-proximal and centromere-distal LD. Moving in one direction, each marker is an opportunity for a node; the diagram either divides or not based on whether both or only one allele is present. Thus the breakdown of LD on the core haplotype background is portrayed at progressively longer distances. The thickness of the lines corresponds to the number of samples with the indicated long-distance haplotype. Several options are available to modify the aspect of the plots (see command \texttt{?bifurcation.diagram})
-As a matter of illustration, Figure \ref{fig:bifdia} shows the bifurcation diagrams for both the derived and ancestral alleles at the $456^{\text{th}}$ SNP on BTA12 CGU haplotypes. This SNP displayed a strong signal of selection (using both \emph{iHS} and \emph{Rsb} statistics) and is located closed (<5kb) to a strong candidate genes involved in horn development [@Gautier2011]. Figure \ref{fig:bifdia} was obtained with the following R code: 
+Several options are available to modify the aspect of the plots (see command `?bifurcation.diagram`).
+As an illustration, Figure \ref{fig:bifdia} shows the bifurcation diagrams for both the derived and ancestral alleles at the SNP with name "F1205400" on BTA12 CGU haplotypes. This SNP is associated with a strong signal of selection (using both *iHS* and *Rsb* statistics) and is located closely (<5kb) to a strong candidate gene involved in horn development [@Gautier2011]. Figure \ref{fig:bifdia} was obtained by the following R code: 
 
-```{r bifdia,eval=TRUE,fig.align='center',out.height="12cm",fig.width=16,fig.height=12,fig.lp='fig:',fig.cap='Graphical output for the function \\texttt{bifurcation.diagram()}',fig.pos="!h"}
+```{r bifdia,eval=TRUE,fig.align='center',out.height="12cm",fig.width=16,fig.height=12,fig.lp='fig:',fig.cap='Graphical output of the function \\texttt{bifurcation.diagram()}',fig.pos="!h"}
 data(haplohh_cgu_bta12)
 layout(matrix(1:2,2,1))
-bifurcation.diagram(haplohh_cgu_bta12,mrk_foc=456,all_foc=1,nmrk_l=20,nmrk_r=20,
+bifurcation.diagram(haplohh_cgu_bta12,mrk_foc="F1205400",all_foc=1,nmrk_l=20,nmrk_r=20,
                     main="Bifurcation diagram (RXFP2 SNP on BTA12): Ancestral Allele")
-bifurcation.diagram(haplohh_cgu_bta12,mrk_foc=456,all_foc=2,nmrk_l=20,nmrk_r=20,
+bifurcation.diagram(haplohh_cgu_bta12,mrk_foc="F1205400",all_foc=2,nmrk_l=20,nmrk_r=20,
                     main="Bifurcation diagram (RXFP2 SNP on BTA12): Derived Allele")
 ```
+\clearpage
+\newpage
 
+# Differences to the program *hapbin*
+
+The C++ program *hapbin* [@Maclean2015] is an alternative implementation of the statistics *iHS* and *XP-EHH*. The calculated values vary between *hapbin* and *rehh*. As far as we can tell, this is due to the following differences in implementation:
+
+1. *Hapbin* disregards the SNPs directly at the border of chromosomes.
+
+2. If an ancestral or derived focal allele is present only on a single chromosome, *hapbin* assigns a *EHH* value of 1 for that allele at the focal SNP and zero otherwise. *rehh* assigns zero at the focal SNP, too.
+
+3. If run in default mode (without option `--binom` or `-a`), *hapbin* calculates *EHH* by (notation as in \ref{EHH})
+\begin{equation}
+\mathrm{EHH}^a_{s,t}=\sum_{k=1}^{K^a_{s,t}}\left(\frac{n_k}{n_a}\right)^2\;.
+\end{equation}
+Note that this formula yields a homozygosity of 0.5 for a sample of two chromosomes with non-identical alleles. This number reflects the situation of a population with a frequency of 0.5 for two alleles and the average homozygosity of two chromosomes taken at random (with replacement). The formula (\ref{ehh.def}) used by *rehh* and applied by *hapbin* if run with option `--binom` or `-a` returns in this case zero, hence the homozygosity of the sample proper. For increasing sample size both approaches converge.
+The same holds for *EHHS*.
+
+4. For the standardization of *iHS* resp. *XP-EHH*, *hapbin* uses the estimator
+$\sqrt{\frac{1}{n}\sum(x_i-\bar{x})^2}$ for the standard deviation while *rehh* uses $\sqrt{\frac{1}{n-1}\sum(x_i-\bar{x})^2}$.
+
+5. The bins that are used for the standardization of $iHS$ are 
+spanning in *hapbin* the whole interval ]0,1], while in *rehh* they span the interval [`minmaf`,1-`minmaf`[. *Hapbin* includes the upper endpoint into each bin, while *rehh* includes the lower endpoint. The default number of bins in *hapbin* is set to 50, yielding bin intervals of 0.02. The corresponding default value in *rehh* is 0.025.
+
+6. Integration over *EHH* resp. *EHHS* is performed by *hapbin* on the area between the curve spanned by these quantities and the x-axis (y=0) while *rehh* integrates only over the part of that area that is above the threshold set by the parameters `limehh` resp. `limehhs`, i.e. the area between the curve and the line y=threshold. This is not to be confused with the condition for truncation at left and right ends of the curve (i.e. the abortion of further integration if *EHH* resp. *EHHS* decayes beyond a given threshold) which is (for all practical purposes) identical in both programs. 
+
+7. By far the largest discrepancies arise from the different handling of gaps during the integration of *EHH* resp. *EHHS* yielding *iHH* resp. *iES*. *Hapbin* has an optional parameter `-s` or `--scale` to "down-weight" large gaps by capping them to the specified value. For example, taking its default value of $20000$, this means, that any gap greater than this will be reduced to this number. By contrast, using the option `maxgap` within *rehh* leads to a stop of the integration and if the parameter `discard_integration_at_border` is set to `TRUE`, then no value is reported. 
 \clearpage
 \newpage
 

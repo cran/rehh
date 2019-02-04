@@ -1,10 +1,10 @@
 \name{xpehhplot}
 \alias{xpehhplot}
-\title{Plot XPEHH over a genome}
-\description{Plot XPEHH over a genome.}
-\usage{xpehhplot(data,plot.pval = TRUE,ylim.scan = 2,pch = 16,cex = 0.5,cex.lab = 1.25,
-main = NA,cex.main = 1.5,cex.axis=1.)}
-
+\title{Plot XP-EHH over a genome}
+\description{Plot XP-EHH over a genome.}
+\usage{xpehhplot(data, plot.pval = TRUE, ylim.scan = 2, pch = 16,
+            cex = 0.5, cex.lab = 1.25, main = NA, cex.main = 1.5,
+            cex.axis=1.)}
 \arguments{
   \item{data}{A dataframe obtained using \code{ies2xpehh} function.}
   \item{plot.pval}{Either TRUE or FALSE if Pvalue should not be plotted}
@@ -21,12 +21,12 @@ main = NA,cex.main = 1.5,cex.axis=1.)}
    Gautier, M. and Naves, M. (2011). Footprints of selection in the ancestral admixture of a New World
    Creole cattle breed. \emph{Molecular Ecology}, \bold{20}, 3128--3143.
 
-   Sabeti, P.C. et al. (2007). Genome-wide detection and characterization of positive selection in 
+   Sabeti, P.C. et al. (2007). Genome-wide detection and characterization of positive selection in
    human populations. \emph{Nature}, \bold{449}, 913--918.
 }
 \seealso{ies2xpehh}
 \examples{
-data(wgscan.cgu) ; data(wgscan.eut) 
+data(wgscan.cgu) ; data(wgscan.eut)
 ## results from a genome scan (44,057 SNPs)
 #see ?wgscan.eut and ?wgscan.cgu for details
 res.xpehh<-ies2xpehh(wgscan.cgu,wgscan.eut,"CGU","EUT")

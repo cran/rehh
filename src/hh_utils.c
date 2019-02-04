@@ -12,12 +12,11 @@ void compute_ehh(short int **data,
 
 {
   int i,j;
-  int previous;
   int nbr_dstnct_hapl;                                                          // Number of distinct haplotypes
   int *haplotype;
   int *refrnce_hapl;
   int *hapl_count;
-  
+
   haplotype = (int *) malloc(nbr_chrs * sizeof(int));                           // `haplotype' is the list of all haplotypes
   refrnce_hapl = (int *) malloc(nbr_chrs * sizeof(int));                        // `refrnce_hapl' is the list of referenced haplotypes
   hapl_count = (int *) malloc(nbr_chrs * sizeof(int));                          // `hapl_count' gives the counts of distinct haplotypes
@@ -43,7 +42,6 @@ void compute_ehh(short int **data,
       printf("\n");
     }
 #endif
-    previous = focl_snp;
     for (j = (focl_snp - 1); j >= 0; j--) {                                     // walk along the chromosome from the focal SNP to the left-hand side, ...
       updt_hapl(data,j,nbr_chrs,&tot_nbr_hapl[j],haplotype,&nbr_dstnct_hapl,refrnce_hapl,hapl_count); // ... and update the list of haplotypes
 #ifdef DEBUG
@@ -60,16 +58,16 @@ void compute_ehh(short int **data,
       }
 #endif
       ehh[j] = hapl_homzgsty(tot_nbr_hapl[j],nbr_dstnct_hapl,hapl_count);       // Compute the haplotype homozygosity at the jth SNP
-      if (tot_nbr_hapl[j] > min_nbr_hapl) {                                     // If the total number of haplotypes at the jth SNP is larger than the min. number allowed, ...
-        if (ehh[j] < min_ehh) {                                                 // ... but if the EHH is lower than the min. number allowed, ...
-          break;                                                                // ... then quit the loop
+      if (tot_nbr_hapl[j] >= min_nbr_hapl) {                                    // If the total number of haplotypes at the jth SNP is larger than the min. number allowed, ...
+        if (ehh[j] <= min_ehh) {                                                 // ... but if the EHH is lower than the min. number allowed, ...
+          ehh[j] = 0.0;                                                         // ... then the EHH is nought, and ...
+          break;                                                                // ... quit the loop
         }
       }
       else {                                                                    // If the total number of haplotypes at the jth SNP is lower than the min. number allowed, ...
         ehh[j] = 0.0;                                                           // ... then the EHH is nought, and ...
         break;                                                                  // ... quit the loop
       }
-      previous = j;
     }
     init_hapl(data,focl_snp,allele,UNDEFND,nbr_chrs,haplotype,&nbr_dstnct_hapl,refrnce_hapl,hapl_count); // initialize the array of haplotypes
 #ifdef DEBUG
@@ -85,7 +83,6 @@ void compute_ehh(short int **data,
       printf("\n");
     }
 #endif
-    previous = focl_snp;
     for (j = (focl_snp + 1); j < nbr_snps; j++) {                               // walk along the chromosome from the focal SNP to the right-hand side
       updt_hapl(data,j,nbr_chrs,&tot_nbr_hapl[j],haplotype,&nbr_dstnct_hapl,refrnce_hapl,hapl_count); // ... and update the list of haplotypes
 #ifdef DEBUG
@@ -102,16 +99,16 @@ void compute_ehh(short int **data,
       }
 #endif
       ehh[j] = hapl_homzgsty(tot_nbr_hapl[j],nbr_dstnct_hapl,hapl_count);       // Compute the haplotype homozygosity at the jth SNP
-      if (tot_nbr_hapl[j] > min_nbr_hapl) {                                     // If the total number of haplotypes at the jth SNP is larger than the min. number allowed, ...
-        if (ehh[j] < min_ehh) {                                                 // ... but if the EHH is lower than the min. number allowed, ...
-          break;                                                                // ... then quit the loop
+      if (tot_nbr_hapl[j] >= min_nbr_hapl) {                                    // If the total number of haplotypes at the jth SNP is larger than the min. number allowed, ...
+        if (ehh[j] <= min_ehh) {                                                 // ... but if the EHH is lower than the min. number allowed, ...
+          ehh[j] = 0.0;                                                         // ... then the EHH is nought, and ...
+          break;                                                                // ... quit the loop
         }
       }
       else {                                                                    // If the total number of haplotypes at the jth SNP is lower than the min. number allowed, ...
         ehh[j] = 0.0;                                                           // ... then the EHH is nought, and ...
         break;                                                                  // ... quit the loop
       }
-      previous = j;
     }
   }
   free(haplotype);
@@ -131,13 +128,12 @@ void compute_ehhs(short int **data,
 
 {
   int i,j;
-  int previous;
   int nbr_dstnct_hapl;                                                          // Number of distinct haplotypes
   int *haplotype;
   int *refrnce_hapl;
   int *hapl_count;
   int *hapl_snp;
-  
+
   haplotype = (int *) malloc(nbr_chrs * sizeof(int));                           // `haplotype' is the list of all haplotypes
   refrnce_hapl = (int *) malloc(nbr_chrs * sizeof(int));                        // `refrnce_hapl' is the list of referenced haplotypes
   hapl_count = (int *) malloc(nbr_chrs * sizeof(int));                          // `hapl_count' gives the counts of distinct haplotypes
@@ -150,10 +146,9 @@ void compute_ehhs(short int **data,
     ehhs_sabeti[focl_snp] = 0.0;                                                // ... in which case the EHHS (Sabeti et al's 2007) at the focal SNP is nought, ...
   }
   else {
-    ehhs_tang[focl_snp] = 1.0;                                                  //... the EHHS (Tang et al's 2007) at the focal SNP is 1.0, by definition
-    ehhs_sabeti[focl_snp] = 1.0;                                                //... the EHHS (Sabeti et al's 2007) at the focal SNP is 1.0, by definition
     init_hapl(data,focl_snp,ANCSTRL,DERIVED,nbr_chrs,haplotype,&nbr_dstnct_hapl,refrnce_hapl,hapl_count); // initialize the array of haplotypes (for the focal SNP)
-    previous = focl_snp;
+    ehhs_tang[focl_snp] = 1.0;                                                  // 1.0 by definition
+    ehhs_sabeti[focl_snp] = hapl_homzgsty(tot_nbr_hapl[focl_snp],nbr_dstnct_hapl,hapl_count); // Compute the standardized haplotype homozygosity at the focal SNP, following Sabeti et al's (2007)
     for (j = (focl_snp - 1); j >= 0; j--) {                                     // walk along the chromosome from the focal SNP to the left-hand side, ...
       updt_hapl(data,j,nbr_chrs,&tot_nbr_hapl[j],haplotype,&nbr_dstnct_hapl,refrnce_hapl,hapl_count); // ... and update the list of haplotypes
       for (i = 0; i < nbr_dstnct_hapl; i++) {
@@ -161,16 +156,16 @@ void compute_ehhs(short int **data,
       }
       ehhs_tang[j] = site_hapl_homzgsty(tot_nbr_hapl[j],nbr_dstnct_hapl,hapl_count,hapl_snp); // Compute the haplotype homozygosity at the jth SNP, following Tang et al's (2007)
       ehhs_sabeti[j] = hapl_homzgsty(tot_nbr_hapl[j],nbr_dstnct_hapl,hapl_count); // Compute the standardized haplotype homozygosity at the jth SNP, following Sabeti et al's (2007)
-      if (tot_nbr_hapl[j] > min_nbr_hapl) {                                     // If the total number of haplotypes at the jth SNP is larger than the min. number allowed, ...
-        if ((ehhs_tang[j] < min_ehhs) && (ehhs_sabeti[j] < min_ehhs)) {         // ... but if the EHHS is lower than the min. number allowed, ...
+      if (tot_nbr_hapl[j] >= min_nbr_hapl) {                                    // If the total number of haplotypes at the jth SNP is larger than the min. number allowed, ...
+        if ((ehhs_tang[j] <= min_ehhs) && (ehhs_sabeti[j] <= min_ehhs)) {         // ... but if the EHHS is lower than the min. number allowed, ...
           ehhs_tang[j] = 0.0;                                                   // ... then the EHHS (Tang et al's 2007) is nought, and ...
           ehhs_sabeti[j] = 0.0;                                                 // ... then the EHHS (Sabeti et al's 2007) is nought, and ...
           break;                                                                // ... then quit the loop
         }
-        else if (ehhs_tang[j] < min_ehhs) {
+        else if (ehhs_tang[j] <= min_ehhs) {
           ehhs_tang[j] = 0.0;
         }
-        else if (ehhs_sabeti[j] < min_ehhs) {
+        else if (ehhs_sabeti[j] <= min_ehhs) {
           ehhs_sabeti[j] = 0.0;
         }
         else {
@@ -182,10 +177,8 @@ void compute_ehhs(short int **data,
         ehhs_sabeti[j] = 0.0;                                                   // ... then the EHHS (Sabeti et al's 2007) is nought, and ...
         break;                                                                  // ... quit the loop
       }
-      previous = j;
     }
     init_hapl(data,focl_snp,ANCSTRL,DERIVED,nbr_chrs,haplotype,&nbr_dstnct_hapl,refrnce_hapl,hapl_count); // initialize the array of haplotypes (for the focal SNP)
-    previous = focl_snp;
     for (j = (focl_snp + 1); j < nbr_snps; j++) {                               // walk along the chromosome from the focal SNP to the right-hand side
       updt_hapl(data,j,nbr_chrs,&tot_nbr_hapl[j],haplotype,&nbr_dstnct_hapl,refrnce_hapl,hapl_count); // ... and update the list of haplotypes
       for (i = 0; i < nbr_dstnct_hapl; i++) {
@@ -193,16 +186,16 @@ void compute_ehhs(short int **data,
       }
       ehhs_tang[j] = site_hapl_homzgsty(tot_nbr_hapl[j],nbr_dstnct_hapl,hapl_count,hapl_snp); // Compute the standardized haplotype homozygosity at the jth SNP
       ehhs_sabeti[j] = hapl_homzgsty(tot_nbr_hapl[j],nbr_dstnct_hapl,hapl_count); // Compute the standardized haplotype homozygosity at the jth SNP, following Sabeti et al's (2007)
-      if (tot_nbr_hapl[j] > min_nbr_hapl) {                                     // If the total number of haplotypes at the jth SNP is larger than the min. number allowed, ...
-        if ((ehhs_tang[j] < min_ehhs) && (ehhs_sabeti[j] < min_ehhs)) {         // ... but if the EHHS is lower than the min. number allowed, ...
+      if (tot_nbr_hapl[j] >= min_nbr_hapl) {                                    // If the total number of haplotypes at the jth SNP is larger than the min. number allowed, ...
+        if ((ehhs_tang[j] <= min_ehhs) && (ehhs_sabeti[j] <= min_ehhs)) {         // ... but if the EHHS is lower than the min. number allowed, ...
           ehhs_tang[j] = 0.0;                                                   // ... then the EHHS (Tang et al's 2007) is nought, and ...
           ehhs_sabeti[j] = 0.0;                                                 // ... then the EHHS (Sabeti et al's 2007) is nought, and ...
           break;                                                                // ... then quit the loop
         }
-        else if (ehhs_tang[j] < min_ehhs) {
+        else if (ehhs_tang[j] <= min_ehhs) {
           ehhs_tang[j] = 0.0;
         }
-        else if (ehhs_sabeti[j] < min_ehhs) {
+        else if (ehhs_sabeti[j] <= min_ehhs) {
           ehhs_sabeti[j] = 0.0;
         }
         else {
@@ -214,7 +207,6 @@ void compute_ehhs(short int **data,
         ehhs_sabeti[j] = 0.0;                                                   // ... then the EHHS (Sabeti et al's 2007) is nought, and ...
         break;                                                                  // ... quit the loop
       }
-      previous = j;
     }
   }
   free(haplotype);
@@ -238,7 +230,7 @@ void init_hapl(short int **data,
   int i;
   int frst_allele_hapl = UNDEFND;                                               // Initialize the haplotype that contains the the `frst_allele'
   int scnd_allele_hapl = UNDEFND;                                               // Initialize the haplotype that contains the the `scnd_allele'
-  
+
   *nbr_dstnct_hapl = 0;                                                         // Initialize the number of distinct haplotypes
   hapl_count[ *nbr_dstnct_hapl ] = 0;                                           // Initialize the haplotype counts
   for (i = 0; i < nbr_chrs; i++) {                                              // Loop over all chromosomes in the sample
@@ -315,7 +307,7 @@ void updt_hapl(short int** data,
               derived_hapl[ ancstrl_hapl[ (*nbr_dstnct_hapl - 1) ] ] = haplotype[i]; // ... then re-assign the derived haplotype, ...
               ancstrl_hapl[ haplotype[i] ] = ancstrl_hapl[ (*nbr_dstnct_hapl - 1) ]; // ... and the ancestral haplotype
             }
-          
+
             refrnce_hapl[ haplotype[i] ] = refrnce_hapl[ *nbr_dstnct_hapl - 1 ]; // Replace the (current) referenced haplotype with the last one in the list of reference haplotypes, ...
             hapl_count[ haplotype[i] ] = hapl_count[ *nbr_dstnct_hapl - 1 ];    // ... and take the corresponding haplotype count
             *nbr_dstnct_hapl -= 1;                                              // ... and decrease the number of distinct haplotypes by one
@@ -383,7 +375,7 @@ double site_hapl_homzgsty(int tot_nbr_hapl,
   int i;
   int allele_count[2];
   double hapl_homzgsty,homzgsty;
-  
+
   hapl_homzgsty = 0.0;                                                          // Initialize the haplotype homozygosity
   allele_count[ANCSTRL] = allele_count[DERIVED] = 0;                            // Initialize the allele counts
   if (nbr_dstnct_hapl > 0) {
@@ -406,14 +398,15 @@ double integrate(double *x_axis,
                  double *y_axis,
                  int n,
                  double threshold,
-                 double max_gap)
+                 double max_gap,
+                 int discard_integration_at_border)
 
 {
   int i;
   double height,width;
   double area = 0.0;
-  
-  if ((y_axis[0] > threshold) || (y_axis[n - 1] > threshold)) {                 // If the EHH or EHHS is larger than the minimum value at either end of the chromosome, ...
+
+  if (discard_integration_at_border && ((y_axis[0] > threshold) || (y_axis[n - 1] > threshold))) {  // If the EHH or EHHS is larger than the minimum value at either end of the chromosome, ...
     return (UNDEFND);                                                           // ... then do not compute the integral, and quit
   }
   for (i = 0; i < (n - 1); i++) {
