@@ -3,7 +3,8 @@
 \title{EHH and iHH computations at a given core SNP}
 \description{Compute Extended Haplotype Homozygosity (EHH) and integrated EHH (iHH) for a given focal SNP.}
 \usage{
-calc_ehh(haplohh, mrk, limhaplo = 2, limehh = 0.05, maxgap = NA,
+calc_ehh(haplohh, mrk, limhaplo = 2, limehh = 0.05,
+    scalegap = NA, maxgap = NA,
     discard_integration_at_border = TRUE, plotehh = TRUE,
     lty = 1, lwd = 1.5, col = c("blue", "red"), xlab = "Position",
     ylab = expression(Extended ~ haplotype ~ homozygosity ~ (italic(EHH))),
@@ -15,6 +16,7 @@ calc_ehh(haplohh, mrk, limhaplo = 2, limehh = 0.05, maxgap = NA,
   \item{limhaplo}{Minimal number of haplotypes to continue computing EHH away from the core SNP. Useless, if no missing data. However, when some data are missing,
                   haplotypes with missing data are removed from the computation. Hence as we compute EHH further from the core SNP, less haplotypes are expected}
   \item{limehh}{Limit at which EHH stops to be evaluated}
+  \item{scalegap}{Scales gaps larger than the specified size to the specified size (default=NA, i.e. no scaling)}
   \item{maxgap}{Maximum allowed gap in bp between two SNPs below which EHH stops to be evaluated (default=NA, i.e., no limitation)}
   \item{discard_integration_at_border}{If TRUE and if first or last marker or a gap (larger than \code{maxgap}) is reached and EHH is greater than \code{limehh}, then iHH is set to \code{NA}}
   \item{plotehh}{If TRUE, EHH values for both ancestral and derived allele are plotted for each position}

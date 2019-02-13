@@ -1,4 +1,4 @@
-calc_ehh <- function(haplohh,mrk,limhaplo = 2,limehh = 0.05,maxgap = NA,discard_integration_at_border = TRUE,plotehh = TRUE,lty = 1,lwd = 1.5,col = c("blue","red"),xlab = "Position",ylab = expression(Extended~haplotype~homozygosity~(italic(EHH))),cex.lab = 1.25,main = NA,cex.main = 1.5) {
+calc_ehh <- function(haplohh,mrk,limhaplo = 2,limehh = 0.05,scalegap = NA,maxgap = NA,discard_integration_at_border = TRUE,plotehh = TRUE,lty = 1,lwd = 1.5,col = c("blue","red"),xlab = "Position",ylab = expression(Extended~haplotype~homozygosity~(italic(EHH))),cex.lab = 1.25,main = NA,cex.main = 1.5) {
 
 	if (!(is.haplohh(haplohh))) {stop("The data are not formatted as a valid haplohh object... (see the data2haplohh() function)")}
   if(is.numeric(mrk)){
@@ -17,8 +17,14 @@ calc_ehh <- function(haplohh,mrk,limhaplo = 2,limehh = 0.05,maxgap = NA,discard_
 	if (limhaplo < 2) {stop("limhaplo must be larger than 1")}
 	if (limehh < 0 | limehh > 1) {stop("limehh must lie between 0 and 1")}
 	if (is.na(maxgap)) {maxgap = (max(haplohh@position) + 1)}
-
-	ehh <- nhaplo_eval <- matrix(0,nrow = haplohh@nsnp,ncol = 2)
+  if (is.na(scalegap)){
+    scalegap = (max(haplohh@position) + 1)
+  } else{
+    if (scalegap > maxgap) {
+      stop("scalegap has to be smaller than maxgap in order to have an effect")
+    }
+  }
+ 	ehh <- nhaplo_eval <- matrix(0,nrow = haplohh@nsnp,ncol = 2)
 	ihh <- rep(0,2)
 	res.ehh <- .C("CALL_EHH",
   				Rdata = as.integer(haplohh@haplo),
@@ -27,9 +33,10 @@ calc_ehh <- function(haplohh,mrk,limhaplo = 2,limehh = 0.05,maxgap = NA,discard_
   				number_chromosomes = as.integer(haplohh@nhap),
   				number_haplotypes = as.integer(nhaplo_eval),
   				min_number_haplotypes = as.integer(limhaplo),
-				discard_integration_at_border = as.integer(discard_integration_at_border),
+		  		discard_integration_at_border = as.integer(discard_integration_at_border),
   				min_EHH = as.double(limehh),
-  				max_gap = as.double(maxgap),
+  				scale_gap = as.double(scalegap),
+	  			max_gap = as.double(maxgap),
   				map = as.double(haplohh@position),
   				EHH = as.double(ehh),
   				IHH = as.double(ihh)

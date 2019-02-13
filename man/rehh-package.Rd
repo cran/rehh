@@ -12,7 +12,7 @@ The concept of an "Extended Haplotype Homozygosity" (EHH), introduced by (Sabeti
 \details{
 \tabular{ll}{
 Package: \tab rehh\cr
-Version: \tab 2.0.3\cr
+Version: \tab 2.0.4\cr
 License: \tab GPL(>=2)\cr
 Depends: \tab gplots , methods\cr
 }

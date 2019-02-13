@@ -396,14 +396,17 @@ double site_hapl_homzgsty(int tot_nbr_hapl,
 
 double integrate(double *x_axis,
                  double *y_axis,
+                 int focl_snp,
                  int n,
                  double threshold,
+                 double scale_gap,
                  double max_gap,
                  int discard_integration_at_border)
 
 {
   int i;
   double height,width;
+  double scale;
   double area = 0.0;
 
   if (discard_integration_at_border && ((y_axis[0] > threshold) || (y_axis[n - 1] > threshold))) {  // If the EHH or EHHS is larger than the minimum value at either end of the chromosome, ...
@@ -412,23 +415,37 @@ double integrate(double *x_axis,
   for (i = 0; i < (n - 1); i++) {
     if ((y_axis[i] > threshold) || (y_axis[i + 1] > threshold)) {
       if (fabs(x_axis[i + 1] - x_axis[i]) > max_gap) {                          // If a gap larger than max_gap exists within the 'support' of the EHH or EHHS, ...
-        return (UNDEFND);                                                       // ... then do not compute the integral, and quit
+        if(discard_integration_at_border){
+          return(UNDEFND);                                                      // ... then do not compute the integral, and quit
+        } else {
+          if(i > focl_snp){
+            return (area);                                                      // ... quit
+          } else {
+            area = 0.0;                                                         // ... discard integral up to current snp
+            continue;
+          }
+        }
+      }
+      if(fabs(x_axis[i+1]-x_axis[i]) > scale_gap){
+        scale = scale_gap / fabs(x_axis[i+1] - x_axis[i]);
+      } else {
+        scale = 1.0;
       }
       if ((y_axis[i] > threshold) && (y_axis[i + 1] > threshold)) {
         height = y_axis[i] + y_axis[i + 1] - 2.0 * threshold;
         width = x_axis[i + 1] - x_axis[i];
-        area += width * height / 2;
+        area += width * height / 2 * scale;
       }
       else {
         if (y_axis[i] > threshold) {
           height = y_axis[i] - threshold;
           width = ((x_axis[i + 1] * y_axis[i] - x_axis[i] * y_axis[i + 1]) + threshold * (x_axis[i] - x_axis[i + 1]))	/ (y_axis[i] - y_axis[i + 1]) - x_axis[i];
-          area += width * height / 2;
+          area += width * height / 2 * scale;
         }
         if (y_axis[i + 1] > threshold) {
           height = y_axis[i + 1] - threshold;
           width = x_axis[i + 1] - ((x_axis[i + 1] * y_axis[i] - x_axis[i] * y_axis[i + 1]) + threshold * (x_axis[i] - x_axis[i + 1])) / (y_axis[i] - y_axis[i + 1]);
-          area += width * height / 2;
+          area += width * height / 2 * scale;
         }
       }
     }

@@ -2,14 +2,14 @@
 #include <R_ext/Rdynload.h>
 
 /* .C calls */
-extern void CALL_EHH(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
-extern void CALL_EHHS(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
-extern void CALL_SCAN_HH(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
+extern void CALL_EHH(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
+extern void CALL_EHHS(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
+extern void CALL_SCAN_HH(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 
 static const R_CMethodDef CEntries[] = {
-    {"CALL_EHH",     (DL_FUNC) &CALL_EHH,     12},
-    {"CALL_EHHS",    (DL_FUNC) &CALL_EHHS,    14},
-    {"CALL_SCAN_HH", (DL_FUNC) &CALL_SCAN_HH, 13},
+    {"CALL_EHH",     (DL_FUNC) &CALL_EHH,     13},
+    {"CALL_EHHS",    (DL_FUNC) &CALL_EHHS,    15},
+    {"CALL_SCAN_HH", (DL_FUNC) &CALL_SCAN_HH, 14},
     {NULL, NULL, 0}
 };
 

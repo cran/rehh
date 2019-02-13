@@ -3,7 +3,8 @@
 \title{EHHS and iES computations at a given core SNP}
 \description{Compute site-specific Extended Haplotype Homozygosity (EHHS) and integrated EHHS (iES) for a given focal SNP.}
 \usage{
-calc_ehhs(haplohh, mrk, limhaplo = 2, limehhs = 0.05, maxgap = NA,
+calc_ehhs(haplohh, mrk, limhaplo = 2, limehhs = 0.05,
+    scalegap = NA, maxgap = NA,
     discard_integration_at_border = TRUE, plotehhs = TRUE,
     lty = 1, lwd = 1.5, col = c("blue", "red"), xlab = "Position",
     ylab = expression(Site ~ specific ~ italic(EHH) ~ (italic(EHHS))),
@@ -15,6 +16,7 @@ calc_ehhs(haplohh, mrk, limhaplo = 2, limehhs = 0.05, maxgap = NA,
   \item{limhaplo}{Minimal number of haplotypes to continue computing EHHS away from the core SNP. Useless, if no missing data. However, when some data are missing,
                   haplotypes with missing data are removed from the computation. Hence as we compute EHH further from the core SNP, less haplotypes are expected}
   \item{limehhs}{Limit at which EHHS stops to be evaluated}
+  \item{scalegap}{Scales gaps larger than the specified size to the specified size (default=NA, i.e. no scaling)}
   \item{maxgap}{Maximum allowed gap in bp between two SNPs below which EHHS stops to be evaluated (default=NA, i.e., no limitation)}
   \item{discard_integration_at_border}{If TRUE and if first or last marker or a gap (larger than \code{maxgap}) is reached and EHHS is greater than \code{limehh}, then IES is set to \code{NA}}
   \item{plotehhs}{If TRUE, EHHS estimates are plotted for each position}

@@ -1,5 +1,5 @@
 ## ----setup, include=FALSE------------------------------------------------
-knitr::opts_chunk$set(comment=">")
+knitr::opts_chunk$set(comment=">",fig.height=4.5, fig.width=4.5)
 
 ## ----message=FALSE-------------------------------------------------------
 library(rehh)
@@ -59,12 +59,12 @@ hap<-data2haplohh(hap_file="bta12_hapguess_switch.out",map_file="map.inp",recode
 ## ----eval=FALSE----------------------------------------------------------
 #  ?calc_ehh
 
-## ---- ehhplot,fig.align='center',out.height="7cm",fig.cap='Graphical output of the \\texttt{calc\\_ehh()} function',fig.pos='!h',fig.lp='fig:',fig.keep='all'----
+## ---- ehhplot,fig.align='center',fig.cap="Graphical output of the calc\\_ehh() function",fig.pos='!h',fig.lp='fig:',fig.keep='all'----
 #example haplohh object (280 haplotypes, 1424 SNPs) see ?haplohh_cgu_bta12 for details
 data(haplohh_cgu_bta12)
 #computing EHH statistics for the focal SNP with name "F1205400" 
 #which displays a strong signal of selection
-res.ehh<-calc_ehh(haplohh_cgu_bta12,mrk="F1205400") 
+res.ehh<-calc_ehh(haplohh_cgu_bta12,mrk="F1205400")
 
 ## ------------------------------------------------------------------------
 res.ehh$ehh[1:2,454:458]
@@ -81,7 +81,7 @@ res.ehh$ihh
 ## ---- eval=FALSE---------------------------------------------------------
 #  ?calc_ehhs
 
-## ----ehhsplot,fig.align='center',out.height="7cm",fig.cap='Graphical output of the \\texttt{calc\\_ehhs()} function',fig.pos='!h',fig.lp='fig:'----
+## ----ehhsplot,fig.align='center',fig.cap='Graphical output of the calc\\_ehhs() function',fig.pos='!h',fig.lp='fig:'----
 data(haplohh_cgu_bta12)
 res.ehhs<-calc_ehhs(haplohh_cgu_bta12,mrk="F1205400")
 
@@ -152,7 +152,7 @@ head(ihs.cgu$iHS)
 ## ------------------------------------------------------------------------
 head(ihs.cgu$frequency.class)
 
-## ----ihsplot,fig.align='center',fig.width=16,fig.height=12,fig.lp='fig:',fig.cap='Graphical output of the \\texttt{ihsplot()} function',fig.pos='!h'----
+## ----ihsplot,fig.align='center',fig.width=7,fig.height=6.5,fig.lp='fig:',fig.cap='Graphical output of the ihsplot() function',fig.pos='!h'----
 layout(matrix(1:2,2,1))
 ihsplot(ihs.cgu,plot.pval=TRUE,ylim.scan=2,main="iHS (CGU cattle breed)")
 
@@ -177,7 +177,7 @@ cguVSeut.rsb<-ies2rsb(wgscan.cgu,wgscan.eut,"CGU","EUT")
 ## ------------------------------------------------------------------------
 head(cguVSeut.rsb)
 
-## ----rsbplot,fig.align='center',fig.width=16,fig.height=12,fig.lp='fig:',fig.cap='Graphical output of the \\texttt{rsbplot()} function',fig.pos='!h'----
+## ----rsbplot,fig.align='center',fig.width=7,fig.height=6.5,fig.lp='fig:',fig.cap='Graphical output of the rsbplot() function',fig.pos='!h'----
 layout(matrix(1:2,2,1))
 rsbplot(cguVSeut.rsb,plot.pval=TRUE)
 
@@ -202,21 +202,21 @@ cguVSeut.xpehh<-ies2xpehh(wgscan.cgu,wgscan.eut,"CGU","EUT")
 ## ------------------------------------------------------------------------
 head(cguVSeut.xpehh)
 
-## ----xpehhplot,fig.align='center',fig.width=16,fig.height=12,fig.lp='fig:',fig.cap='Graphical output of the \\texttt{xpehhplot()} function',fig.pos="!h"----
+## ----xpehhplot,fig.align='center',fig.width=7,fig.height=6.5,fig.lp='fig:',fig.cap='Graphical output of the xpehhplot() function',fig.pos="!h"----
 layout(matrix(1:2,2,1))
 xpehhplot(cguVSeut.xpehh,plot.pval=TRUE)
 
-## ----comp,echo=TRUE,fig.align='center',fig.width=6,fig.height=6,out.height="8cm",fig.lp='fig:',fig.cap='Comparison of Rsb and XP-EHH values across the CGU and EUT populations',fig.pos="!h"----
+## ----comp,echo=TRUE,fig.align='center',fig.lp='fig:',fig.cap='Comparison of Rsb and XP-EHH values across the CGU and EUT populations',fig.pos="!h"----
 plot(cguVSeut.rsb[,3],cguVSeut.xpehh[,3],xlab="Rsb",ylab="XP-EHH",pch=".",
      xlim=c(-7.5,7.5),ylim=c(-7.5,7.5))
 points(cguVSeut.rsb["F1205400",3],cguVSeut.xpehh["F1205400",3],col="red")
 abline(a=0,b=1,lty=2)
 
-## ----distribplot,fig.align='center',fig.width=6,fig.height=12,out.height="14cm",fig.lp='fig:',fig.cap='Graphical output of the function \\texttt{distribplot}',fig.pos="!h"----
+## ----distribplot,fig.align='center',fig.width=4.4,fig.height=7.4,fig.lp='fig:',fig.cap='Graphical output of the distribplot() function',fig.pos="!h"----
 layout(matrix(1:2,2,1))
 distribplot(ihs.cgu$iHS[,3],xlab="iHS")
 
-## ----bifdia,eval=TRUE,fig.align='center',out.height="12cm",fig.width=16,fig.height=12,fig.lp='fig:',fig.cap='Graphical output of the function \\texttt{bifurcation.diagram()}',fig.pos="!h"----
+## ----bifdia,eval=TRUE,fig.align='center',fig.width=7,fig.height=7.5,fig.lp='fig:',fig.cap='Graphical output of the bifurcation.diagram() function',fig.pos="!h"----
 data(haplohh_cgu_bta12)
 layout(matrix(1:2,2,1))
 bifurcation.diagram(haplohh_cgu_bta12,mrk_foc="F1205400",all_foc=1,nmrk_l=20,nmrk_r=20,

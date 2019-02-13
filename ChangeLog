@@ -1,3 +1,10 @@
+Changes from Version 2.0.3 to 2.0.4 [February 13 2019]
+
+* Corrected implementation of maxgap in combination with discard_integration_at_border=FALSE
+* Added parameter scalegap
+* Included section about gaps in vignette, added details in comparison with hapbin, corrected rendering
+* Corrected paper title in CITATIONS
+
 Changes from Version 2.0.2 to 2.0.3 [February 1 2019]
 
 * Bug corrected in the ihh2ihsplot (it lead to a crash when the freqbin argument was set to 0)

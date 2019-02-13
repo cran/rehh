@@ -1,4 +1,4 @@
-calc_ehhs <- function(haplohh,mrk,limhaplo = 2,limehhs = 0.05,maxgap = NA,discard_integration_at_border = TRUE,plotehhs = TRUE,lty = 1,lwd = 1.5,col = c("blue","red"),xlab = "Position",ylab = expression(Site~specific~italic(EHH)~(italic(EHHS))),cex.lab = 1.25,main = NA,cex.main = 1.5) {
+calc_ehhs <- function(haplohh,mrk,limhaplo = 2,limehhs = 0.05,scalegap = NA,maxgap = NA,discard_integration_at_border = TRUE,plotehhs = TRUE,lty = 1,lwd = 1.5,col = c("blue","red"),xlab = "Position",ylab = expression(Site~specific~italic(EHH)~(italic(EHHS))),cex.lab = 1.25,main = NA,cex.main = 1.5) {
 
 	if (!(is.haplohh(haplohh))) {stop("The data are not formatted as a valid haplohh object... (see the data2haplohh() function)")}
   if(is.numeric(mrk)){
@@ -17,6 +17,13 @@ calc_ehhs <- function(haplohh,mrk,limhaplo = 2,limehhs = 0.05,maxgap = NA,discar
 	if (limhaplo < 2) {stop("limhaplo must be larger than 1")}
 	if (limehhs < 0 | limehhs > 1) {stop("limehhs must lie between 0 and 1")}
 	if (is.na(maxgap)) {maxgap = (max(haplohh@position) + 1)}
+  if (is.na(scalegap)){
+    scalegap = (max(haplohh@position) + 1)
+  } else{
+    if (scalegap > maxgap) {
+      stop("scalegap has to be smaller than maxgap in order to have an effect")
+    }
+  }
 
   nhaplo_eval <- ehhs_tang <- ehhs_sabeti <- rep(0,haplohh@nsnp)
   ies_tang <- ies_sabeti <- 0
@@ -27,8 +34,9 @@ calc_ehhs <- function(haplohh,mrk,limhaplo = 2,limehhs = 0.05,maxgap = NA,discar
   				number_chromosomes = as.integer(haplohh@nhap),
   				number_haplotypes = as.integer(nhaplo_eval),
   				min_number_haplotypes = as.integer(limhaplo),
-				discard_integration_at_border = as.integer(discard_integration_at_border),
+  				discard_integration_at_border = as.integer(discard_integration_at_border),
   				min_EHHS = as.double(limehhs),
+				  scale_gap = as.double(scalegap),
   				max_gap = as.double(maxgap),
   				map = as.double(haplohh@position),
   				EHHS_TANG = as.double(ehhs_tang),
