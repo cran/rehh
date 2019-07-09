@@ -1,29 +1,36 @@
 Package: rehh
-Maintainer: Mathieu Gautier <mathieu.gautier@inra.fr>
+Maintainer: Alexander Klassmann <rehh@oneoverx.eu>
 Author: Mathieu Gautier, Alexander Klassmann and Renaud Vitalis
-Version: 2.0.4
+Version: 3.0.0
 License: GPL (>= 2)
-Title: Searching for Footprints of Selection using "Extended Haplotype
-        Homozygosity" Based Tests
-Description: Population genetic data in form of "Single Nucleotide
-        Polymorphisms" (SNPs) is often used to identify genomic regions
+Title: Searching for Footprints of Selection using 'Extended Haplotype
+        Homozygosity' Based Tests
+Description: Population genetic data such as 'Single Nucleotide
+        Polymorphisms' (SNPs) is often used to identify genomic regions
         that have been under recent natural or artificial selection
         and might provide clues about the molecular mechanisms of adaptation. 
-        The concept of an "Extended Haplotype Homozygosity" (EHH), introduced by
-        (Sabeti 2002) <doi:10.1038/nature01140>, has given rise to several
-        derived statistics designed for whole genome scans. 
+        One approach, the concept of an 'Extended Haplotype Homozygosity' (EHH), 
+        introduced by (Sabeti 2002) <doi:10.1038/nature01140>, has given rise to 
+        several statistics designed for whole genome scans. 
         The package provides functions to compute three of these,
-        namely: "iHS" (Voight 2006) <doi:10.1371/journal.pbio.0040072> for
-        detecting selection within a single population as well as
-        "Rsb" (Tang 2007) <doi:10.1371/journal.pbio.0050171> and 
-        "XP-EHH" (Sabeti 2007) <doi:10.1038/nature06250> to detect 
-        (differential) selection between two populations. 
+        namely: 'iHS' (Voight 2006) <doi:10.1371/journal.pbio.0040072> for
+        detecting positive or 'Darwinian' selection within a single population as well as
+        'Rsb' (Tang 2007) <doi:10.1371/journal.pbio.0050171> and 
+        'XP-EHH' (Sabeti 2007) <doi:10.1038/nature06250>, targeted
+        at differential selection between two populations. 
         Various plotting functions are also included to facilitate
-        visualization and interpretation of these statistics.
-Depends: R (>= 2.10), rehh.data, gplots, methods
-Suggests: knitr, rmarkdown, bookdown
+        visualization and interpretation of these statistics. 
+        Due to changes in the API, albeit mostly minor, 
+        this version is not compatible with versions 2.0.X.
+Depends: R (>= 2.10)
+Imports: methods, rehh.data
+Suggests: ape, bookdown, gap, knitr, qqman, rmarkdown, testthat, vcfR
 VignetteBuilder: knitr
 NeedsCompilation: yes
-Packaged: 2019-02-13 15:30:22 UTC; alex
+Packaged: 2019-07-08 14:36:49 UTC; alex
+RoxygenNote: 6.1.1
+URL: https://CRAN.R-project.org/package=rehh,
+        https://gitlab.com/oneoverx/rehh
+BugReports: https://gitlab.com/oneoverx/rehh/issues
 Repository: CRAN
-Date/Publication: 2019-02-13 16:20:11 UTC
+Date/Publication: 2019-07-09 12:00:02 UTC

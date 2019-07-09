@@ -16,10 +16,11 @@ citEntry(entry="Article",
 
 citEntry(entry="Article",
          author = 	 "Gautier M., Klassmann A., and Vitalis R.",
-         title = 	 "rehh 2.0: a reimplementation of the R package rehh to detect positive selection from haplotype structure",
+         title = 	 "rehh2.0: a reimplementation of the R package rehh to detect positive selection from haplotype structure",
          journal = 	 "Molecular Ecology Resources",
          year = 	 2017,
          volume =	 17,
-         pages =     "78-90",
-         textVersion ="Gautier M., Klassmann A., and Vitalis R. (2017). rehh 2.0: a reimplementation of the R package rehh to detect positive selection from haplotype structure. Molecular Ecology Resources, 17:78-90" )
+         number =	 1,
+         pages = "78-90",
+         textVersion = "Gautier M., Klassmann A., and Vitalis R. (2017). rehh 2:0. A reimplementation of the R package rehh to detect positive selection from haplotype structure. Molecular Ecology Resources, 17(1):78-90" )
 

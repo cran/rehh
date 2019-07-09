@@ -1,0 +1,481 @@
+---
+title: "Examples in detail"
+author: "Alexander Klassmann"
+date: "2019-07-08"
+output:
+  bookdown::html_document2:
+    base_format: rmarkdown::html_vignette
+    toc: yes
+bibliography: vignette.bib
+csl: genetics.csl
+vignette: >
+  \usepackage[utf8]{inputenc}
+  %\VignetteIndexEntry{Examples in detail}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = ">", fig.height = 4.5, fig.width = 4.5, fig.show = "hold")
+```
+\clearpage
+# Overview
+
+This vignette focuses on two small example data sets delivered with the package *rehh* (see main vignette). They have been constructed to ease comprehension of the relevant statistics and functionality of the package. The first example has been already discussed in [@Gautier2017] while the second set is an extension to include multiple markers and missing values. 
+
+The pattern of variation seen in the sets is intended to reflect an evolutionary scenario of an "on-going selective sweep" with the derived allele of the central marker experiencing strong selection.
+
+The package has to be installed and then loaded by
+```{r library, message = FALSE}
+library(rehh)
+```
+
+# Example data set 1
+
+## Input
+
+### Data files
+
+Both example data sets are provided in two formats: as a pair of haplotype & map files and as a single file in *variant call format (vcf)*. They are copied (together with other files) into the current working directory by the command
+```{r}
+make.example.files()
+```
+Data set 1 contains the hypothetical variation at a particular genetic locus in 8 sequences of 4 diploid individuals. Eleven markers, which might be imagined as SNPs, have two alleles, coded as '0' and '1', for ancestral and derived allele, respectively.
+
+The file `example1.hap` conforms to what in the main vignette is referred to as "standard" haplotype format, i.e. chromosomes are given in rows and each marker corresponds to a column. The first column is reserved for identifiers of the individual haplotypes.  
+```{r}
+cat(readLines("example1.hap"), sep = "\n")
+```
+The calculation of the "integrated" statistics such as *iHH* and *iES* requires a measure for the distance between markers, which is provided by the file `example1.map`. It relates the markers with their chromosomal positions. The latter can represent physical positions (base pairs) or genetic positions derived from estimated recombination rates.
+```{r}
+cat(readLines("example1.map"), sep = "\n")
+```
+
+The file in *variant call format* combines the information of haplotype and map files. However, *vcf* codes alleles with respect to a reference sequence, not with respect to ancestry status. Information about ancestry can be added using a key of the `INFO` field, conventionally named `AA`. For instance, in the file `example1.vcf`, the reference alleles of markers `rs6` and `rs11` differ from the ancestral alleles. 
+```{r}
+cat(readLines("example1.vcf"), sep = "\n")
+```
+
+### Input options
+
+In order to work with the data, it has to be transformed to an internal representation, namely an object of class `haplohh`. Let us first use the pair of files `example1.hap` and `example1.map`. In this case the allele coding in the haplotype file is conform to the `01` format (defined in the main vignette), hence setting `allele_coding = "01"` is appropriate. This is also the format which is used internally.
+```{r}
+hh <- data2haplohh(hap_file = "example1.hap",
+                   map_file = "example1.map",
+                   allele_coding = "01")
+```
+This data set is constructed such that setting `allele_coding = "map"` or `allele_coding = "none"` yields an identical `haplohh` object. In the first case, the fourth column of the map file, standing for the ancestral allele, contains always 0, hence for every marker in the haplotype file the "allele" 0 is assigned by the map file as ancestral and thus recoded by 0; the fifth column in the map file delineates the derived alleles of each marker, here again always 1, hence the "allele" 1 of the haplotype file is translated to the first derived allele, coded by 1. 
+In the second case, which causes a coding by alpha-numeric order, we end up again by just replacing 0 by 0 and 1 by 1.
+```{r}
+hh_map <- data2haplohh(hap_file = "example1.hap",
+                       map_file = "example1.map",
+                       allele_coding = "map",
+                       verbose = FALSE)
+identical(hh, hh_map)
+
+hh_none <- data2haplohh(hap_file = "example1.hap",
+                        map_file = "example1.map",
+                        allele_coding = "none",
+                        verbose = FALSE)
+identical(hh, hh_none)
+```
+
+Finally, we use the *vcf* file as input. No map file has to be specified. The option `polarize_vcf` is set by default to `TRUE`, assuming ancestral alleles are given in the `INFO` field by key `AA`. The function `data2haplohh` then recodes the markers where reference and ancestral alleles differ. If the option is turned off, coding with respect to the reference sequence is taken and the information about ancestry lost. 
+
+Again, one yields the same internal representation of the data:
+
+```{r}
+hh_vcf <- data2haplohh(hap_file = "example1.vcf",
+                       verbose = FALSE)
+identical(hh, hh_vcf)
+```
+
+
+## Calculations and visualizations
+
+### *EHH*
+
+We start with the computation of (allele-specific) *EHH* which is used for the detection of selection within a single, supposedly homogeneous, population.
+
+We restrict our attention to the central marker with id `rs6`. We start by computing *EHH* for its alleles. We include the number of evaluated haplotypes into the output which tells us merely that 4 haplotypes are evaluated for each allele, in agreement with their frequencies. Note that the integral `iHH_D` is not computed, since the `EHH_D` is still above the threshold `limehh` (default value 0.05) at the borders of the chromosome and the option `discard_integration_at_border` is by default `TRUE`.
+```{r}
+res <- calc_ehh(hh, mrk = "rs6", include_nhaplo = TRUE)
+res
+```
+The individual values of the table can be easily checked "by hand" using the internal data representation of the haplotypes:
+```{r}
+haplo(hh)
+```
+The chromosomes `HG1_1`, `HG1_2`, `HG_2_1` and `HG_2_2` carry the ancestral allele of marker `rs6` and form the "starting set" of *shared haplotypes* to be extended along the chromosome. By definition the starting set is homozygous and *EHH* equal to 1 at the focal marker. The shared haplotypes cover so far a single chromosomal position, namely that of the focal marker. We extend them to the next marker on the right, `rs7`, where two chromosomes carry one allele and the other two another allele (ancestry status matters only at the focal marker!). Hence the initial set of four can be subdivided into two sets of extended shared haplotypes, namely \{`HG1_1`, `HG2_2`\} sharing `00` and \{`HG1_2`, `HG2_1`\} sharing `01`. They cover now the region from `rs6` til `rs7`. Plugging the numbers into the formula for *EHH* (see main vignette) yields
+$$
+EHH^a_{rs6,rs7}=\frac{1}{n_a(n_a-1)}\sum_{k=1}^{K^a_{rs6,rs7}}n_k(n_k-1)=\frac{1}{4\cdot 3}(2\cdot1+2\cdot1)=\frac{1}{3}\;.
+$$
+One marker further to the right, at `rs8`, the first set can be partitioned into two, with `HG1_1` having extended haplotype `000`, and `HG2_2` `001`. The second set \{`HG1_2`,`HG2_1`\} remains homozygous, now sharing the extended haplotype `010`. Thus, at marker `rs8` the corresponding *EHH* value yields
+$$
+EHH^a_{rs6,rs8}=\frac{1}{n_a(n_a-1)}\sum_{k=1}^{K^a_{rs6,rs8}}n_k(n_k-1)=\frac{1}{4\cdot 3}(1\cdot0+2\cdot1+1\cdot0)=\frac{1}{6}\;.
+$$
+At marker `rs9`, chromosome `HG1_2` carries allele `1` and `HG2_1` allele `0`. Hence the extended haplotypes now differ between all four considered chromosomes and *EHH* becomes zero.
+An analogous, but independent, calculation can be done for the markers to the left of the focal marker.
+
+The starting set for the derived allele consists of \{`HG3_1`, `HG3_2`, `HG4_1` and `HG4_2`\}. Extending to the right, the corresponding haplotypes remain homozygous and consequently the set is not split until marker `rs11`. In particular we have
+$$EHH^d_{rs6,rs7}=EHH^d_{rs6,rs8}=\frac{1}{4\cdot3}\sum_{k=1}^14\cdot3=1$$
+and essentially the same situation on the left side of the focal marker.
+
+The corresponding plot (Figure \@ref(fig:ehh)) shows that *EHH* of the ancestral allele decays more rapidly than that of the derived allele.
+```{r ehh, fig.align = 'center', fig.cap = "Graphical output of the plot.ehh() function", fig.pos = '!h', fig.lp = 'fig:'}
+plot(res)
+```
+
+Assume now that the haplotypes are not phased. That means, at each marker for which a diploid individual is heterozygous, it is unknown which allele belongs to chromosome '1' and which to chromosome '2'. In this case the concept of extended haplotypes is not well-defined across individuals. However, we can still measure the decay of extended homozygosity within individuals. This is done by setting option `phased` to `FALSE` while assuming that the haplotypes in the input files are ordered as pairs belonging to individuals.
+
+```{r}
+res <- calc_ehh(hh, 
+                mrk = "rs6", 
+                include_nhaplo = TRUE, 
+                phased = FALSE)
+res
+```
+
+Individuals which are heterozygous for the focal marker are excluded from the calculation. In our small sample all 4 individuals are homozygous at marker `rs6`; `HG1` and `HG2` for the ancestral allele and `HG3` and `HG4` for the derived allele, hence no haplotype is excluded. Note that in realistic data a substantial number of haplotypes is expected to belong to heterozygous individuals, cf. the [Hardy-Weinberg principle](https://en.wikipedia.org/wiki/Hardy%E2%80%93Weinberg_principle). 
+
+Again we can retrace the calculations by hand keeping in mind that *EHH* is now estimated by the fraction of homozygous individuals at each marker, see the corresponding formula in the main vignette. 
+
+Extending the shared haplotypes to the right, we find that both individuals `HG1` and `HG2` become heterozygous already at marker `rs7` and hence *EHH* at this position becomes 0. Extending to the left, `HG1` becomes heterozygous at marker `rs5`, while `HG2` is still homozygous in the region spanning from `rs6` to `rs5`. Hence the proportion of homozygous individuals at this marker is $\frac{1}{2}$. At marker `rs4` the second individual becomes heterozygous, too, and *EHH* yields 0.
+
+By contrast, the individuals carrying the derived focal allele are homozygous for the entire chromosome except for marker `rs1` where `HG4` becomes heterozygous. 
+
+Figure \@ref(fig:ehhunphased) shows again the difference between *EHH* of the two core alleles:
+
+```{r ehhunphased, fig.align = 'center', fig.cap = "Graphical output of the plot.ehh() function", fig.pos = '!h', fig.lp = 'fig:'}
+plot(res)
+```
+
+### *EHHS*
+
+Next, we calculate *EHH per Site* or *EHHS* which forms the basis for cross-population comparisons. The options of the corresponding function `calc_ehhs()` are essentially identical to those of the function `calc_ehh()`. The output contains *EHHS* and its normalized version *nEHHS*, distinguished merely by a factor such that the latter becomes 1 at the focal marker. We toggle the option `discard_integration_at_border` to `FALSE` in order to obtain the two corresponding integrals *iES* and *inES* even though the values *EHHS* and *nEHHS* have not fallen below the default threshold of 0.05 at the first resp. last marker. Note that elements 3 and 4 of the list can be addressed by `res$IES` and `res$INES`, too.
+```{r}
+res <- calc_ehhs(hh,
+                 mrk = "rs6", 
+                 include_nhaplo = TRUE,
+                 discard_integration_at_border = FALSE)
+res
+```
+The calculations can be retraced easily. In fact, the only distinction to *EHH* is that all haplotypes are considered and not only those with a specific allele at the focal marker. Using visual inspection of the haplotype data file (see above), we can plug the numbers into the formula for *EHHS* (see main vignette):
+$$\mathrm{EHHS}_{rs6,rs6}=\frac{1}{n_s(n_s-1)}\left(\sum\limits_{k=1}^{K_{rs6,rs6}}n_k(n_k-1)\right)=\frac{1}{8\cdot7}(4\cdot3+4\cdot3)=\frac{3}{7}$$
+$$\mathrm{EHHS}_{rs6,rs7}=\frac{1}{n_s(n_s-1)}\left(\sum\limits_{k=1}^{K_{rs6,rs7}}n_k(n_k-1)\right)=\frac{1}{8\cdot7}(2\cdot1+2\cdot1+4\cdot3)=\frac{2}{7}$$
+$$\mathrm{EHHS}_{rs6,rs8}=\frac{1}{n_s(n_s-1)}\left(\sum\limits_{k=1}^{K_{rs6,rs8}}n_k(n_k-1)\right)=\frac{1}{8\cdot7}(1\cdot0+2\cdot1+1\cdot0+4\cdot3)=\frac{1}{4}\;.$$
+
+By default, the following command shows the (un-normalized) *EHHS* values as in Figure \@ref(fig:ehhs1). In order to draw the normalized values one can toggle the option `nehhs` to `TRUE`. 
+```{r ehhs1, fig.align = 'center', fig.cap = "Graphical output of the plot.ehhs() function", fig.pos = '!h', fig.lp = 'fig:'}
+plot(res)
+```
+
+### "Genome-wide" scan
+
+In order to find out whether marker `rs6` is "special", we compute the integrals over *EHH* and *EHHS*, yielding resp. *iHH* and *iES*, for all markers, hence performing a "genomic scan". Since we are dealing with a single population, only the *iHH* values are of interest. We can see that *IHH_A* and *IHH_D* are particularly different for the central marker.
+```{r}
+res.scan <- scan_hh(hh, discard_integration_at_border = FALSE)
+res.scan
+```
+In order to evaluate the differences, the log ratio between *IHH_A* and *IHH_D* is calculated, yielding the, as yet, un-normalized values *unihs*. In general these should be normalized bin-wise, grouping markers with the same frequency of the derived allele. With so few markers, though, it is appropriate to normalize over all markers at once by setting the bin number to 1. 
+
+```{r}
+ihs <- ihh2ihs(res.scan, freqbin = 1, verbose = FALSE)
+ihs
+```
+
+We can use `calc_candidate_regions()` to delineate regions with "extreme" scores hinting at selection. Because we have only a few markers, we choose an unrealistically low threshold of 1.5 and set the window size to 1, which means that no windowing is performed and only the positions of extreme markers returned. 
+
+```{r}
+cr <- calc_candidate_regions(ihs, threshold = 1.5, ignore_sign = TRUE, window_size = 1)
+cr
+```
+
+Under the assumption that most sites evolve neutrally, the standardized *iHS* values should follow a normal distribution with the sites under selection as outliers.
+
+Obviously we do not have enough markers to fit a distribution, but a "genome-wide" plot of the *ihs* values shows clearly that the central marker is rather an outlier (as much as is possible for such a small sample), see Figure \@ref(fig:manhattan11).
+
+```{r manhattan11, fig.align = 'center', fig.cap = "Graphical output of the manhattanplot() function", fig.pos = '!h', fig.lp = 'fig:'}
+manhattanplot(ihs, threshold = c(-1.5,1.5), cr = cr, ylim = c(-2.5,2.5), pch = 20)
+```
+
+### Furcations and haplotype length
+
+A furcation plot represents a more fine-grained visualization of the homozygosity decay. In particular, individual haplotypes can be discerned which may instigate further investigations. The labels plotted in Figure \@ref(fig:furcation11) are set in bold face, if the branches with which they are associated encompass further haplotypes. 
+
+```{r furcation11, fig.align = 'center', fig.cap = "Graphical output of the plot.furcation() function", fig.pos = '!h', fig.lp = 'fig:'}
+f <- calc_furcation(hh, mrk = "rs6")
+# set equal plot margins on left and right side and save old ones
+oldpar <- par(mar = (c(5, 3, 4, 3) + 0.1))
+plot(f,
+     # increase line width
+     lwd = 1.5,
+     # set habplotype identifiers as labels
+     hap.names = hap.names(hh),
+     # find a place for the legend ...
+     legend.xy.coords = c(60000, 0.2)
+)
+# reset old margins
+par(oldpar)
+```
+
+A furcation diagram consists of trees for each allele and both sides ("left" and "right") of the marker. The individual trees can be exported into a string in *Newick* format to be rendered by external programs, e.g. the phylogenetic R-package [ape](https://cran.r-project.org/package=ape), see Figure \@ref(fig:newick1).
+
+```{r newick1, fig.align = 'center', fig.cap = "Graphical output of the plot.phylo() function of package ape", fig.pos = '!h', fig.lp = 'fig:'}
+newick <- as.newick(f, 
+                    allele = 0, 
+                    side = "left", 
+                    hap.names = hap.names(hh))
+newick
+library(ape)
+tree <- read.tree(text = newick)
+plot(tree, 
+     direction = "leftwards", 
+     edge.color = "blue",
+     underscore = TRUE,
+     no.margin = TRUE)
+```
+
+The end points of shared extended haplotypes can be defined as the "last split" in a furcation, i.e. the positions until which at least two different chromosomes of the sample are homozygous. Calculation of shared haplotype length and its visualization in Figure \@ref(fig:haplen11) are called by:
+
+```{r haplen11, fig.align = 'center', fig.cap = "Graphical output of the plot.haplen() function", fig.pos = '!h', fig.lp = 'fig:'}
+h <- calc_haplen(f)
+plot(h, 
+     hap.names = hap.names(hh), 
+     legend.xy.coords = c(70000,1.15))
+```
+
+In case of unphased haplotypes, furcations can only occur within individuals which limits the informative value of furcation diagrams as in Figure \@ref(fig:furcation12).
+
+```{r furcation12, fig.align = 'center', fig.cap = "Graphical output of the plot.haplen() function", fig.pos = '!h', fig.lp = 'fig:'}
+f <- calc_furcation(hh, mrk = "rs6", phased = FALSE)
+# set equal plot margins on left and right side and save old ones
+oldpar <- par(mar = (c(5, 3, 4, 3) + 0.1))
+plot(f,
+     # increase line width
+     lwd = 1.5,
+     # set haplotype identifiers as labels
+     hap.names = hap.names(hh),
+     # no place for a legend inside the plot
+     legend.xy.coords = "none")
+# reset old margins
+par(oldpar)
+```
+
+Nevertheless, the length of shared haplotypes, now identical to the ranges of individual homozygosity, can be calculated as before to yield Figure \@ref(fig:haplen13).
+
+```{r haplen13, fig.align = 'center', fig.cap = "Graphical output of the plot.haplen() function", fig.pos = '!h', fig.lp = 'fig:'}
+h <- calc_haplen(f)
+plot(h, hap.names = hap.names(hh))
+```
+
+
+# Example data set 2
+
+The second data is an extension of the first, containing four additional haplotypes, some missing values (including for the central marker `rs6`), and two markers with three alleles, namely `rs6` and `rs9`.
+
+## Input 
+
+### Data files
+
+Let us first inspect the file `example2.hap`. Missing values are here marked by a point, but `NA` could be used, too.
+
+```{r}
+cat(readLines("example2.hap"),sep = "\n")
+```
+
+If the map information file is used for allele recoding, the fifth column can accommodate multiple (derived) alleles, separated by a comma, as in `example2.map`: 
+
+```{r}
+cat(readLines("example2.map"),sep = "\n")
+```
+
+The file `example2.vcf` combines the information of haplotype and map file. 
+It contains an additional marker `rs12` which lacks information about the ancestral allele. This marker gets excluded since by default `polarize_vcf = TRUE`, hence the function tries to polarize all markers. If the parameter is set to `FALSE`, the marker is included, but ancestry information is lost for all markers. 
+
+Furthermore, the ancestral allele for the marker `rs1` is now given by a lower case latter, which typically means that it is of "low confidence". This marker gets included since `capitalize_AA = TRUE` by default. If this option is turned off, the marker cannot be polarized and is discarded.
+
+```{r}
+cat(readLines("example2.vcf"), sep = "\n")
+```
+
+### Input options
+
+Alleles in the haplotype input file are already coded by the numbers 0,1 and 2 hence conform to the coding `"01"` explained in the main vignette.
+```{r}
+hh <- data2haplohh(hap_file = "example2.hap",
+                   map_file = "example2.map",
+                   allele_coding = "01")
+```
+
+The output tells us that 6 markers with missing values have been eliminated. This is due to the pre-set filter option of `min_perc_geno.mrk = 100` which excludes all markers that are not fully genotyped. If we do not want to loose them, we can lower the corresponding threshold, e.g. to 50%. Note that setting this condition to 0 is not allowed since the package cannot handle markers with no data attached. 
+
+```{r}
+hh <- data2haplohh(hap_file = "example2.hap",
+                   map_file = "example2.map",
+                   allele_coding = "01",
+                   min_perc_geno.mrk = 50)
+```
+
+Like with the first example, the data set is constructed such that the allele coding options `"01"`, `"map"` and `"none"` applied to the pair of haplotype and map file or input from the *vcf* file lead to identical `haplohh` objects:
+
+```{r}
+hh_map <- data2haplohh(hap_file = "example2.hap",
+                       map_file = "example2.map",
+                       allele_coding = "map",
+                       min_perc_geno.mrk = 50,
+                       verbose = FALSE)
+identical(hh, hh_map)
+
+hh_none <- data2haplohh(hap_file = "example2.hap",
+                        map_file = "example2.map",
+                        allele_coding = "none",
+                        min_perc_geno.mrk = 50,
+                        verbose = FALSE)
+identical(hh, hh_none)
+
+hh_vcf <- data2haplohh(hap_file = "example2.vcf",
+                       min_perc_geno.mrk = 50, 
+                       verbose = FALSE)
+identical(hh, hh_vcf)
+```
+
+## Calculations and visualizations
+
+### *EHH*
+
+As with the first example data set, the function `calc_ehh()` reports the *EHH* values for each allele of the focal marker of which there are now three. We set the option `include_zero_values` to `TRUE` to include the remaining marker `rs11` in the table (and subsequent plot) where all three *EHH* values reach zero.
+
+```{r}
+res <- calc_ehh(hh, 
+                mrk = "rs6", 
+                include_nhaplo = TRUE,
+                include_zero_values = TRUE,
+                discard_integration_at_border = FALSE )
+res
+```
+
+Note that the derived alleles are ordered by their frequencies, not by their internal coding number: "D1" (internally coded by '2') is the most frequent and "D2" (internally coded by '1') the second most frequent derived allele.
+
+Figure \@ref(fig:ehh21) shows clearly that the second derived allele has a strong extended homozygosity while the first derived allele is not that different from the ancestral allele.
+
+```{r ehh21, fig.align = 'center', fig.cap = "Graphical output of the plot.ehh() function", fig.pos = '!h', fig.lp = 'fig:'}
+plot(res)
+```
+
+### *EHHS*
+
+For *EHHS* the output format does not depend on the number of core alleles. The values however, do, since more alleles at the focal marker entail a lower overall homozygosity.
+
+```{r}
+res <- calc_ehhs(hh,
+                 mrk = "rs6", 
+                 include_nhaplo = TRUE,
+                 include_zero_values = TRUE,
+                 discard_integration_at_border = FALSE)
+res
+```
+
+Note that the number of evaluated haplotypes `NHAPLO` decreases with distance to the focal marker due to missing values which lead at each calculation step to subsequent removals of the respective chromosomes. This can sometimes yield a transient increase of *EHHS* (and in general, *EHH*, too) as can be seen at position 30 kb in Figure \@ref(fig:ehhs21).
+
+```{r ehhs21, fig.align = 'center', fig.cap = "Graphical output of the plot.ehh() function", fig.pos = '!h', fig.lp = 'fig:'}
+plot(res)
+```
+
+### "Genome-wide" scan
+
+The function `scan_hh()` does not evaluate *EHH* for every allele of a focal marker, but chooses, besides the mandatory ancestral allele, the derived allele with highest frequency.
+
+```{r}
+scan <- scan_hh(hh, discard_integration_at_border = FALSE)
+scan
+```
+
+If alleles are not polarized, the corresponding option should be set to `FALSE` which replaces "ancestral" and "derived" by "major" and "minor" (hence the two most frequent) alleles.
+
+```{r}
+scan_unpol <- scan_hh(hh, 
+                      discard_integration_at_border = FALSE,
+                      polarized = FALSE)
+scan_unpol
+```
+
+We continue with the polarized scan and calculate standardized log ratios of the *iHH* values without any binning. 
+
+```{r}
+ihs <- ihh2ihs(scan, freqbin = 1)
+ihs
+```
+The "genome-wide" *ihs* values are depicted in Figure \@ref(fig:manhattan21).
+```{r manhattan21, fig.align = 'center', fig.cap = "Graphical output of the manhattanplot() function", fig.pos = '!h', fig.lp = 'fig:'}
+manhattanplot(ihs, threshold = c(-1.5, 1.5), ylim = c(-2.5,2.5), pch = 20)
+```
+
+Now we know that actually the second derived allele at marker `rs6` is of interest, but it is not present in the scan because it is not the major derived allele. How can we modify the scan to include it?
+
+It is tempting to combine the two derived alleles by overwriting the interal coding and yielding a bi-allelic marker. This, however, entails a completely new pattern of extended haplotypes and a distortion of the statistics. Another approach may be to exclude the chromosomes carrying the less interesting allele from the analysis as done below:
+
+```{r}
+hh_subset = subset(hh,
+                   # exclude haplotypes with allele 2 at "rs6"
+                   select.hap = haplo(hh)[ ,"rs6"] != 2, 
+                   min_perc_geno.mrk = 50)
+scan <- scan_hh(hh_subset, discard_integration_at_border = FALSE)
+scan
+```
+
+Note that the value of *EHH_D*, now representing the allele with internal coding 1, is much higher at marker `rs6` than before. 
+
+However, with so few *EHH* values due to missing values, there is not much signal left and a standardization by `ihh2ihs()` averages the alleged outlier away as can be observed in Figure \@ref(fig:manhattan22).
+
+```{r manhattan22, fig.align = 'center', fig.cap = "Graphical output of the manhattanplot() function", fig.pos = '!h', fig.lp = 'fig:'}
+ihs <- ihh2ihs(scan, freqbin = 1, verbose = FALSE)
+manhattanplot(ihs, threshold = c(-1.5, 1.5), ylim = c(-2.5,2.5), pch = 20)
+```
+
+
+### Furcations and haplotype length
+
+A furcation diagram can show the pattern for all three alleles of the focal marker `rs6`. (Pseudo-)furcations that arise from the removal of chromosomes due to missing values are marked by dashed lines as depicted in Figure \@ref(fig:furcation21).
+
+```{r furcation21, fig.align = 'center', fig.cap = "Graphical output of the plot.furcation() function", fig.pos = '!h', fig.lp = 'fig:'}
+f <- calc_furcation(hh, mrk = "rs6")
+# set equal plot margins on left and right side and save old ones
+oldpar <- par(mar = (c(5, 3, 4, 3) + 0.1))
+plot(f,
+     lwd = 1.5,
+     hap.names = hap.names(hh),
+     # no place for a legend inside the plot
+     legend.xy.coords = "none")
+par(oldpar)
+```
+
+Again, it is possible to export each tree into Newick format. This format, however, has no option to mark different kinds of branches. We let package *ape* render the Newick string to yield Figure \@ref(fig:newick2).
+
+```{r newick2, fig.align = 'center', fig.cap = "Graphical output of the plot.phylo() function of package ape", fig.pos = '!h', fig.lp = 'fig:'}
+newick <- as.newick(f, 
+                    allele = 0, 
+                    side = "left", 
+                    hap.names = hap.names(hh))
+tree <- read.tree(text = newick)
+plot(tree, 
+     direction = "leftwards", 
+     edge.color = "blue",
+     underscore = TRUE,
+     no.margin = TRUE)
+
+```
+
+Likewise, Figure \@ref(fig:haplen21) of the shared haplotype lengths covers all alleles of the focal marker.  
+
+```{r haplen21, fig.align = 'center', fig.cap = "Graphical output of the plot.haplen() function", fig.pos = '!h', fig.lp = 'fig:'}
+h <- calc_haplen(f)
+plot(h, hap.names = hap.names(hh), legend.xy.coords = "none")
+```
+
+Finally, to clean-up the working directory, we call
+```{r}
+remove.example.files()
+```
+
+# References

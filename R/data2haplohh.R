@@ -1,228 +1,894 @@
-setClass(Class = "haplohh",
-	representation(haplo = "matrix",position = "numeric",snp.name="character",chr.name = "character",nhap = "numeric",nsnp = "numeric")
-)
-
-
-is.haplohh <- function (x) 
-{
-    res <- (is(x,"haplohh") & validObject(x))
-    return(res)
-}
-
-
-make.example.files <- function() {
-     file.copy(system.file('bta12_hapguess_switch.out.zip',package='rehh.data'),'bta12_hapguess_switch.out.zip')
-     unzip('bta12_hapguess_switch.out.zip')
-     file.copy(system.file('map.inp.zip',package='rehh.data'),'map.inp.zip')
-     unzip('map.inp.zip')
-     file.copy(system.file('bta12_cgu.hap.zip',package='rehh.data'),'bta12_cgu.hap.zip')
-     unzip('bta12_cgu.hap.zip')
-     file.copy(system.file('bta12_cgu.thap.zip',package='rehh.data'),'bta12_cgu.thap.zip')
-     unzip('bta12_cgu.thap.zip')
-}
-
-data2haplohh<-function(hap_file,map_file,min_maf=0,min_perc_geno.hap=100,min_perc_geno.snp=100,chr.name=NA,popsel=NA,recode.allele=FALSE,haplotype.in.columns=FALSE){
-res<-new("haplohh")
-if(min_perc_geno.hap<0 | min_perc_geno.hap>100){stop("The value for the argument min_perc_geno.hap should lie between 0 and 100")}
-if(min_perc_geno.snp<0 | min_perc_geno.snp>100){stop("The value for the argument min_perc_geno.snp should lie between 0 and 100")}
-#####Fichier map (verification)
-map<-read.table(map_file,row.names=1,colClasses="character") #snp name, chromosome, position, allele ancestral, allele derive
- if(ncol(map)!=4){
-   cat("Wrong format for map data file: ",map_file,"\n Should contain 5 columns (Snp name, Chromosome Number, Position, Ancestral Allele and Derived Allele) and no header\n")
-  stop("Conversion stopped")
- }else{
-   tmp_chr=unique(as.character(map[,1]))
-   if(length(tmp_chr)!=1 & is.na(chr.name)){
-    cat("More than one chromosome name in Map file:",map_file,"\n")
-       repeat {
-         cat('Which chromosome should be considered among:\n',tmp_chr,"\n")
-         chr.name <- scan(file = '',n = 1,what = character(),quiet = TRUE)
-         if (chr.name %in% tmp_chr) break
-         }
+#'Convert data from input file to an object of class haplohh
+#'@description Convert input data files to an object of \code{\link{haplohh-class}}.
+#'@param hap_file file containing haplotype data (see details below).
+#'@param map_file file containing map information (see details below).
+#'@param min_perc_geno.hap threshold on percentage of missing data for haplotypes
+#'(haplotypes with less than \code{min_perc_geno.hap} percent of markers genotyped are discarded). Default is \code{NA},
+#'hence no constraint.
+#'@param min_perc_geno.mrk threshold on percentage of missing data for markers (markers genotyped on less than
+#'\code{min_perc_geno.mrk} percent of haplotypes are discarded). By default, \code{min_perc_geno.mrk=100},
+#'hence only fully genotyped markers are retained.
+#'This value cannot be set to \code{NA} or zero.
+#'@param min_maf threshold on the Minor Allele Frequency. Markers having a MAF lower than or equal to minmaf are discarded.
+#'In case of multi-allelic markers the second-most frequent allele is referred to as minor allele.
+#'Setting this value to zero eliminates monomorphic sites. Default is \code{NA},
+#'hence no constraint.
+#'@param chr.name name of the chromosome considered (relevant if data for several chromosomes is
+#'contained in the haplotype or map file).
+#'@param popsel code of the population considered (relevant for fastPHASE output which
+#'can contain haplotypes from various populations).
+#'@param recode.allele *Deprecated*. logical. \code{FALSE} by default. \code{TRUE} forces parameter \code{allele_coding} to \code{"map"},
+#'\code{FALSE} leaves it unchanged.
+#'@param allele_coding the allele coding provided by the user. Either \code{"12"} (default), \code{"01"}, \code{"map"} or \code{"none"}.
+#'The option is irrelevant for vcf files and ms output.
+#'@param haplotype.in.columns logical. If \code{TRUE}, phased input haplotypes are assumed to be in columns (as produced
+#'by the SHAPEIT2 program (O'Connell et al., 2014).
+#'@param remove_multiple_markers logical. If \code{FALSE} (default), conversion
+#'stops, if multiple markers with the same chromosomal position are encountered. 
+#'If \code{TRUE}, duplicated markers are removed (all but the first marker with identical positions).
+#'@param polarize_vcf logical. Only of relevance for vcf files. If \code{TRUE} (default), tries to polarize
+#'variants with help of the AA entry in the INFO field. Unpolarized alleles are discarded. 
+#'If \code{FALSE}, allele coding of vcf file is used unchanged as internal coding.
+#'@param capitalize_AA logical. Only of relevance for vcf files with ancestral allele information.
+#'Low confidence ancestral alleles are usually coded by lower-case letters. If \code{TRUE} (default), these are
+#'changed to upper case before the alleles of the sample are matched for polarization.
+#'@param position_scaling_factor intended primarily for output of ms where
+#'positions lie in the interval [0,1]. These can be rescaled to sizes
+#'of typical markers in real data.
+#'@param verbose logical. If \code{TRUE} (default), report verbose progress.
+#'@details Five haplotype input formats are supported:
+#'\itemize{
+#'\item a "standard format" with haplotypes in rows and markers in columns (with no header, but a haplotype ID/name in
+#'the first column).
+#'\item a "transposed format" similar to the one produced by the phasing program SHAPEIT2
+#'(O'Connell et al., 2014) in which haplotypes are in columns and markers in rows
+#'(with neither header nor marker IDs nor haplotype IDs).
+#'\item output files from the fastPHASE program (Sheet and Stephens, 2006).
+#'If haplotypes from several different population were phased simultaneously (-u fastPHASE option
+#'was used), it is necessary to specify the population of interest by parameter \code{popsel}
+#'(if this parameter is not or wrongly set, the error message will provide a list of
+#'the population numbers contained in the file).
+#'\item files in variant call format (vcf). No mapfile is needed is this case. If
+#'the file contains several chromosomes, it is necessary to  choose one by parameter
+#'\code{chr.name}.
+#'\item output of the simulation program 'ms'. No mapfile is needed in this case. If the file
+#'contains several 'runs', a specific number has to be specified by the
+#'parameter \code{chr.name}.
+#'}
+#'The "transposed format" has to be explicitly set while the other formats
+#'are recognized automatically.
+#'
+#'The map file contains marker information in three, or, if it is used for
+#'polarization (see below), five columns:
+#'\itemize{
+#'\item marker name/id
+#'\item chromosome
+#'\item position (physical or genetic)
+#'\item ancestral allele encoding
+#'\item derived allele encoding
+#'}
+#'The markers must be in the same order as in the haplotype file. If
+#'several chromosomes are represented in the map file, it is necessary to choose that
+#'which corresponds to the haplotype file by parameter \code{chr.name}.
+#'
+#'Haplotypes can be given either with alleles already coded as numbers (in two possible ways)
+#'or with the actual alleles (e.g. nucleotides) which can be translated into numbers
+#'either using the fourth and fifth column of the map file or by their alpha-numeric order.
+#'Correspondingly, the parameter \code{allele_coding} has to be set to either \code{"12"},
+#'\code{"01"}, \code{"map"} or \code{"none"}:
+#'\itemize{
+#'\item \code{"12"}: 0 represents missing values, 1 the ancestral allele
+#'and 2 (or higher integers) derived allele(s).
+#'\item \code{"01"}: \code{NA} or '.' (a point) represent missing values, 0 the
+#'ancestral and 1 (or higher integers) derived allele(s).
+#'\item \code{"map"}: for each marker, the fourth column of the map file
+#'defines the ancestral allele and the fifth column derived alleles.
+#'In case of multiple derived alleles, they must be separated by commas without space.
+#'Alleles in the haplotype file which do not appear in neither of the two columns
+#'of the map file are regarded as missing values (\code{NA}).
+#'\item \code{"none"}: \code{NA} or '.' (a point) represent missing values, otherwise for each
+#'marker the allele that comes first in alpha-numeric
+#'order is coded by 0, the next by 1, etc. Evidently, this coding does not convey
+#'any information about allele status as ancestral or derived, hence the alleles
+#'cannot be regarded as polarized.
+#'}
+#'The information of allelic ancestry is exploited only in the frequency-bin-wise
+#'standardization of iHS (see \code{\link{ihh2ihs}}). However, although ancestry status does
+#'not figure in the formulas of the cross populations statistics
+#'Rsb and XP-EHH, their values do depend on the assigned status.
+#'
+#'The arguments \code{min_perc_geno.hap},
+#'\code{min_perc_geno.mrk} and \code{min_maf} are evaluated in this order.
+#'@return The returned value is an object of \code{\link{haplohh-class}}.
+#'@references Scheet P, Stephens M (2006) A fast and flexible statistical model for large-scale population genotype
+#'data: applications to inferring missing genotypes and haplotypic phase. \emph{Am J Hum Genet}, \strong{78}, 629-644.
+#'
+#'O'Connell J, Gurdasani D, Delaneau O, et al (2014) A general approach for haplotype phasing
+#'across the full spectrum of relatedness. \emph{PLoS Genet}, \strong{10}, e1004234.
+#'@examples
+#'#copy example files into the current working directory.
+#'make.example.files()
+#'#create object using a haplotype file in "standard format"
+#'hap <- data2haplohh(hap_file = "bta12_cgu.hap",
+#'                    map_file = "map.inp",
+#'                    chr.name = 12,
+#'                    allele_coding = "map")
+#'#create object using fastPHASE output
+#'hap <- data2haplohh(hap_file = "bta12_hapguess_switch.out",
+#'                    map_file = "map.inp",
+#'                    chr.name = 12,
+#'                    popsel = 7,
+#'                    allele_coding = "map")
+#'#clean up demo files
+#'remove.example.files()                    
+#'@export
+#'@importFrom methods new
+#'@importFrom utils read.table
+data2haplohh <-
+  function(hap_file,
+           map_file = NA,
+           min_perc_geno.hap = NA,
+           min_perc_geno.mrk = 100,
+           min_maf = NA,
+           chr.name = NA,
+           popsel = NA,
+           recode.allele = FALSE,
+           allele_coding = "12",
+           haplotype.in.columns = FALSE,
+           remove_multiple_markers = FALSE,
+           polarize_vcf = TRUE,
+           capitalize_AA = TRUE,
+           position_scaling_factor = NA,
+           verbose = TRUE) {
+    ## check parameters
+    ### empty haplotype makes no sense, but is of no harm
+    if (!is.na(min_perc_geno.hap) &
+        (is.na(min_perc_geno.hap) | min_perc_geno.hap < 0 |
+         min_perc_geno.hap > 100)) {
+      stop("min_perc_geno.hap should lie in the interval [0,100].",
+           call. = FALSE)
+    }
+    ### empty marker will cause trouble -> forbid zero or NA
+    if (is.na(min_perc_geno.mrk) | min_perc_geno.mrk <= 0 |
+        min_perc_geno.mrk > 100) {
+      stop("min_perc_geno.mrk should lie in the interval (0,100].",
+           call. = FALSE)
+    }
+    ### minor frequency can be maximal 0.5
+    if (!is.na(min_maf)) {
+      if (!is.numeric(min_maf) | min_maf < 0 |
+          min_maf > 0.5) {
+        stop("min_maf should lie in the interval [0,0.5].", call. = FALSE)
+      }
+    }
+    ### deprecated function
+    if (recode.allele) {
+      warning("Deprecated option: recode.allele. Use 'allele_coding' instead.")
+      allele_coding <- "map"
     }
     
-    if(is.na(chr.name)){chr.name=tmp_chr[1]}
-     map=map[as.character(map[,1])==chr.name,]
-     tmp_nom<-rownames(map)
-     if(nrow(map)==0){
-      cat("No SNPs mapping to chromosome ",chr.name," are found in the map file\n")
-      tmp_chr=unique(as.character(map[,1]))
-      cat("Here is the list of chromosome names in the map file:\n",tmp_chr,"\n")
-      stop("Conversion stopped")
+    ### check possible coding options
+    if (is.na(allele_coding) |
+        !(allele_coding %in% c("12", "01", "map", "none"))) {
+      stop("allele_coding has to be either '12', '01', 'map' or 'none'.",
+           call. = FALSE)
+    }
+    
+    if (!is.na(position_scaling_factor)) {
+      if (!is.numeric(position_scaling_factor) |
+          position_scaling_factor <= 0) {
+        stop(
+          paste0(
+            "position_scaling_factor must be a positive real number.\n",
+            "Conversion stopped."
+          ),
+          call. = FALSE
+        )
       }
-   #premier checks OK
-    res@chr.name<-as.character(chr.name)
-    res@snp.name<-tmp_nom
-    tmp_pos<-as.numeric(map[,2])
-
-    if(sum(diff(tmp_pos)<0)>0){
-      stop("SNP should be ordered on the map, check also that both haplotypes (column of haplo)\nand map (row of map) are ordered in the same way")}
-    if(sum(diff(tmp_pos)==0)>0){
-      warning("Some SNPs map to the same position")}
-    res@position<-tmp_pos
+    }
+    
+    ## perform conversion
+    if (verbose)
+      cat("* Reading input file(s) *\n")
+    
+    if (is.na(hap_file)) {
+      stop("No haplotype file specified. Conversion stopped.", call. = FALSE)
+    }
+    
+    if (is.vcf(hap_file)) {
+      hh <-
+        read.vcf(
+          hap_file,
+          chr.name = chr.name,
+          polarize_vcf = polarize_vcf,
+          capitalize_AA =  capitalize_AA,
+          verbose = verbose
+        )
+    } else if (is.ms(hap_file)) {
+      hh <- read.ms(hap_file, chr.name = chr.name, verbose = verbose)
+    } else {
+      #### begin map_file
+      if (is.na(map_file)) {
+        stop("No map file specified. Conversion stopped.", call. = FALSE)
+      }
+      
+      map <-
+        read.table(map_file,
+                   row.names = 1,
+                   colClasses = "character")
+      
+      if (allele_coding == "map" & ncol(map) < 4) {
+        stop(
+          paste0(
+            "Wrong format for map file. ",
+            map_file,
+            " should contain 5 columns without header:\n"
+            ,
+            "Marker id, Chromosome name, Position, Ancestral Allele and Derived Allele.\n",
+            "Conversion stopped."
+          ),
+          call. = FALSE
+        )
+      } else{
+        if (ncol(map) < 2) {
+          stop(
+            paste0(
+              "Wrong format for map file. ",
+              map_file,
+              " should contain 3 columns without header:\n",
+              "Marker id, Chromosome name and Position.\n",
+              "Conversion stopped."
+            ),
+            call. = FALSE
+          )
+        }
+      }
+      
+      chr.name <-
+        check_chromosome_names(map_file, unique(as.character(map[, 1])), chr.name)
+      
+      ### subset map data frame to specified chromosome
+      map <- map[as.character(map[, 1]) == chr.name, ]
+      
+      ### set first slots of haplohh
+      hh <- new("haplohh")
+      
+      hh@chr.name <- chr.name
+      hh@positions <- as.numeric(map[[2]])
+      mrk.names <- row.names(map)
+      names(hh@positions) <- mrk.names
+      
+      if (verbose)
+        cat("Map info:",
+            nrow(map),
+            "markers declared for chromosome",
+            hh@chr.name,
+            ".\n")
+      
+      ### Fichier haplo
+      
+      if (haplotype.in.columns) {
+        tmp_haplo <- read.transposed(hap_file, verbose = verbose)
+      } else{
+        if (is.fastPhase(hap_file)) {
+          tmp_haplo <-
+            read.fastPhase(hap_file, popsel = popsel, verbose = verbose)
+        } else{
+          #fichier au format standard
+          tmp_haplo <- read.standard(hap_file, verbose = verbose)
+        }
+      }
+      if (ncol(tmp_haplo) != nrow(map)) {
+        stop(
+          paste0(
+            "The number of markers in the haplotype file (",
+            ncol(tmp_haplo),
+            ") is not equal\nto the number of markers in the map file (",
+            nrow(map),
+            ").\nConversion stopped."
+          ),
+          call. = FALSE
+        )
+      }
+      
+      
+      if (allele_coding == "map") {
+        ### recode with help of map file
+        if (verbose)
+          cat("Alleles are being recoded according to fourth and fifth column of map file.\n")
+        
+        ### split into list of alleles
+        allele_list <-
+          strsplit(paste(map[, 3], map[, 4], sep = ','), ',', fixed = TRUE)
+        
+        ### returns NA if allele is not found in allele_list
+        hh@haplo <- t(apply(tmp_haplo, 1, function(x) {
+          # x is a haplotype, element-wise matching
+          mapply(match, x, allele_list) - 1L
+        }))
+        
+        ### remove big object
+        rm(allele_list)
+      } else if (allele_coding == "none") {
+        if (verbose)
+          cat(
+            paste0(
+              "Alleles are being recoded at each marker in alpha-numeric order.\n",
+              "*** Consequently, coding does not provide information on ancestry status. ***\n"
+            )
+          )
+        
+        
+        # (only) point is equivalent to NA
+        tmp_haplo[tmp_haplo == '.'] <- NA
+        
+        hh@haplo <- apply(tmp_haplo, 2, function(x) {
+          alleles <- sort(unique(x))
+          # x is a marker, vector-wise matching
+          match(x, alleles) - 1L
+        })
+        
+      }
+      else if (allele_coding == "12") {
+        if (verbose) {
+          cat("Assume that alleles in the haplotype file are coded as:\n")
+          cat("0: missing value\n1: ancestral allele\n2, 3, ...: derived allele(s).\n")
+        }
+        ## matrix must contain only integers
+        hh@haplo <-
+          matrix(suppressWarnings(as.integer(tmp_haplo)),
+                 nrow(tmp_haplo),
+                 ncol(tmp_haplo)) - 1L
+        
+        if (anyNA(hh@haplo)) {
+          stop(
+            paste0(
+              "Alleles are not coded in format \"12\".\n",
+              "Check your data or use another value for argument 'allele_coding'.\n",
+              "Conversion stopped."
+            ),
+            call. = FALSE
+          )
+        }
+        
+        ### replace -1 by NA
+        hh@haplo[hh@haplo == -1] <- NA
+        
+      } else if (allele_coding == "01") {
+        ### hapfile is not a vcf file, but alleles are coded like in vcf
+        if (verbose) {
+          cat("Assume that alleles in the haplotype file are coded as:\n")
+          cat("NA or '.': missing value\n0: ancestral allele\n1, 2, ...: derived allele(s).\n")
+        }
+        # (only) point is equivalent to NA
+        tmp_haplo[tmp_haplo == '.'] <- NA
+        
+        ## convert to integer, stop if allele is neither NA nor integer
+        tryCatch(
+          hh@haplo <-
+            matrix(
+              as.integer(tmp_haplo),
+              nrow(tmp_haplo),
+              ncol(tmp_haplo)
+            ),
+          warning = function(w) {
+            stop(
+              paste0(
+                "Alleles are not coded in format \"01\".\n",
+                "Check your data or use another value for argument 'allele_coding'.\n",
+                "Conversion stopped."
+              ),
+              call. = FALSE
+            )
+          }
+        )
+        
+      }
+      
+      rownames(hh@haplo) <- rownames(tmp_haplo)
+      colnames(hh@haplo) <- mrk.names
+      
+      #remove big object
+      rm(map)
+      rm(tmp_haplo)
+    }
+    
+    ## assert that coded allele numbers are positive
+    if (any(hh@haplo < 0, na.rm = TRUE)) {
+      stop("Found alleles coded by negative numbers. Conversion stopped.",
+           call. = FALSE)
+    }
+    
+    ## assert that positions are ordered
+    if (sum(diff(positions(hh)) < 0) > 0) {
+      stop("Markers must be ordered numerically in the map file.",
+           call. = FALSE)
+    }
+    
+    ## check for multiple markers
+    multiple_markers <- duplicated(hh@positions)
+    if (sum(multiple_markers) > 0) {
+      if (remove_multiple_markers) {
+        hh@positions <- hh@positions[!multiple_markers]
+        hh@haplo <- hh@haplo[,!multiple_markers, drop = FALSE]
+        warning(paste(
+          "Removed",
+          sum(multiple_markers),
+          "markers with non-unique positions."
+        ))
+      } else{
+        stop(paste(
+          sum(multiple_markers),
+          "markers have non-unique positions. Conversion stopped."
+        ),
+        call. = FALSE)
+      }
+    }
+    
+    ## scale positions
+    if (!is.na(position_scaling_factor)) {
+      hh@positions <- hh@positions * position_scaling_factor
+    }
+    
+    # filtering
+    hh <- subset(
+      hh,
+      min_perc_geno.hap = min_perc_geno.hap,
+      min_perc_geno.mrk = min_perc_geno.mrk,
+      min_maf = min_maf,
+      verbose = verbose
+    )
+    
+    if (min(dim(haplo(hh))) == 0 &
+        !is.vcf(hap_file) & !is.ms(hap_file)) {
+      if (verbose)
+        cat("Check whether allele_coding = \"",
+            allele_coding,
+            "\" is appropriate!\n",
+            sep = "")
+      
+    }
+    
+    return(hh)
   }
 
-res@nsnp=nrow(map)
-cat("Map file seems OK:",res@nsnp," SNPs declared for chromosome",res@chr.name,"\n")
-
-###Fichier haplo
-if(haplotype.in.columns){
-  cat("Haplotype are in columns with no header\n")
-  tmp.nhap=length(unlist(strsplit(readLines(hap_file,n=1),split="\t|\\s+"))) 
-  tmp_haplos=matrix(scan(hap_file,what="character",quiet=TRUE),nrow=tmp.nhap)
-#  tmp_haplos=t(as.matrix(read.table(hap_file,colClasses="numeric")))
-#  tmp_haplos=readChar(hap_file,file.info(hap_file)$size,useBytes=T)
-#  tmp_haplos=matrix(strsplit(gsub(tmp_haplos,pattern="\n|\t|\\s+",replacement=" "),split=" ",useBytes=T,fixed=T)[[1]],nrow=182)
-  tmp.nsnp=ncol(tmp_haplos)
-   if(tmp.nsnp!=res@nsnp){
-    cat("The number of snp in the haplotypes",tmp.nsnp," is not equal\nto the number of snps declared in the map file",res@nsnp,"\n")
-    stop("Conversion stopped")
-   }
-}else{
- out_fphase<-scan(hap_file,what="character",sep="\n",quiet=TRUE,nlines=15)
- test_fphase_1=grep("fastPHASE",out_fphase)
- test_fphase_2=grep("BEGIN COMMAND_LINE",out_fphase)
-
- if(length(test_fphase_1)>0 & length(test_fphase_2)>0){ #fichier fastphase
-  cat("Looks like a FastPHASE haplotype file\n")
-  out_fphase<-scan(hap_file,what="character",sep="\n",quiet=TRUE)
-  deb_geno=grep("BEGIN GENOTYPES",out_fphase)[1] + 1
-  fin_geno=grep("END GENOTYPES",out_fphase)[1] - 1
-  out_fphase<-out_fphase[deb_geno:fin_geno]
-
- test_poplabel=grep("subpop. label:",out_fphase)
- if(length(test_poplabel)>1){
-   nom_hap_cplet=out_fphase[test_poplabel]
-   nhap_tot=length(nom_hap_cplet)
-   pop_label=numeric(nhap_tot)
-   tmp_poplab=(strsplit(nom_hap_cplet,split="subpop. label:"))
-   for(i in 1:nhap_tot){
-     pop_label[i]=as.numeric(unlist(strsplit(tmp_poplab[[i]][2],split="\\(internally"))[1])
+check_chromosome_names <-
+  function(file, chr.names_in_file, chr.name) {
+    ### check for multiple chromosomes in map data frame
+    if (is.na(chr.name)) {
+      if (length(chr.names_in_file) != 1) {
+        cat("More than one chromosome name in file:",
+            file,
+            ".\n")
+        cat("Here is a list of chromosome names found:\n",
+            chr.names_in_file,
+            "\n")
+        stop("Please specify a chromosome name. Conversion stopped.",
+             call. = FALSE)
+      }
+      chr.name <- chr.names_in_file
+    } else{
+      chr.name <- as.character(chr.name)
+      if (!(chr.name %in% chr.names_in_file)) {
+        cat("No markers mapping to chromosome ",
+            chr.name,
+            " are found in the file ",
+            file,
+            " .\n")
+        
+        cat("Here is a list of chromosome names in the map file:\n",
+            chr.names_in_file,
+            "\n")
+        stop("Please specify one chromosome. Conversion stopped.",
+             call. = FALSE)
+      }
     }
-    liste_pop=unique(pop_label)
-    cat("Haplotypes originate from ",length(liste_pop)," different populations in the fastPhase output file\n")
-   
-    if(!(popsel %in% pop_label)){
-     cat("Chosen pop. is not in the list of pop. number:\n",liste_pop,"\n")
-     popsel=NA
-    }
-    if(is.na(popsel)){ #on demande interactivement la pop a selectionner
-       repeat {
-         cat('Which population should be considered among:',liste_pop,"\n")
-         popsel <- scan(file = '',n = 1,what = integer(0),quiet = TRUE)
-         if (popsel %in% pop_label) break
-         }
-    }
-   hapsel=(which(pop_label==popsel) -1)*3 + 1
-   hapsel=sort(as.numeric(cbind(hapsel,hapsel+1,hapsel+2)))
-   out_fphase=out_fphase[hapsel]
-   }else{
-    cat("Haplotypes seems to originate from only one population\n")
-    if(!(is.na(popsel))){ #bizarre car pas de sous population observe
-         cat('No popsel are thus considered:',liste_pop,"\n")
-    }
- }
+    return(chr.name)
+  }
 
- nlignes=length(out_fphase) ; nind=nlignes/3 ; nhap=2*nind
- tmp_haplos=matrix(,nhap,res@nsnp)
-   for(i in 1:nind){
-    id_line=3*(i-1) + 1 ; hap1_line=id_line+1 ; hap2_line=id_line+2
-    hap1_index=2*(i-1) +1 ; hap2_index=hap1_index + 1
+is.fastPhase <- function(hap_file) {
+  out_fphase <-
+    scan(
+      hap_file,
+      what = "character",
+      sep = "\n",
+      quiet = TRUE,
+      nlines = 15
+    )
+  test_fphase_1 <- grep("fastPHASE", out_fphase)
+  test_fphase_2 <- grep("BEGIN COMMAND_LINE", out_fphase)
   
-    hap1=unlist(strsplit(out_fphase[hap1_line],split=" "))
-    if(length(hap1)!=res@nsnp){
-      stop("Number of snp in haplotypes differ from the number declared in the map file")
-      }else{tmp_haplos[hap1_index,]=hap1}
-  
-    hap2=unlist(strsplit(out_fphase[hap2_line],split=" "))
-    if(length(hap2)!=res@nsnp){
-      stop("Number of snp in haplotypes differ from the number declared in the map file")
-      }else{tmp_haplos[hap2_index,]=hap2}
-   }
-
- }else{ #fichier au format standard
-   cat("Standard rehh input file assumed\n")
-   tmp.ncol=length(unlist(strsplit(readLines(hap_file,n=1),split="\t|\\s+"))) #retrocompatibilite: ca marchait avec la tabulation avant
-   tmp.nsnp=tmp.ncol-1 #retrocompatibilite: les haplos contiennent un ID
-   if(tmp.nsnp!=res@nsnp){
-    cat("The number of snp in the haplotypes",tmp.nsnp," is not equal\nto the number of snps declared in the map file",res@nsnp,"\n")
-    stop("Conversion stopped")
-   }
-   tmp_haplos=matrix(scan(hap_file,what="character",quiet=TRUE),ncol=tmp.ncol,byrow=TRUE)[,-1]
- }
- }
- res@nhap=nrow(tmp_haplos)
-##recodage des alleles si necessaire
- if(recode.allele){
-  cat("Alleles are being recoded according to map file as:\n\t0 (missing data), 1 (ancestral allele) or 2 (derived allele)\n")
-  anc_allele=matrix(rep(map[,3],res@nhap),res@nhap,res@nsnp,byrow=TRUE)
-  all_anc=tmp_haplos==anc_allele
-  rm(anc_allele) 
-  der_allele=matrix(rep(map[,4],res@nhap),res@nhap,res@nsnp,byrow=TRUE)
-  all_der=tmp_haplos==der_allele
-  rm(der_allele)
-  rm(tmp_haplos) 
-  res@haplo=matrix(0,res@nhap,res@nsnp)
-  res@haplo[all_anc]=1 ; res@haplo[all_der]=2 
-  }else{
-   if(sum(!(tmp_haplos=="0" | tmp_haplos=="1" | tmp_haplos=="2" ))>0){
-    cat("Alleles are not coded in the appropriate format:\n\t0 (missing data), 1 (ancestral allele) or 2 (derived allele)\n")
-    cat("Check your data or use recode.allele=TRUE option to recode according to the map information\n")
-    stop("Conversion stopped")
-   }
-  res@haplo=matrix(as.numeric(tmp_haplos),res@nhap,res@nsnp)
-  rm(tmp_haplos) 
- }
-#selection des haplos d'apres les donnees manquantes
-# if( !(is.na(min_perc_geno.hap)) ){
-   cat("Discard Haplotype with less than ",min_perc_geno.hap,"% of genotyped SNPs\n")
-   hap_sel=(100*rowSums(res@haplo!=0)/res@nsnp)>=min_perc_geno.hap
-   if(sum(hap_sel)==res@nhap){
-    cat("No haplotype discarded\n")
-   }else{
-    cat(res@nhap-sum(hap_sel)," Haplos discarded\n")
-    res@haplo=res@haplo[hap_sel,]
-    res@nhap=sum(hap_sel)
-    cat(res@nhap," Haplos remaining\n")
-   }
-   if(res@nhap==0){stop("No haplotype left after filtering of missing data: check allele coding (e.g., correspondance of allele coding between the map_inp and haplotype input file) data or relax the value of min_perc_geno.hap to allow for more missing data")}
-# }
-#selection des snps d'apres les donnees manquantes
-# if( !(is.na(min_perc_geno.snp)) ){
-   cat("Discard SNPs genotyped on less than ",min_perc_geno.snp,"% of haplotypes\n")
-   snp_sel=(100*colSums(res@haplo!=0)/res@nhap)>=min_perc_geno.snp
-   if(sum(snp_sel)==res@nsnp){
-    cat("No SNP discarded\n")
-   }else{
-    cat(res@nsnp-sum(snp_sel)," SNPs discarded\n")
-    res@haplo=res@haplo[,snp_sel]
-    res@nsnp=sum(snp_sel)
-    res@position=res@position[snp_sel]
-    res@snp.name=res@snp.name[snp_sel]
-    cat(res@nsnp," SNPs remaining\n")
-   }
-   if(res@nsnp==0){stop("No SNP left after filtering of missing data: check allele coding (e.g., correspondance  ofallele coding between the map_inp and haplotype input file) data or relax the value of min_perc_geno.snp to allow for more missing data")}
-   # }
-
-#selection des snps sur MAF
- if(min_maf>0){
-   cat("Discard SNPs with MAF below ",min_maf,"\n")
-   tmp_n1=colSums(res@haplo==1) ; tmp_n=colSums(res@haplo!=0)
-   tmp_maf=0.5-abs(0.5-tmp_n1/tmp_n)
-   snp_sel=tmp_maf>min_maf
-   if(sum(snp_sel)==res@nsnp){
-    cat("No SNP discarded\n")
-   }else{
-    cat(res@nsnp-sum(snp_sel)," SNPs discarded\n")
-    res@haplo=res@haplo[,snp_sel]
-    res@nsnp=sum(snp_sel)
-    res@position=res@position[snp_sel]
-    res@snp.name=res@snp.name[snp_sel]
-    cat(res@nsnp," SNPs remaining\n")
-   }
-   rm(tmp_n1) ; rm(tmp_n) ; rm(tmp_maf)
- }
-
-    cat("Data consists of",res@nhap,"haplotypes and",res@nsnp,"SNPs\n")
-    return(res)
+  return(length(test_fphase_1) > 0 &
+           length(test_fphase_2) > 0)
 }
+
+is.vcf <- function(hap_file) {
+  firstline <-
+    scan(
+      hap_file,
+      what = "character",
+      sep = "\n",
+      quiet = TRUE,
+      nlines = 1
+    )
+  return(length(grep("fileformat=VCF", firstline) > 0))
+}
+
+is.ms <- function(hap_file) {
+  firstline <-
+    scan(
+      hap_file,
+      what = "character",
+      sep = "\n",
+      quiet = TRUE,
+      nlines = 1
+    )
+  # search for "ms" in first "word" in first line
+  return(length(grep("^\\S*ms", firstline) > 0))
+}
+
+read.standard <- function(hap_file, verbose) {
+  #fichier au format standard
+  if (verbose)
+    cat("Haplotype input file in standard format assumed.\n")
+  
+  #retrocompatibilite: ca marchait avec la tabulation avant
+  tmp.ncol <-
+    length(unlist(strsplit(readLines(hap_file, n = 1), split =
+                             "\t|\\s+")))
+  tmp_haplo <-
+    matrix(scan(hap_file, what = "character", quiet = TRUE),
+           ncol = tmp.ncol,
+           byrow = TRUE)
+  
+  rownames <- tmp_haplo[, 1]
+  if (anyDuplicated(rownames)) {
+    warning(
+      paste0(
+        "Haplotype identifiers were not unique in haplotype file.\n",
+        "They have been modified to become unique."
+      ),
+      call. = FALSE
+    )
+    rownames <- make.unique(rownames)
+  }
+  rownames(tmp_haplo) <- rownames
+  
+  return(tmp_haplo[, -1])
+}
+
+read.transposed <- function(hap_file, verbose) {
+  if (verbose)
+    cat("Haplotype input file in transposed format assumed.\n")
+  
+  tmp.nhap <-
+    length(unlist(strsplit(readLines(hap_file, n = 1), split =
+                             "\t|\\s+")))
+  tmp_haplo <-
+    matrix(scan(hap_file, what = "character", quiet = TRUE), nrow =
+             tmp.nhap)
+  return(tmp_haplo)
+}
+
+
+read.fastPhase <- function(hap_file, popsel, verbose) {
+  #fichier fastphase
+  if (verbose)
+    cat("Haplotype input file in fastPHASE format assumed.\n")
+  
+  out_fphase <- scan(hap_file,
+                     what = "character",
+                     sep = "\n",
+                     quiet = TRUE)
+  BEGIN_GENO <- grep("BEGIN GENOTYPES", out_fphase)[1] + 1
+  END_GENO <- grep("END GENOTYPES", out_fphase)[1] - 1
+  
+  # subset to actual data (omit header)
+  out_fphase <- out_fphase[BEGIN_GENO:END_GENO]
+  
+  test_poplabel <- grep("subpop. label:", out_fphase)
+  if (length(test_poplabel) > 0) {
+    nom_hap_cplet <- out_fphase[test_poplabel]
+    nhap_tot <- length(nom_hap_cplet)
+    pop_label <- numeric(nhap_tot)
+    tmp_poplab <-
+      (strsplit(nom_hap_cplet, split = "subpop. label:"))
+    for (i in 1:nhap_tot) {
+      pop_label[i] <-
+        as.numeric(unlist(strsplit(tmp_poplab[[i]][2], split = "\\(internally"))[1])
+    }
+    populations <- unique(pop_label)
+    if (verbose)
+      cat(
+        "Haplotypes in the fastPHASE output file originate from",
+        length(populations),
+        "populations.\n"
+      )
+    
+    if (is.na(popsel) & length(populations) == 1) {
+      popsel <- populations[1]
+    }
+    
+    if (is.na(popsel) | !(popsel %in% pop_label)) {
+      stop(
+        paste0(
+          "Please specify by 'popsel' one of the following population numbers:\n",
+          paste(populations, collapse = " "),
+          "\n",
+          "Conversion stopped."
+        ),
+        call. = FALSE
+      )
+    }
+    hapsel <- (which(pop_label == popsel) - 1) * 3 + 1
+    hapsel <-
+      sort(as.numeric(cbind(hapsel, hapsel + 1, hapsel + 2)))
+    out_fphase <- out_fphase[hapsel]
+  } else{
+    # no sub-population identifiers found
+    if (verbose) {
+      cat("No population identifiers found in fastPHASE file.\n")
+      if (!is.na(popsel)) {
+        cat("Ignoring argument 'popsel'.\n")
+      }
+    }
+  }
+  
+  ### for each individual there are 3 lines
+  nind <- length(out_fphase) / 3
+  ### and two haplotypes (assuming diploid individuals)
+  nhap <- 2 * nind
+  
+  first_hap <- unlist(strsplit(out_fphase[2], split = " "))
+  tmp_haplo <- matrix(as.character(NA),
+                      nrow = nhap,
+                      ncol = length(first_hap))
+  hapnames <- vector(mode = "character", nhap)
+  
+  for (i in 1:nind) {
+    id_line <- 3 * (i - 1) + 1
+    hap1_line <- id_line + 1
+    hap2_line <- id_line + 2
+    hap1_index <- 2 * (i - 1) + 1
+    hap2_index <- hap1_index + 1
+    
+    if (length(out_fphase[id_line]) > 0) {
+      ind_id <- strsplit(out_fphase[id_line], split = "\\s+")[[1]][1]
+      hapnames[hap1_index] <- paste(ind_id, "1", sep = "_")
+      hapnames[hap2_index] <- paste(ind_id, "2", sep = "_")
+    }
+    
+    hap1 <- unlist(strsplit(out_fphase[hap1_line], split = " "))
+    tmp_haplo[hap1_index, ] <- hap1
+    
+    hap2 <- unlist(strsplit(out_fphase[hap2_line], split = " "))
+    tmp_haplo[hap2_index, ] <- hap2
+  }
+  
+  if (!anyDuplicated(hapnames)) {
+    rownames(tmp_haplo) <- hapnames
+  }
+  
+  return(tmp_haplo)
+}
+
+read.ms <- function(hap_file, chr.name, verbose) {
+  if (!requireNamespace("gap", quietly = TRUE)) {
+    stop("Package 'gap' needed to read ms output. Conversion stopped.",
+         call. = FALSE)
+  }
+  
+  if (verbose)
+    cat("Input file in 'ms' output format assumed.\n")
+  
+  ms <- gap::read.ms.output(hap_file, verbose = verbose)
+  
+  if (!is.na(chr.name)) {
+    chr.nbr <- suppressWarnings(as.integer(chr.name))
+    if (is.na(chr.nbr)) {
+      stop("For ms output files 'chr.name' has to be an integer number.",
+           call. = FALSE)
+    }
+  } else{
+    chr.nbr <- NA
+  }
+  
+  if (ms$nreps > 1) {
+    if (is.na(chr.nbr) | chr.nbr < 1 | chr.nbr > ms$nreps) {
+      stop(
+        paste(
+          "Ms output file contains",
+          ms$nreps,
+          "simulations.\nPlease select one by specifying its number in 'chr.name'."
+        ),
+        call. = FALSE
+      )
+    }
+  } else{
+    chr.nbr <- 1
+  }
+  
+  hh <- new("haplohh")
+  hh@chr.name <- as.character(chr.nbr)
+  
+  if (verbose)
+    cat("Extracting positions.\n")
+  
+  hh@positions <- ms$positions[[chr.nbr]]
+  
+  if (verbose)
+    cat("Extracting haplotypes.\n")
+  
+  hh@haplo <- t(ms$gametes[[chr.nbr]])
+  
+  rownames(hh@haplo) <- paste0("H", seq_len(nrow(hh@haplo)))
+  colnames(hh@haplo) <- paste0("s", seq_len(ncol(hh@haplo)))
+  
+  return(hh)
+}
+
+read.vcf <-
+  function(vcf_file,
+           chr.name,
+           polarize_vcf,
+           capitalize_AA,
+           verbose) {
+    if (!requireNamespace("vcfR", quietly = TRUE)) {
+      stop("Package 'vcfR' needed to read vcf files. Conversion stopped.",
+           call. = FALSE)
+    }
+    
+    vcf <- vcfR::read.vcfR(vcf_file, verbose = verbose)
+    
+    if (verbose)
+      cat("Extracting map information.\n")
+    
+    map <- data.frame(
+      vcfR::getCHROM(vcf),
+      vcfR::getPOS(vcf),
+      vcfR::getREF(vcf),
+      vcfR::getALT(vcf),
+      stringsAsFactors = FALSE
+    )
+    
+    chr.name <-
+      check_chromosome_names(vcf_file, unique(map[, 1]), chr.name)
+    selected <- map[, 1] == chr.name
+    map <- map[selected, ]
+    
+    if (polarize_vcf) {
+      if ("AA" %in% vcfR::vcf_field_names(vcf, tag = "INFO")$ID) {
+        if (verbose)
+          cat("Extracting ancestral allele from info field of vcf file.\n")
+        
+        #get ancestal allele as nucleotide
+        AA <- vcfR::extract.info(vcf, "AA")[selected]
+        # get rid of big object before creating haplo matrix
+        if (sum(is.na(AA)) > 0) {
+          warning(paste(
+            "Ancestral allele info field is empty for",
+            sum(is.na(AA)),
+            "markers."
+          ))
+        }
+        if (capitalize_AA) {
+          AA <- toupper(AA)
+        }
+        
+      } else{
+        stop("No key 'AA' found in INFO field of vcf file. Conversion stopped.",
+             call. = FALSE)
+      }
+    }
+    if (verbose)
+      cat("Extracting haplotypes.\n")
+    
+    gt <- vcfR::extract.gt(vcf)[selected, , drop = FALSE]
+    
+    ### vcfR translates completely absent genotypes like . or .|. into a single NA
+    ### However, we need the right number of NAs!
+    ### Work-around: replace NA by "." , ".|." , etc. using the ploidy
+    ### of the non-absent markers of the same individual.
+    ind_ploidy <- apply(gt, MARGIN = 2,
+                        function(x) {
+                          x[is.na(x)] <- ""
+                          l <- strsplit(x, split = "[/|]")
+                          t <- tabulate(lengths(l))
+                          # if multiple ploidies, return NA
+                          ifelse(length(t[t != 0]) != 1, NA, which.max(t))
+                        })
+    
+    # no way to handle different ploidy levels of a single individual!
+    if (anyNA(ind_ploidy)) {
+      stop(paste(
+        sum(is.na(ind_ploidy)),
+        "individuals have different ploidy at different markers."
+      ),
+      call. = FALSE)
+    }
+    
+    
+    # replace NAs by '.', '.|.', etc.
+    for (i in seq_len(ncol(gt))) {
+      gt[is.na(gt[, i]), i] <- paste0(rep(".|", ind_ploidy[i] - 1), ".")
+    }
+    
+    ### end of work-around
+    
+    # report sample statistics
+    ploidy <- tabulate(ind_ploidy)
+    names(ploidy) <- seq_along(ploidy)
+    if (verbose) {
+      cat("Number of individuals which are \n")
+      cat("Haploid Diploid Triploid, ... : \n")
+      cat(names(ploidy) , "\n")
+      cat(ploidy, "\n")
+    }
+    tmp_haplo <- matrix(apply(gt, MARGIN = 1,
+                              function(x) {
+                                suppressWarnings(as.integer(unlist(strsplit(x, split = "[/|]"))))
+                              }),
+                        ncol = nrow(gt))
+    
+    if (nrow(gt) > 0) {
+      # set haplotype names as individual + underscore + 1:ploidy
+      rownames(tmp_haplo) <-
+        as.vector(unlist(
+          mapply(function(x, y) {
+            if (y == 1) {
+              # haploid -> return un-changed
+              x
+            } else{
+              # return vector c("HG1_1",...,"HG1_y")
+              paste(x, 1:y, sep = "_")
+            }
+          }, colnames(gt), ind_ploidy, USE.NAMES = FALSE),
+          use.names = FALSE
+        ))
+    }
+    
+    hh <- new("haplohh")
+    
+    hh@chr.name <- chr.name
+    hh@haplo <- tmp_haplo
+    hh@positions <- as.numeric(map[, 2])
+    
+    mrk.names <- vcfR::getID(vcf)[selected]
+    if (!anyNA(mrk.names)) {
+      colnames(hh@haplo) <- mrk.names
+      names(hh@positions) <- mrk.names
+    } else{
+      if (verbose)
+        cat("No (unique) marker identifiers found in vcf file.\n")
+    }
+    
+    # polarize
+    if (exists("AA")) {
+      if (verbose)
+        cat("Polarizing variants.\n")
+      
+      allele_list <-
+        strsplit(paste(map[, 3], map[, 4], sep = ','), ',', fixed = TRUE)
+      
+      #if ancestral allele among REF or ALT, get number, otherwise zero
+      aan <-
+        mapply(match, AA, allele_list, USE.NAMES = FALSE) - 1L
+      
+      #switch allele coding 0 with aan, if aan is not zero.
+      #if the ancestral allele is not known/does not match, this yield NA
+      hh@haplo <- t(apply(hh@haplo, 1, function(x) {
+        aan * (x == 0L) + x * (aan == 0L | (aan > 0L & x != aan))
+      }))
+      
+      hh@haplo <- hh@haplo[,!is.na(aan)]
+      hh@positions <- hh@positions[!is.na(aan)]
+      
+      if (verbose) {
+        cat(sum(!is.na(aan)), "markers have been polarized.\n")
+        cat(sum(is.na(aan)),
+            "unpolarized markers have been removed.\n")
+      }
+    }
+    
+    return(hh)
+  }

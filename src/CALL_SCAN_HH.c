@@ -1,106 +1,153 @@
 #include <R.h>
+#include <Rinternals.h>
+#include "calc_ehh.h"
+#include "calc_ehhs.h"
+#include "integrate.h"
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-#include "hh_utils.h"
 
-void CALL_SCAN_HH(int *Rdata,
-                  int *nbr_snps,
-                  int *nbr_chrs,
-                  int *min_nbr_hapl,
-                  int *discard_integration_at_border,
-                  double *min_ehh,
-                  double *min_ehhs,
-                  double *scale_gap,
-                  double *max_gap,
-                  double *map,
-                  double *ihh_vect,
-                  double *ies_tang_vect,
-                  double *ies_sabeti_vect,
-                  int *nbr_threads)
+/**
+ * Interface between R and C.
+ * R objects are marked by a trailing underscore.
+ */
+SEXP CALL_SCAN_HH(SEXP data_, SEXP nbr_chr_, SEXP nbr_mrk_, SEXP first_allele_, SEXP second_allele_,
+                  SEXP lim_haplo_, SEXP lim_ehh_, SEXP lim_ehhs_,
+                  SEXP scale_gap_, SEXP max_gap_, SEXP map_, SEXP phased_, SEXP discard_integration_at_border_,
+                  SEXP lower_ehh_y_bound_, SEXP lower_ehhs_y_bound_, SEXP nbr_threads_) {
 
-{
-  int i,j;
-  int idx_thread;
-  short int **data;
-  int **tot_nbr_hapl;
-  double **ehh,**ehhs_tang,**ehhs_sabeti;
-  
-  tot_nbr_hapl = (int **) malloc(*nbr_threads * sizeof(int *));                 // Allocate memory for thread-specific vectors
-  ehh = (double **) malloc(*nbr_threads * sizeof(double *));
-  ehhs_tang = (double **) malloc(*nbr_threads * sizeof(double *));
-  ehhs_sabeti = (double **) malloc(*nbr_threads * sizeof(double *));
-  for (i = 0; i < *nbr_threads; i++) {
-    tot_nbr_hapl[i] = (int *) malloc(*nbr_snps * sizeof(int));
-    ehh[i] = (double *) malloc(*nbr_snps * sizeof(double));
-    ehhs_tang[i] = (double *) malloc(*nbr_snps * sizeof(double));
-    ehhs_sabeti[i] = (double *) malloc(*nbr_snps * sizeof(double));
-  }
-  data = (short int **) malloc(*nbr_chrs * sizeof(short int *));                // Create a `data' array (nbr_chrs x nbr_snps) for C code
-  for (i = 0; i < *nbr_chrs; i++) {
-    data[i] = (short int *) malloc(*nbr_snps * sizeof(short int));
-  }
-  for (i = 0; i < *nbr_chrs; i++) {                                             // Copy information from the `Rdata' vector into the `data' array
-    for (j = 0; j < *nbr_snps; j++) {
-      switch (Rdata[(j * *nbr_chrs) + i]) {
-          
-        case 0:
-          data[i][j] = MISSING;                                                 // missing data is encoded as `0' in the `Rdata' vector, and as MISSING (= `9') in the `data' array
-          break;
-          
-        case 1:
-          data[i][j] = ANCSTRL;                                                 // ancestral allele is encoded as `1' in the `Rdata' vector, and as ANCSTRL (= `0') in the `data' array
-          break;
-          
-        case 2:
-          data[i][j] = DERIVED;                                                 // derived allele is encoded as `2' in the `Rdata' vector, and as DERIVED (= `1') in the `data' array
-          break;
-          
-      }
-    }
-  }
+	//get pointer to R data vectors
+	int* data = INTEGER(data_);
+	double *map = REAL(map_);
+	int* first_allele = INTEGER(first_allele_);
+	int* second_allele = INTEGER(second_allele_);
+
+	//translate R vectors of size 1 to numbers
+	int nbr_chr = asInteger(nbr_chr_);
+	int nbr_mrk = asInteger(nbr_mrk_);
+	int lim_haplo = asInteger(lim_haplo_);
+	double lim_ehh = asReal(lim_ehh_);
+	double lim_ehhs = asReal(lim_ehhs_);
+	int max_gap = asInteger(max_gap_);
+	int scale_gap = asInteger(scale_gap_);
+	int phased = asInteger(phased_);
+	int discard_integration_at_border = asInteger(discard_integration_at_border_);
+	double lower_ehh_y_bound = asReal(lower_ehh_y_bound_);
+	double lower_ehhs_y_bound = asReal(lower_ehhs_y_bound_);
+	int nbr_threads = asInteger(nbr_threads_);
+
+	//create R numerical vectors
+	SEXP nhaplo_A_ = PROTECT(allocVector(INTSXP, nbr_mrk));
+	SEXP nhaplo_D_ = PROTECT(allocVector(INTSXP, nbr_mrk));
+	SEXP ihhA_ = PROTECT(allocVector(REALSXP, nbr_mrk));
+	SEXP ihhD_ = PROTECT(allocVector(REALSXP, nbr_mrk));
+	SEXP ies_ = PROTECT(allocVector(REALSXP, nbr_mrk));
+	SEXP ines_ = PROTECT(allocVector(REALSXP, nbr_mrk));
+
+	//get C references for R vectors
+	int* nhaplo_A = INTEGER(nhaplo_A_);
+	int* nhaplo_D = INTEGER(nhaplo_D_);
+	double* ihhA = REAL(ihhA_);
+	double* ihhD = REAL(ihhD_);
+	double* ies = REAL(ies_);
+	double* ines = REAL(ines_);
+
+	//init output vectors by zeros
+	for (int i = 0; i < nbr_mrk; i++) {
+	  nhaplo_A[i] = 0;
+	  nhaplo_D[i] = 0;
+		ihhA[i] = 0.0;
+		ihhD[i] = 0.0;
+		ies[i] = 0.0;
+		ines[i] = 0.0;
+	}
+
+	int idx_thread;
+	int **nhaplo; // re-used for each marker
+	double **ehh, **ehhs, **nehhs;
+
+	nhaplo = (int **) malloc(nbr_threads * sizeof(int *));          // Allocate memory for thread-specific vectors
+	ehh = (double **) malloc(nbr_threads * sizeof(double *));
+	ehhs = (double **) malloc(nbr_threads * sizeof(double *));
+	nehhs = (double **) malloc(nbr_threads * sizeof(double *));
+
+	for (int i = 0; i < nbr_threads; i++) {
+		nhaplo[i] = (int *) malloc(nbr_mrk * sizeof(int));
+		ehh[i] = (double *) malloc(nbr_mrk * sizeof(double));
+		ehhs[i] = (double *) malloc(nbr_mrk * sizeof(double));
+		nehhs[i] = (double *) malloc(nbr_mrk * sizeof(double));
+	}
+
 #ifdef _OPENMP
-#pragma omp parallel for num_threads(*nbr_threads) private(i,idx_thread)
+#pragma omp parallel for num_threads(nbr_threads) private(idx_thread)
 #endif
-  for (j = 0; j < *nbr_snps; j++) {
+
+	for (int j = 0; j < nbr_mrk; j++) {
+
 #ifdef _OPENMP
-    idx_thread = omp_get_thread_num();
+		idx_thread = omp_get_thread_num();
 #else
-    idx_thread = 0;
+		idx_thread = 0;
 #endif
-    for (i = 0; i < *nbr_snps; i++) {
-      ehh[idx_thread][i] = 0.0;                                                 // Initialize the `ehh' vector
-      tot_nbr_hapl[idx_thread][i] = 0;                                          // Initialize the total number of haplotypes [N.B: might be unnecessary, tot_nbr_hapl[j] = 0; should be sufficient...]
-    }
-    compute_ehh(data,j,ANCSTRL,*nbr_snps,*nbr_chrs,tot_nbr_hapl[idx_thread],*min_nbr_hapl,*min_ehh,ehh[idx_thread]); // compute the EHH for the ancestral allele
-    ihh_vect[j] = integrate(map,ehh[idx_thread],j,*nbr_snps,*min_ehh,*scale_gap,*max_gap,*discard_integration_at_border);   // compute the IHH for the ancestral allele
-    for (i = 0; i < *nbr_snps; i++) {
-      ehh[idx_thread][i] = 0.0;                                                 // Initialize the `ehh' vector
-      tot_nbr_hapl[idx_thread][i] = 0;                                          // Initialize the total number of haplotypes [N.B: might be unnecessary, tot_nbr_hapl[j] = 0; should be sufficient...]
-    }
-    compute_ehh(data,j,DERIVED,*nbr_snps,*nbr_chrs,tot_nbr_hapl[idx_thread],*min_nbr_hapl,*min_ehh,ehh[idx_thread]); // compute the EHH for the derived allele
-    ihh_vect[j + *nbr_snps] = integrate(map,ehh[idx_thread],j,*nbr_snps,*min_ehh,*scale_gap,*max_gap,*discard_integration_at_border); // compute the IHH for the derived allele
-    for (i = 0; i < *nbr_snps; i++) {
-      ehhs_tang[idx_thread][i] = 0.0;                                           // Initialize the `ehhs' vector
-      ehhs_sabeti[idx_thread][i] = 0.0;                                         // Initialize the `ehhs' vector
-      tot_nbr_hapl[idx_thread][i] = 0;                                          // Initialize the total number of haplotypes [N.B: might be unnecessary, tot_nbr_hapl[j] = 0; should be sufficient...]
-    }
-    compute_ehhs(data,j,*nbr_snps,*nbr_chrs,tot_nbr_hapl[idx_thread],*min_nbr_hapl,*min_ehhs,ehhs_tang[idx_thread],ehhs_sabeti[idx_thread]); // compute the EHHS for both Tang et al.'s (2007) and Sabeti et al.'s (2007) definitions
-    ies_tang_vect[j] = integrate(map,ehhs_tang[idx_thread],j,*nbr_snps,*min_ehhs,*scale_gap,*max_gap,*discard_integration_at_border); // compute the IES, using Tang et al.'s (2007) definition
-    ies_sabeti_vect[j] = integrate(map,ehhs_sabeti[idx_thread],j,*nbr_snps,*min_ehhs,*scale_gap,*max_gap,*discard_integration_at_border); // compute the IES, using Sabeti et al.'s (2007) definition
-  }
-  for (i = 0; i < *nbr_chrs; i++) {                                             // Free the memory for the `data' array
-    free(data[i]);
-  }
-  free(data);
-  for (i = 0; i < *nbr_threads; i++) {
-    free(ehh[i]);
-    free(ehhs_tang[i]);
-    free(ehhs_sabeti[i]);
-    free(tot_nbr_hapl[i]);
-  }
-  free(ehh);
-  free(ehhs_tang);
-  free(ehhs_sabeti);
-  free(tot_nbr_hapl);
+		// compute EHH for the ancestral allele
+		calc_ehh(data, nbr_chr, nbr_mrk, j, first_allele[j], lim_haplo, lim_ehh, phased, nhaplo[idx_thread],
+				ehh[idx_thread]);
+		
+		// store nhaplo for ancestral allele at focal marker
+		nhaplo_A[j] = nhaplo[idx_thread][j];
+		
+		// compute IHH for the ancestral allele
+		ihhA[j] = integrate(map, ehh[idx_thread], nbr_mrk, j, lim_ehh, scale_gap, max_gap, discard_integration_at_border,
+                      lower_ehh_y_bound);
+
+		// compute EHH for the derived allele
+		calc_ehh(data, nbr_chr, nbr_mrk, j, second_allele[j], lim_haplo, lim_ehh, phased, nhaplo[idx_thread],
+				ehh[idx_thread]);
+		
+		// store nhaplo for derived allele at focal marker
+		nhaplo_D[j] = nhaplo[idx_thread][j];
+		
+		// compute IHH for the derived allele
+		ihhD[j] = integrate(map, ehh[idx_thread], nbr_mrk, j, lim_ehh, scale_gap, max_gap, discard_integration_at_border,
+                      lower_ehh_y_bound);
+
+		//compute EHHS for both Tang et al.'s (2007) and Sabeti et al.'s (2007) definitions
+		calc_ehhs(data, nbr_chr, nbr_mrk, j, lim_haplo, lim_ehhs, phased, nhaplo[idx_thread],
+				ehhs[idx_thread], nehhs[idx_thread]);
+		//compute IES, using Tang et al.'s (2007) definition of EHHS
+		ies[j] = integrate(map, ehhs[idx_thread], nbr_mrk, j, lim_ehhs, scale_gap, max_gap,
+				discard_integration_at_border, lower_ehhs_y_bound);
+		//compute IES, using Sabeti et al.'s (2007) definition of EHHS
+		ines[j] = integrate(map, nehhs[idx_thread], nbr_mrk, j, lim_ehhs, scale_gap, max_gap,
+				discard_integration_at_border, lower_ehhs_y_bound);
+	}
+
+	for (int i = 0; i < nbr_threads; i++) {
+		free(ehh[i]);
+		free(ehhs[i]);
+		free(nehhs[i]);
+		free(nhaplo[i]);
+	}
+	free(ehh);
+	free(ehhs);
+	free(nehhs);
+	free(nhaplo);
+
+	//create R list of length 6
+	SEXP list_ = PROTECT(allocVector(VECSXP, 6));
+
+	//add R vectors to list
+	SET_VECTOR_ELT(list_, 0, nhaplo_A_);
+	SET_VECTOR_ELT(list_, 1, nhaplo_D_);
+	SET_VECTOR_ELT(list_, 2, ihhA_);
+	SET_VECTOR_ELT(list_, 3, ihhD_);
+	SET_VECTOR_ELT(list_, 4, ies_);
+	SET_VECTOR_ELT(list_, 5, ines_);
+
+	//unprotect all created R objects
+	UNPROTECT(7);
+
+	//return R list
+	return list_;
 }
