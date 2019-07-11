@@ -1,6 +1,6 @@
-e8df5c653b6f080ceec1f1ae4b300d99 *DESCRIPTION
+865a9d5eed46219e173301dff687bf26 *DESCRIPTION
 7b317eb9a39525697b0b55a162c8d863 *NAMESPACE
-eeeef366de01304cfe0767323cbad01a *NEWS.md
+cd8b0815849dfbde1937acd51733efba *NEWS.md
 74031c0989c9e2c158066fc822ab2ad8 *R/as.newick.R
 3505907de4c22f0831f7cd3f0d3ab804 *R/calc_candidate_regions.R
 cdaa52e494ffa249a07e69fae2acd145 *R/calc_ehh.R
@@ -36,7 +36,7 @@ bbd50c8eb813216188dce7896d1490d3 *data/datalist
 2b15ecf71166a01733eefa259514da4b *inst/doc/examples.html
 102a4a41c70525df279ead3a3fcc98fa *inst/doc/rehh.R
 7ddf31fc0c3b238db19a36faa5e1f23e *inst/doc/rehh.Rmd
-2f6dbf09f263518280bbfd6675ae4be1 *inst/doc/rehh.html
+bb715b1b01bb2e0e3203d4c3ae25bf64 *inst/doc/rehh.html
 529c33971c081bacc8d00072aac22b20 *inst/extdata/bta12_cgu.vcf.gz
 1a13676197023c7796532d96aeff7f76 *inst/extdata/example1.hap
 98aedc74c294ec4769b8e3272200fbbe *inst/extdata/example1.map
@@ -76,7 +76,7 @@ d237c5306c860512974bfad89c3ffbb3 *man/plot.furcation.Rd
 a905e3114bc7985143cf4b99ae70b8b1 *man/scan_hh.Rd
 754c33f0427ec2ee636435384956f310 *man/subset.haplohh.Rd
 35d96dc7734635751107a32802c872c7 *man/update_haplohh.Rd
-356c124e5620a1c622d55ff57c7e37f5 *src/CALL_ASNEWICK.c
+4d5a8361bb0b749fecccb68f6088602e *src/CALL_ASNEWICK.c
 4ad8aff83fa40c49ae38ee906417d7a0 *src/CALL_EHH.c
 1b4c3bd53107a14ba0755beed0f73857 *src/CALL_EHHS.c
 659cd41dcae4e182b7a33deb7139333d *src/CALL_FURCATION.c
@@ -89,13 +89,13 @@ e53f13f0e41506434f72f1664be701ac *src/calc_ehh.c
 b45deb471a9377aadd2768332bb3d38e *src/calc_ehh.h
 0bfe769b3c04931cb75b8c27893a9578 *src/calc_ehhs.c
 1c87b41a663363e891403487e722225e *src/calc_ehhs.h
-fd91c56f968f91fdeb2dbd90b25a4529 *src/calc_furcation.c
+b2a8487f6edfa73e66c93c1ab04fbfc5 *src/calc_furcation.c
 5c97cc59d8ec357bb6fbbe6278ed05b7 *src/calc_furcation.h
-f8925fd635e0a4c04864f9ea5cc3667c *src/haplotypes.c
+944b0417870075b78b95f03625bd2a75 *src/haplotypes.c
 a938111c2781f53b9ec9624ffd4caabf *src/haplotypes.h
 29441637b9f2e8c074323b102c802683 *src/homozygosity.c
 8a0372f7038e294975eba1db483598ca *src/homozygosity.h
-385bfd58102ee7463582c0e4e673af1f *src/init.c
+77482681edf4644cda35b2cd4d5a0fe6 *src/init.c
 770b949421c991f6de03d3d198cc9316 *src/integrate.c
 8c831ecdc63d855a963814662ccb25b8 *src/integrate.h
 7d20b8af53a3a33835b45ed2dde1f2ff *tests/testthat.R

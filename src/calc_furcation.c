@@ -10,14 +10,19 @@ void extend_furcation(const int* const data, const int nbr_chr, const int foc_mr
   
   int increment = foc_mrk <= end_mrk ? 1 : -1;
   
+  // node size is number of children nodes
+  // there can be at most 2n-1 nodes in a tree of n leaves
   int* node_size = (int*) malloc((nbr_chr * 2 - 1) * sizeof(int));
+  // inner nodes are nodes of size greater 1
+  // there can be at most n-1 inner nodes in a tree of n leaves
   int* inner_nodes = (int*) malloc((nbr_chr) * sizeof(int));
   
-  node_size[0] = nbr_chr_with_hap[0];
+  node_size[0] = nbr_chr_with_hap[0]; // for phased data that's all we have - a single haplogroup
   
+  //for unphased data, we have a node for each individual, each with the root as parent
   for (int i = 1; i < *nbr_hap; i++) {
-    node_size[i] = nbr_chr_with_hap[i];
-    node_size[0] += nbr_chr_with_hap[i];
+    node_size[i] = nbr_chr_with_hap[i]; // each haplogroup corresponds to one individual
+    node_size[0] += nbr_chr_with_hap[i]; // size of root is the sum of sizes of its children
   }
   
   for (int mrk = (foc_mrk + increment); mrk != end_mrk + increment; mrk += increment) { // walk along the chromosome, away from the focal SNP
@@ -46,6 +51,8 @@ void extend_furcation(const int* const data, const int nbr_chr, const int foc_mr
           nbr_inner_nodes++;
         }
       }
+      // check the case where a chromosome is lost from a haplogroup (because of a missing values)
+      // and the haplogroup still exists (is not empty)
       int index_in_hap = 0;
       for (int i = 0; i < *nbr_hap; i++) {
         //get previously set "last node", i.e. label_parent of one chromosomes (the first) of the haplo group
@@ -110,7 +117,10 @@ void extend_furcation(const int* const data, const int nbr_chr, const int foc_mr
         }
         index_in_hap += nbr_chr_with_hap[i];
       }
-      // tackle on inner nodes which have not been handled, i.e. completely lost by missing values
+      //check the case that a complete haplogroup is lost due to missing values, i.e.
+      //the inner nodes which have not been found above in some current haplogroup;
+      //for all chromosomes of that group, create a single daughter node with no sisters 
+      //("degenerated" furcation)
       for (int j = 0; j < nbr_inner_nodes; j++) {
         int already_found_missing = 0;
         for (int k = 0; k < nbr_chr; k++) {
@@ -142,6 +152,7 @@ void extend_furcation(const int* const data, const int nbr_chr, const int foc_mr
     }
   }
   free(node_size);
+  free(inner_nodes);
 }
 
 /**
@@ -158,33 +169,35 @@ void calc_furcation(const int* const data, const int nbr_chr, const int foc_mrk,
   
   //initialization of return values
   for (int chr = 0; chr < nbr_chr; chr++) {
-    label_parent[chr] = NA_INTEGER;
+    label_parent[chr] = NA_INTEGER; // no label node for chromosome 'chr'
   }
   for (int i = 0; i < 2 * nbr_chr - 1; i++) {
-    node_mrk[i] = NA_INTEGER;
-    node_parent[i] = NA_INTEGER;
-    node_with_missing_data[i] = 0;
+    node_mrk[i] = NA_INTEGER; // no marker associated with node i
+    node_parent[i] = NA_INTEGER; // no parent associated with node i
+    node_with_missing_data[i] = 0; // no missing data associated with node i (0 = FALSE)
   }
   
   init_allele_hap(data, nbr_chr, foc_mrk, foc_all, phased, hap, &nbr_hap, nbr_chr_with_hap); // initialize the array of hapotypes (for the focal SNP) that contain the `allele'
   
   if (nbr_chr_with_hap[0] >= lim_haplo) {
-    node_mrk[0] = foc_mrk;
-    *nbr_node = 1;
+    node_mrk[0] = foc_mrk; // root node marker points to focal marker
+    *nbr_node = 1; // the root node
     if (phased) {
-      for (int j = 0; j < nbr_chr_with_hap[0]; j++) {
-        label_parent[hap[j]] = 0;
+      // all chromosomes get associated with the root
+      for (int j = 0; j < nbr_chr_with_hap[0]; j++) { //all chromosomes of haplogroup 0 ...
+        label_parent[hap[j]] = 0; // get their label associated with the root
       }
     } else {
       int index = 0;
-      for (int i = 0; i < nbr_hap; i++) {
-        for (int j = index; j < index + nbr_chr_with_hap[i]; j++) {
-          label_parent[hap[j]] = *nbr_node;
+      // the root node gets a daughter node for each (homozygous) individual
+      for (int i = 0; i < nbr_hap; i++) { //run through all haplogroups (=chromosomes of individuals)
+        for (int j = index; j < index + nbr_chr_with_hap[i]; j++) { // all chromosomes with haplogroup i ...
+          label_parent[hap[j]] = *nbr_node; // get their label associated with current node number
         }
-        index += nbr_chr_with_hap[i];
-        node_mrk[*nbr_node] = foc_mrk;
-        node_parent[*nbr_node] = 0;
-        (*nbr_node)++;
+        index += nbr_chr_with_hap[i]; // goto next haplogroup
+        node_mrk[*nbr_node] = foc_mrk; // all node markers point to focal marker
+        node_parent[*nbr_node] = 0; // all nodes have the root as parent
+        (*nbr_node)++; // create new node
       }
     }
     extend_furcation(data, nbr_chr, foc_mrk, end_mrk, lim_haplo, hap, &nbr_hap, nbr_chr_with_hap, node_mrk,
@@ -195,17 +208,19 @@ void calc_furcation(const int* const data, const int nbr_chr, const int foc_mrk,
       tot_nbr_chr_in_hap += nbr_chr_with_hap[i];
     }
     
+    //if a chromosome (label) is attached to a node in the tree, but the chromosome does not figure
+    //in the final set of haplogroups, the chromosome has been eliminated because of missing data
     for (int i = 0; i < nbr_chr; i++) {
-      if (label_parent[i] != NA_INTEGER) {
+      if (label_parent[i] != NA_INTEGER) { //chromosome i has been attached to some node...
         int found = 0;
         for (int j = 0; j < tot_nbr_chr_in_hap; j++) {
-          if (hap[j] == i) {
+          if (hap[j] == i) {  //if some haplogroup contains chromosome i...
             found = 1;
             break;
           }
         }
-        if (!found) {
-          node_with_missing_data[label_parent[i]] = 1;
+        if (!found) { //... else it was eliminated
+          node_with_missing_data[label_parent[i]] = 1; //node arose because of missing data (1 = TRUE)
         }
       }
     }

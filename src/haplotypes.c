@@ -49,20 +49,25 @@ void print_haplotypes(const int mrk, const int *hap, const int *nbr_hap, const i
 void init_allele_hap(const int *data, const int nbr_chr, const int foc_mrk, const int foc_all, const int phased,
 		int* const hap, int* const nbr_hap, int* const nbr_chr_with_hap) {
 
-	*nbr_hap = 0;
-	nbr_chr_with_hap[0] = 0;                                           // Initialize the haplotype counts
+	*nbr_hap = 0;  // current haplogroup has number 0
+	nbr_chr_with_hap[0] = 0;  // haplogroup 0 has 0 elements
 
 #ifdef DEBUG
 	printf("### Allele: %i\n", foc_all);
 #endif
 
 	if (!phased) {
+	  // run through all (assumed) diploid individuals
 		for (int i = 0; i < nbr_chr - 1; i += 2) {
+		  //check if individual is homozygous for the focal allele
 			//read as data[i][foc_mrk], data[i+1][foc_mrk]
 			if (data[foc_mrk * nbr_chr + i] == foc_all && data[foc_mrk * nbr_chr + i + 1] == foc_all) {
-        hap[(*nbr_hap) * 2] = i;
+        //current haplogroup points to the two chromosomes of the individual
+			  hap[(*nbr_hap) * 2] = i;
 			  hap[(*nbr_hap) * 2 + 1] = i + 1;
+			  //size of haplogroup
 				nbr_chr_with_hap[*nbr_hap] = 2;
+				//next haplogroup
 				(*nbr_hap)++;
 			}
 		}
@@ -70,6 +75,7 @@ void init_allele_hap(const int *data, const int nbr_chr, const int foc_mrk, cons
 		for (int i = 0; i < nbr_chr; i++) {								// Loop over all chromosomes in the sample
 			//read as data[i][foc_mrk]
 			if (data[foc_mrk * nbr_chr + i] == foc_all) {
+			  //add all chromosomes carrying the focal allele to a single haplogroup
 				hap[nbr_chr_with_hap[0]] = i;
 				nbr_chr_with_hap[0]++;
 			}
@@ -96,6 +102,7 @@ void init_site_hap(const int *data, const int nbr_chr, const int foc_mrk, const 
 		int* const nbr_hap, int* const nbr_chr_with_hap) {
 
 	if (!phased) {
+	  // create for each homozygous individual (with non-missing values) a haplogroup
 		*nbr_hap = 0;
 		nbr_chr_with_hap[0] = 0;                                           // Initialize the haplotype counts
 		for (int i = 0; i < nbr_chr - 1; i += 2) {
@@ -109,11 +116,13 @@ void init_site_hap(const int *data, const int nbr_chr, const int foc_mrk, const 
 			}
 		}
 	} else {
+	  // put all chromosomes into an "artificial" single haplogroup
 		for (int i = 0; i < nbr_chr; i++) {
 			hap[i] = i;
 		}
 		nbr_chr_with_hap[0] = nbr_chr;
 		*nbr_hap = 1;
+		//update at the focal marker to split the single haplogroup into allele haplogroups
 		update_hap(data, nbr_chr, foc_mrk, hap, nbr_hap, nbr_chr_with_hap);
 	}
 }

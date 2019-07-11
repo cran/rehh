@@ -1111,7 +1111,7 @@ scan &lt;-<span class="st"> </span><span class="kw">scan_hh</span>(haplohh_cgu_b
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># perform scan using scan_hh</span>
 <span class="kw">system.time</span>(scan &lt;-<span class="st"> </span><span class="kw">scan_hh</span>(haplohh_cgu_bta12))</code></pre>
 <pre><code>&gt;    user  system elapsed 
-&gt;   0.338   0.000   0.338</code></pre>
+&gt;   0.856   0.000   0.857</code></pre>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># perform scan applying calc_ehh and calc_ehhs to each marker</span>
 slow_scan_hh &lt;-<span class="st"> </span><span class="cf">function</span>(haplohh) {
   <span class="co"># create empty vectors of size nmrk</span>
@@ -1133,7 +1133,7 @@ slow_scan_hh &lt;-<span class="st"> </span><span class="cf">function</span>(hapl
 }
 <span class="kw">system.time</span>(slow_scan &lt;-<span class="st"> </span><span class="kw">slow_scan_hh</span>(haplohh_cgu_bta12))</code></pre>
 <pre><code>&gt;    user  system elapsed 
-&gt;   4.515   0.000   4.517</code></pre>
+&gt;   5.002   0.004   5.006</code></pre>
 <p>Comparing columns shows that the computed values are identical:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">identical</span>(slow_scan[, <span class="st">&quot;IHH_A&quot;</span>], scan[, <span class="st">&quot;IHH_A&quot;</span>])</code></pre>
 <pre><code>&gt; [1] TRUE</code></pre>

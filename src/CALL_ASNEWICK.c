@@ -16,22 +16,18 @@ SEXP CALL_ASNEWICK(SEXP tmp_file_name_, SEXP node_parent_, SEXP label_parent_, S
 	const int* label_parent = INTEGER(label_parent_);
 	const double* node_pos = REAL(node_pos_);
 
-	//copy file name
-	char* tmp_file_name = (char*) malloc(strlen(CHAR(asChar(tmp_file_name_))));
-	strcpy(tmp_file_name, CHAR(asChar(tmp_file_name_)));
-	
-	//copy string vector
-	char** hap_name = (char**) malloc(nbr_labels * sizeof(char*));
-	for (int i = 0; i < nbr_labels; i++) {
-		hap_name[i] = (char*) malloc(strlen(CHAR(STRING_ELT(hap_name_, i))) * sizeof(char) + 1);
-		strcpy(hap_name[i], CHAR(STRING_ELT(hap_name_, i)));
-	}
-
 	FILE *stream;
-	stream = fopen(tmp_file_name, "w");
+	stream = fopen(CHAR(asChar(tmp_file_name_)), "w");
 	
 	if (stream == NULL) {
 	  return ScalarLogical(0);
+	}
+	
+	//copy string vector
+	char** hap_name = (char**) malloc(sizeof(char*) * nbr_labels);
+	for (int i = 0; i < nbr_labels; i++) {
+	  hap_name[i] = (char*) malloc(strlen(CHAR(STRING_ELT(hap_name_, i))) + 1);
+	  strcpy(hap_name[i], CHAR(STRING_ELT(hap_name_, i)));
 	}
 	
 	asnewick(stream, &nbr_labels, label_parent, &nbr_nodes, node_parent, node_pos, &xlim, hap_name);

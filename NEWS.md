@@ -1,3 +1,7 @@
+### rehh 3.0.1 (July 11, 2019)
+
+* bug-fix: memory allocation in C
+
 ### rehh 3.0.0 (July 08, 2019)
 
 * Major refactoring of underlying C code and its interface to R
