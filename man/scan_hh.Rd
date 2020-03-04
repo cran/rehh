@@ -4,10 +4,21 @@
 \alias{scan_hh}
 \title{Compute iHH, iES and inES over a whole chromosome}
 \usage{
-scan_hh(haplohh, limhaplo = 2, limehh = 0.05, limehhs = 0.05,
-  phased = TRUE, polarized = TRUE, scalegap = NA, maxgap = NA,
-  discard_integration_at_border = TRUE, lower_ehh_y_bound = limehh,
-  lower_ehhs_y_bound = limehhs, threads = 1)
+scan_hh(
+  haplohh,
+  limhaplo = 2,
+  limhomohaplo = 2,
+  limehh = 0.05,
+  limehhs = 0.05,
+  phased = TRUE,
+  polarized = TRUE,
+  scalegap = NA,
+  maxgap = NA,
+  discard_integration_at_border = TRUE,
+  lower_ehh_y_bound = limehh,
+  lower_ehhs_y_bound = limehhs,
+  threads = 1
+)
 }
 \arguments{
 \item{haplohh}{an object of class \code{haplohh} (see \code{\link{data2haplohh}})}
@@ -16,6 +27,10 @@ scan_hh(haplohh, limhaplo = 2, limehh = 0.05, limehhs = 0.05,
 the calculation of EHH(S), the calculation is stopped. The option is intended for the case of missing data,
 which leads to the successive exclusion of haplotypes: the further away from the focal marker
 the less haplotypes contribute to EHH(S).}
+
+\item{limhomohaplo}{if there are less than \code{limhomohaplo} homozygous chromosomes, the
+calculation is stopped. This option is intended for unphased data and should be invoked only
+if relatively low frequency variants are not filtered subsequently (see main vignette and Klassmann et al. 2020).}
 
 \item{limehh}{limit at which EHH stops to be evaluated.}
 
@@ -57,10 +72,10 @@ The returned value is a dataframe with markers in rows and the following columns
 \item iHH of the second-most frequent remaining allele
 \item iES (used by Sabeti et al 2007)
 \item inES (used by Tang et al 2007)}
-Note that while for phased data the number of evaluated haplotypes
-of an allele corresponds to its frequency in the sample,
-in case of unphased data the evaluation is restricted to
-haplotypes of homozygous individuals.
+Note that in case of unphased data the evaluation is restricted to
+haplotypes of homozygous individuals which reduces the power
+to detect selection, particularly for iHS (for appropriate parameter setting 
+see the main vignette and Klassmann et al (2020)).
 }
 \description{
 Compute integrated EHH (iHH), integrated EHHS (iES) and integrated normalized EHHS (inES)
@@ -81,6 +96,9 @@ scan <- scan_hh(haplohh_cgu_bta12)
 }
 \references{
 Gautier, M. and Naves, M. (2011). Footprints of selection in the ancestral admixture of a New World Creole cattle breed. \emph{Molecular Ecology}, \strong{20}, 3128-3143.
+
+Klassmann, A. et al. (2020). Detecting selection using Extended Haplotype
+Homozygosity (EHH)-based statistics on unphased or unpolarized data. (submitted).
 
 Sabeti, P.C. et al. (2002). Detecting recent positive selection in the human genome from haplotype structure. \emph{Nature}, \strong{419}, 832-837.
 

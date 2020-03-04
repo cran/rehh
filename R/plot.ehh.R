@@ -73,8 +73,6 @@ plot.ehh <-
     scale <- 1000 ** max(0, p)
     ## no unit if p < 0
     unit <- c("", "(bp)", "(kb)", "(Mb)", "(Gb)")[max(-1, p)  + 2]
-
-    oldpar <- par(mar = c(5, 5, 4, 2) + 0.1)
     
     dot_args <- list(...)
     if (!is.null(dot_args$xlim)) {
@@ -101,29 +99,43 @@ plot.ehh <-
            lty = 2,
            col = mrk.col)
     
-    if (legend.xy.coords != "none") {
-      if (legend.xy.coords == "automatic") {
-        if (is.null(list(...)$xlim)) {
-          picturemiddle <- sum(range(x$ehh$POSITION)) / 2
-        } else{
-          picturemiddle <- sum(list(...)$xlim) / 2
-        }
-        legend.xy.coords <-
-          ifelse(foc_pos > picturemiddle, "topleft", "topright")
+    # no argument legend, but argument legend.xy.coords
+    if (is.na(legend) & !anyNA(legend.xy.coords)) {
+      if (is.numeric(legend.xy.coords)) {
+        legend.xy.coords[1] <- legend.xy.coords[1] / scale
       }
-      
-      if (is.na(legend)) {
+      if (length(legend.xy.coords) == 2) {
         legend(
-          legend.xy.coords,
+          legend.xy.coords[1],
+          legend.xy.coords[2],
           legend = description,
           bty = bty,
           col = description_colors,
           lty = lty,
           xpd = TRUE
         )
+      } else{
+        if (legend.xy.coords != "none") {
+          if (legend.xy.coords == "automatic") {
+            if (is.null(dot_args$xlim)) {
+              picturemiddle <- mean(range(x$ehh$POSITION) / scale)
+            } else{
+              picturemiddle <- mean(dot_args$xlim)
+            }
+            legend.xy.coords <-
+              ifelse(foc_pos / scale > picturemiddle, "topleft", "topright")
+          }
+          legend(
+            legend.xy.coords,
+            legend = description,
+            bty = bty,
+            col = description_colors,
+            lty = lty,
+            xpd = TRUE
+          )
+        }
       }
     }
-    par(oldpar)
   }
 
 # translate column names to descriptions

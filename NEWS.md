@@ -1,3 +1,20 @@
+### rehh 3.1.0 (March 03, 2020)
+* functions ies2xpehh() and ines2rsb():
+  + bug fix for unphased data and markers with no homozygous individuals
+* function manhattanplot(): 
+  + added option to plot absolute values
+  + added option to highlight individual markers
+* function manhattanplot() and distribplot(qqplot=TRUE):
+  + added option to rasterize plot (reduce number of plotted data points)
+* function calc_ehh(), calc_furcation() and plot.haplen():
+  + changed default order of alleles from their frequency to internal coding
+* all plot functions: 
+  + allow user to set plot margins
+  + allow user to overwrite some plot parameters such as "xlab" and "ylab"
+* new plot function for (small) haplohh-objects
+* minor optimization of parallelization
+* additional comments about unphased data in the main vignette
+
 ### rehh 3.0.1 (July 11, 2019)
 
 * bug-fix: memory allocation in C

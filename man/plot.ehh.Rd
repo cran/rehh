@@ -4,11 +4,21 @@
 \alias{plot.ehh}
 \title{Plot EHH around a focal marker}
 \usage{
-\method{plot}{ehh}(x, ylim = c(0, 1), type = "l",
-  main = paste0("EHH around '", x$mrk.name, "'"), xlab = "Position",
-  ylab = "Extended Haplotype Homozygosity", col = c("blue", "red",
-  "violet", "orange"), mrk.col = "gray", bty = "n", lty = 1,
-  legend = NA, legend.xy.coords = "automatic", ...)
+\method{plot}{ehh}(
+  x,
+  ylim = c(0, 1),
+  type = "l",
+  main = paste0("EHH around '", x$mrk.name, "'"),
+  xlab = "Position",
+  ylab = "Extended Haplotype Homozygosity",
+  col = c("blue", "red", "violet", "orange"),
+  mrk.col = "gray",
+  bty = "n",
+  lty = 1,
+  legend = NA,
+  legend.xy.coords = "automatic",
+  ...
+)
 }
 \arguments{
 \item{x}{data (output of \code{\link{calc_ehh}}).}

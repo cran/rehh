@@ -4,10 +4,18 @@
 \alias{plot.ehhs}
 \title{Plot EHHS around a focal marker}
 \usage{
-\method{plot}{ehhs}(x, nehhs = FALSE, ylim = c(0, 1), type = "l",
-  main = paste0("EHHS around '", x$mrk.name, "'"), xlab = "Position",
-  ylab = "Extended Haplotype Homozygosity per Site", bty = "n",
-  mrk.col = "gray", ...)
+\method{plot}{ehhs}(
+  x,
+  nehhs = FALSE,
+  ylim = c(0, 1),
+  type = "l",
+  main = paste0("EHHS around '", x$mrk.name, "'"),
+  xlab = "Position",
+  ylab = "Extended Haplotype Homozygosity per Site",
+  bty = "n",
+  mrk.col = "gray",
+  ...
+)
 }
 \arguments{
 \item{x}{data (output of \code{\link{calc_ehhs}}).}

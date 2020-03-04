@@ -215,7 +215,8 @@ data2haplohh <-
       map <-
         read.table(map_file,
                    row.names = 1,
-                   colClasses = "character")
+                   colClasses = "character",
+                   stringsAsFactors = FALSE)
       
       if (allele_coding == "map" & ncol(map) < 4) {
         stop(
@@ -299,7 +300,7 @@ data2haplohh <-
         
         ### split into list of alleles
         allele_list <-
-          strsplit(paste(map[, 3], map[, 4], sep = ','), ',', fixed = TRUE)
+          strsplit(paste(map[, 3], map[, 4], sep = ","), ",", fixed = TRUE)
         
         ### returns NA if allele is not found in allele_list
         hh@haplo <- t(apply(tmp_haplo, 1, function(x) {
@@ -320,7 +321,7 @@ data2haplohh <-
         
         
         # (only) point is equivalent to NA
-        tmp_haplo[tmp_haplo == '.'] <- NA
+        tmp_haplo[tmp_haplo == "."] <- NA
         
         hh@haplo <- apply(tmp_haplo, 2, function(x) {
           alleles <- sort(unique(x))
@@ -361,7 +362,7 @@ data2haplohh <-
           cat("NA or '.': missing value\n0: ancestral allele\n1, 2, ...: derived allele(s).\n")
         }
         # (only) point is equivalent to NA
-        tmp_haplo[tmp_haplo == '.'] <- NA
+        tmp_haplo[tmp_haplo == "."] <- NA
         
         ## convert to integer, stop if allele is neither NA nor integer
         tryCatch(
@@ -410,7 +411,7 @@ data2haplohh <-
     if (sum(multiple_markers) > 0) {
       if (remove_multiple_markers) {
         hh@positions <- hh@positions[!multiple_markers]
-        hh@haplo <- hh@haplo[,!multiple_markers, drop = FALSE]
+        hh@haplo <- hh@haplo[, !multiple_markers, drop = FALSE]
         warning(paste(
           "Removed",
           sum(multiple_markers),
@@ -821,7 +822,7 @@ read.vcf <-
     if (verbose) {
       cat("Number of individuals which are \n")
       cat("Haploid Diploid Triploid, ... : \n")
-      cat(names(ploidy) , "\n")
+      cat(names(ploidy), "\n")
       cat(ploidy, "\n")
     }
     tmp_haplo <- matrix(apply(gt, MARGIN = 1,
@@ -868,7 +869,7 @@ read.vcf <-
         cat("Polarizing variants.\n")
       
       allele_list <-
-        strsplit(paste(map[, 3], map[, 4], sep = ','), ',', fixed = TRUE)
+        strsplit(paste(map[, 3], map[, 4], sep = ","), ",", fixed = TRUE)
       
       #if ancestral allele among REF or ALT, get number, otherwise zero
       aan <-
@@ -880,7 +881,7 @@ read.vcf <-
         aan * (x == 0L) + x * (aan == 0L | (aan > 0L & x != aan))
       }))
       
-      hh@haplo <- hh@haplo[,!is.na(aan)]
+      hh@haplo <- hh@haplo[, !is.na(aan)]
       hh@positions <- hh@positions[!is.na(aan)]
       
       if (verbose) {

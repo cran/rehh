@@ -4,9 +4,18 @@
 \alias{ies2xpehh}
 \title{Compute XP-EHH}
 \usage{
-ies2xpehh(scan_pop1, scan_pop2, popname1 = NA, popname2 = NA,
-  standardize = TRUE, include_freq = FALSE, p.side = NA,
-  p.adjust.method = "none", verbose = TRUE)
+ies2xpehh(
+  scan_pop1,
+  scan_pop2,
+  popname1 = NA,
+  popname2 = NA,
+  min_nhaplo = NA,
+  standardize = TRUE,
+  include_freq = FALSE,
+  p.side = NA,
+  p.adjust.method = "none",
+  verbose = TRUE
+)
 }
 \arguments{
 \item{scan_pop1}{a data frame with markers in rows and columns with chromosome name, position of the
@@ -18,6 +27,9 @@ marker, frequency of the ancestral allele and iES as obtained by \code{\link{sca
 \item{popname1}{short ID/name of the first population; to be added to an output column name.}
 
 \item{popname2}{short ID/name of the second population; to be added to an output column name.}
+
+\item{min_nhaplo}{discard positions where in at least one of the populations fewer than \code{min_nhaplo} haplotypes
+have been evaluated (default \code{NA}).}
 
 \item{standardize}{logical. If \code{TRUE} (default), then standardize XP-EHH, else report unstandardized XP-EHH.}
 

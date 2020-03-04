@@ -19,7 +19,7 @@ test_that("checked_calc_candidate_regions", {
       min_n_extr_mrk = 2,
       min_perc_extr_mrk = 20
     )
-  chr_numbers <- as.integer(levels(cr.ihs.cgu$CHR)[cr.ihs.cgu$CHR])
+  chr_numbers <- as.integer(as.character(cr.ihs.cgu$CHR))
   expect_identical(chr_numbers, c(5L, 12L, 18L))
   
   cr.ihs.cgu <-
@@ -30,7 +30,7 @@ test_that("checked_calc_candidate_regions", {
       overlap = 100000,
       min_n_extr_mrk = 2
     )
-  chr_numbers <- as.integer(levels(cr.ihs.cgu$CHR)[cr.ihs.cgu$CHR])
+  chr_numbers <- as.integer(as.character(cr.ihs.cgu$CHR))
   expect_identical(chr_numbers, c(1L, 4L, 5L, 5L, 7L, 12L, 18L))
   
   rsb.cgu_eut <- ines2rsb(wgscan.cgu, wgscan.eut)
@@ -44,7 +44,7 @@ test_that("checked_calc_candidate_regions", {
     )
   chr_numbers <-
     
-    as.integer(levels(cr.rsb.cgu_eut$CHR)[cr.rsb.cgu_eut$CHR])
+    as.integer(as.character(cr.rsb.cgu_eut$CHR))
   expect_identical(chr_numbers,
                    c(2L,
                      3L,
@@ -73,7 +73,7 @@ test_that("checked_calc_candidate_regions", {
       min_n_extr_mrk = 2
     )
   chr_numbers <-
-    as.integer(levels(cr.xpehh.cgu_eut$CHR)[cr.xpehh.cgu_eut$CHR])
+    as.integer(as.character(cr.xpehh.cgu_eut$CHR))
   expect_identical(chr_numbers, c(2L, 3L, 5L, 5L, 10L, 12L, 13L, 13L, 14L, 14L, 16L))
   
   ## calc_region_stats should yield the same results if applied to the same score

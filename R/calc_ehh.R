@@ -7,6 +7,9 @@
 #'the calculation of EHH, the calculation is stopped. The option is intended for the case of missing data,
 #'which leads to the successive exclusion of haplotypes: the further away from the focal marker
 #'the less haplotypes contribute to EHH.
+#'@param limhomohaplo if there are less than \code{limhomohaplo} homozygous chromosomes, the
+#'calculation is stopped. This option is intended for unphased data and should be invoked only
+#'if relatively low frequency variants are not filtered subsequently (see main vignette and Klassmann et al. 2020). 
 #'@param limehh limit at which EHH stops to be evaluated
 #'@param include_zero_values logical. If \code{FALSE}, return values only for those positions where the calculation is
 #'actually performed, i.e. until stopped by reaching either \code{limehh} or \code{limhaplo}. If \code{TRUE}, report EHH values for
@@ -38,6 +41,9 @@
 #'}
 #'@references Gautier, M. and Naves, M. (2011). Footprints of selection in the ancestral admixture of a New World Creole cattle breed. \emph{Molecular Ecology}, \strong{20}, 3128-3143.
 #'
+#'Klassmann, A. et al. (2020). Detecting selection using Extended Haplotype
+#'Homozygosity (EHH)-based statistics on unphased or unpolarized data. (submitted).
+#'
 #'Sabeti, P.C. et al. (2002). Detecting recent positive selection in the human genome from haplotype structure. \emph{Nature}, \strong{419}, 832-837.
 #'
 #'Sabeti, P.C. et al. (2007). Genome-wide detection and characterization of positive selection in human populations. \emph{Nature}, \strong{449}, 913-918.
@@ -58,6 +64,7 @@ calc_ehh <-
   function(haplohh,
            mrk,
            limhaplo = 2,
+           limhomohaplo = 2,
            limehh = 0.05,
            include_zero_values = FALSE,
            include_nhaplo = FALSE,
@@ -100,6 +107,9 @@ calc_ehh <-
     if (limhaplo < 2) {
       stop("limhaplo must be larger than 1.", call. = FALSE)
     }
+    if (limhomohaplo < 2) {
+      stop("limhomohaplo must be larger than 1.", call. = FALSE)
+    }
     if (limehh < 0 |
         limehh > 1) {
       stop("limehh must lie between 0 and 1.", call. = FALSE)
@@ -117,11 +127,9 @@ calc_ehh <-
     
     # calculation
     t <- tabulate(haplo(haplohh)[, mrk] + 1L)
-    mrk_alleles <- which(t != 0) - 1L
     
-    ## order alleles by their frequency
-    abs_freq <- t[t != 0]
-    mrk_alleles <- mrk_alleles[order(abs_freq, decreasing = TRUE)]
+    ## order alleles by their internal coding
+    mrk_alleles <- sort(unique(haplo(haplohh)[, mrk]))
     
     ## first allele is either ancestral or major allele
     first_allele <- ifelse(polarized, 0L, mrk_alleles[1L])
@@ -146,6 +154,7 @@ calc_ehh <-
         mrk,
         first_allele,
         limhaplo,
+        limhomohaplo,
         limehh,
         phased
       )
@@ -183,6 +192,7 @@ calc_ehh <-
           mrk,
           allele,
           limhaplo,
+          limhomohaplo,
           limehh,
           phased
         )
@@ -228,16 +238,22 @@ calc_ehh <-
     row.names(ehh) <- mrk.names(haplohh)
     
     if (!include_zero_values) {
-      first <- min(which(rowSums(ehh[2:(1 + length(freq))]) > 0))
-      last <- max(which(rowSums(ehh[2:(1 + length(freq))]) > 0))
+      nonzeros <- which(rowSums(ehh[2:(1 + length(freq))]) > 0)
       
-      #if limehh is zero report only the positions next to non-zero positions
-      if (limehh == 0) {
-        first <- max(first - 1, 1)
-        last <- min(last + 1, nmrk(haplohh))
+      if (length(nonzeros) > 0) {
+        first <- min(nonzeros)
+        last <- max(nonzeros)
+        
+        #if limehh is zero report only the positions next to non-zero positions
+        if (limehh == 0) {
+          first <- max(first - 1, 1)
+          last <- min(last + 1, nmrk(haplohh))
+        }
+        
+        ehh <- ehh[first:last, ]
+      } else{
+        ehh <- ehh[mrk, ]
       }
-      
-      ehh <- ehh[first:last,]
     }
     
     

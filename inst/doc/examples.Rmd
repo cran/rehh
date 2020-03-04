@@ -93,6 +93,15 @@ identical(hh, hh_vcf)
 
 ## Calculations and visualizations
 
+### Visualizing the sequences
+
+The haplohh-object can be visualized by a simple plot command:
+```{r}
+plot(hh)
+```
+
+Note, however, that this kind of plot is intended only for relatively small data sets.
+
 ### *EHH*
 
 We start with the computation of (allele-specific) *EHH* which is used for the detection of selection within a single, supposedly homogeneous, population.
@@ -342,6 +351,13 @@ identical(hh, hh_vcf)
 
 ## Calculations and visualizations
 
+### Visualizing the sequences
+
+The haplohh-object can be visualized by a simple plot command:
+```{r}
+plot(hh)
+```
+
 ### *EHH*
 
 As with the first example data set, the function `calc_ehh()` reports the *EHH* values for each allele of the focal marker of which there are now three. We set the option `include_zero_values` to `TRUE` to include the remaining marker `rs11` in the table (and subsequent plot) where all three *EHH* values reach zero.
@@ -355,9 +371,9 @@ res <- calc_ehh(hh,
 res
 ```
 
-Note that the derived alleles are ordered by their frequencies, not by their internal coding number: "D1" (internally coded by '2') is the most frequent and "D2" (internally coded by '1') the second most frequent derived allele.
+Note that the derived alleles are ordered by their internal coding.
 
-Figure \@ref(fig:ehh21) shows clearly that the second derived allele has a strong extended homozygosity while the first derived allele is not that different from the ancestral allele.
+Figure \@ref(fig:ehh21) shows clearly that the first derived allele has a strong extended homozygosity while the second derived allele is not that different from the ancestral allele.
 
 ```{r ehh21, fig.align = 'center', fig.cap = "Graphical output of the plot.ehh() function", fig.pos = '!h', fig.lp = 'fig:'}
 plot(res)
@@ -411,9 +427,9 @@ The "genome-wide" *ihs* values are depicted in Figure \@ref(fig:manhattan21).
 manhattanplot(ihs, threshold = c(-1.5, 1.5), ylim = c(-2.5,2.5), pch = 20)
 ```
 
-Now we know that actually the second derived allele at marker `rs6` is of interest, but it is not present in the scan because it is not the major derived allele. How can we modify the scan to include it?
+Now we know that actually the first derived allele at marker `rs6` is of interest, but it is not present in the scan because it is not the major derived allele. How can we modify the scan to include it?
 
-It is tempting to combine the two derived alleles by overwriting the interal coding and yielding a bi-allelic marker. This, however, entails a completely new pattern of extended haplotypes and a distortion of the statistics. Another approach may be to exclude the chromosomes carrying the less interesting allele from the analysis as done below:
+It is tempting to combine the two derived alleles by overwriting the internal coding and yielding a bi-allelic marker. This, however, entails a completely new pattern of extended haplotypes and a distortion of the statistics. Another approach may be to exclude the chromosomes carrying the less interesting allele from the analysis as done below:
 
 ```{r}
 hh_subset = subset(hh,

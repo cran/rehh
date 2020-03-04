@@ -4,10 +4,19 @@
 \alias{ihh2ihs}
 \title{Compute iHS}
 \usage{
-ihh2ihs(scan, freqbin = 0.025, min_maf = 0.05, min_nhaplo = NA,
-  standardize = TRUE, include_freq = FALSE, right = FALSE,
-  alpha = 0.05, p.side = NA, p.adjust.method = "none",
-  verbose = TRUE)
+ihh2ihs(
+  scan,
+  freqbin = 0.025,
+  min_maf = 0.05,
+  min_nhaplo = NA,
+  standardize = TRUE,
+  include_freq = FALSE,
+  right = FALSE,
+  alpha = 0.05,
+  p.side = NA,
+  p.adjust.method = "none",
+  verbose = TRUE
+)
 }
 \arguments{
 \item{scan}{a data frame with chromosome name,

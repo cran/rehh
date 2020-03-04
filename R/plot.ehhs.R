@@ -66,8 +66,6 @@ plot.ehhs <- function(x,
   ## no unit if p < 0
   unit <- c("", "(bp)", "(kb)", "(Mb)", "(Gb)")[max(-1, p)  + 2]
 
-  oldpar <- par(mar = c(5, 5, 4, 2) + 0.1)
-  
   dot_args <- list(...)
   if (!is.null(dot_args$xlim)) {
     dot_args$xlim <- dot_args$xlim / scale
@@ -91,6 +89,5 @@ plot.ehhs <- function(x,
   abline(v = foc_pos / scale,
          lty = 2,
          col = mrk.col)
-  
-  par(oldpar)
+
 }

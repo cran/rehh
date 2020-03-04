@@ -4,16 +4,13 @@
 #'@param allele If \code{NA} (default), furcation trees for all alleles of the focal marker are plotted,
 #'otherwise for the specified alleles. Alleles must be specified by their
 #'internal coding, i.e. '0' for ancestral resp. major allele, etc.
-#'@param main title of the plot.
-#'@param xlab title of the x-axis.
-#'@param xlim x coordinate ranges. If \code{NULL}, maximal range of branch lengths are taken.
 #'@param col color for each allele (as coded internally).
 #'@param mrk.col color of the vertical line at the focal marker position.
 #'@param lwd controls the relative width of the diagram lines on the plot (default 0.1).
 #'@param hap.names a vector containing names of chromosomes.
-#'@param bty type of box around plots (see \code{\link[graphics]{par}}).
-#'@param cex.lab relative size of labels.
-#'@param offset.lab offset of labels.
+#'@param cex.lab relative size of labels. See \code{\link[graphics]{par}}.
+#'@param family.lab font family for labels. See \code{\link[graphics]{par}}.
+#'@param offset.lab offset of labels. See \code{\link[graphics]{par}}.
 #'@param legend legend text.
 #'@param legend.xy.coords if \code{"automatic"} (default) places legend either top left or top right;
 #'if \code{"none"}, no legend is drawn; otherwise argument is passed to \code{\link[graphics]{legend}}.
@@ -35,15 +32,12 @@
 plot.furcation <-
   function(x,
            allele = NA,
-           main = paste0("Haplotype furcations around '", x@mrk.name, "'"),
-           xlab = "Position",
-           xlim = NULL,
            col = c("blue", "red", "violet", "orange"),
            mrk.col = "gray",
            lwd = 0.1,
            hap.names = NULL,
-           bty = "n",
            cex.lab = 1.0,
+           family.lab = "",
            offset.lab = 0.5,
            legend = NA,
            legend.xy.coords = "automatic",
@@ -55,8 +49,10 @@ plot.furcation <-
     
     if (!is.null(hap.names)) {
       if (length(hap.names) != x@nhap) {
-        stop("Number of specified haplotype names has to be equal to number of haplotypes.",
-             call. = FALSE)
+        stop(
+          "Number of specified haplotype names has to be equal to number of haplotypes.",
+          call. = FALSE
+        )
       }
     }
     
@@ -78,11 +74,16 @@ plot.furcation <-
       allele <- allele_in_furcation
     }
     
-    if (!is.null(xlim)) {
-      if (!is.numeric(xlim) | length(xlim) != 2 | xlim[2] < xlim[1]) {
+    dot_args <- list(...)
+    
+    if (!is.null(dot_args$xlim)) {
+      if (!is.numeric(dot_args$xlim) |
+          length(dot_args$xlim) != 2 |
+          dot_args$xlim[2] < dot_args$xlim[1]) {
         stop("Incorrect specification of xlim.", call. = FALSE)
       }
-      if (!(xlim[1] <= x@position & x@position <= xlim[2])) {
+      if (!((dot_args$xlim)[1] <= x@position &
+            x@position <= (dot_args$xlim)[2])) {
         stop("Focal marker must lie in specified xlim.", call. = FALSE)
       }
     }
@@ -141,20 +142,20 @@ plot.furcation <-
       }
     }
     
-    if (is.null(xlim)) {
-      xlim <- c(xmin, xmax)
+    if (is.null(dot_args$xlim)) {
+      dot_args$xlim <- c(xmin, xmax)
     } else{
-      if (xlim[1] > xmin) {
+      if (dot_args$xlim[1] > xmin) {
         for (i in as.character(allele)) {
           f <- x[[i]]
-          f@left <- prune_tree(f@left, xlim[1])
+          f@left <- prune_tree(f@left, dot_args$xlim[1])
           x[[i]] <- f
         }
       }
-      if (xlim[2] < xmax) {
+      if (dot_args$xlim[2] < xmax) {
         for (i in as.character(allele)) {
           f <- x[[i]]
-          f@right <- prune_tree(f@right, xlim[2])
+          f@right <- prune_tree(f@right, dot_args$xlim[2])
           x[[i]] <- f
         }
       }
@@ -215,14 +216,35 @@ plot.furcation <-
       }
     }
     
-    p <- floor(log(xlim[2], 1000))
+    p <- floor(log(dot_args$xlim[2], 1000))
     ## only shrink big scales, but never magnify small ones (p<0)
     scale <- 1000 ** max(0, p)
     ## no unit if p < 0
     unit <- c("", "(bp)", "(kb)", "(Mb)", "(Gb)")[max(-1, p)  + 2]
     
-    if (xlab == "Position") {
-      xlab <- paste(xlab, unit, sep = " ")
+    dot_args$xlim <- dot_args$xlim / scale
+    
+    dot_args$ylim <- c(0, 1)
+    
+    if (is.null(dot_args$xlab)) {
+      dot_args$xlab <- paste("Position", unit)
+    }
+    
+    if (is.null(dot_args$ylab)) {
+      dot_args$ylab <- ""
+    }
+    
+    if (is.null(dot_args$bty)) {
+      dot_args$bty <- "n"
+    }
+    
+    if (is.null(dot_args$yaxt)) {
+      dot_args$yaxt <- "n"
+    }
+    
+    if (is.null(dot_args$main)) {
+      dot_args$main <-
+        paste0("Haplotype furcations around '", x@mrk.name, "'")
     }
     
     # get descriptions of alleles
@@ -231,24 +253,14 @@ plot.furcation <-
     }, USE.NAMES = FALSE, FUN.VALUE = "")
     description_colors <- get_description_colors(descriptions, col)
     
-    #invisible plot of extremal points to get coordinate system
-    plot(
-      xlim / scale,
-      c(0, 1),
-      pch = "",
-      yaxt = "n",
-      bty = bty,
-      xlab = xlab,
-      main = main,
-      ylab = "",
-      ...
-    )
+    #invisible plot to get coordinate system
+    do.call("plot", c(list(NULL),
+                      dot_args))
     
     #dashed vertical line at focal mrk
     abline(v = x@position / scale,
            lty = 2,
            col = mrk.col)
-    
     
     for (i in seq_along(allele)) {
       #left and right tree
@@ -258,36 +270,33 @@ plot.furcation <-
           allelefurcation@left,
           y_l[[i]],
           scale,
-          max(xlim[1], x@xlim[1]),
+          max(dot_args$xlim[1], x@xlim[1] / scale),
           hap.names,
           lwd,
           description_colors[i],
           cex.lab,
+          family.lab,
           offset.lab
         )
         draw_tree(
           allelefurcation@right,
           y_r[[i]],
           scale,
-          min(xlim[2], x@xlim[2]),
+          min(dot_args$xlim[2], x@xlim[2] / scale),
           hap.names,
           lwd,
           description_colors[i],
           cex.lab,
+          family.lab,
           offset.lab
         )
       }
     }
     if (legend.x != "none") {
       if (legend.x == "automatic") {
-        if (is.null(xlim)) {
-          picturemiddle <-
-            (min(x$haplen$MIN, na.rm = TRUE) + max(x$haplen$MAX, na.rm = TRUE)) / 2
-        } else{
-          picturemiddle <- sum(xlim) / 2
-        }
+        picturemiddle <- mean(dot_args$xlim)
         legend.x <-
-          ifelse(x@position > picturemiddle, "topleft", "topright")
+          ifelse(x@position / scale > picturemiddle, "topleft", "topright")
       } else if (is.numeric(legend.x)) {
         legend.x <- legend.x / scale
       }
@@ -300,7 +309,7 @@ plot.furcation <-
         legend.x,
         legend.y,
         legend = legend,
-        bty = bty,
+        bty = dot_args$bty,
         col = description_colors,
         lwd = 1,
         xpd = TRUE
@@ -318,12 +327,12 @@ draw_tree <- function(ftree,
                       lwd,
                       col,
                       cex.lab,
+                      family.lab,
                       offset.lab) {
   node_size <- calc_node_size(ftree@node_parent, ftree@label_parent)
   #are we left or right of the root node?
-  direction <- sign(ftree@node_pos[1] - xcutoff)
+  direction <- sign(ftree@node_pos[1] / scale - xcutoff)
   node_pos <- ftree@node_pos / scale
-  xcutoff <- xcutoff / scale
   
   #lines from border til leaves of tree
   for (node in ftree@label_parent) {
@@ -382,8 +391,9 @@ draw_tree <- function(ftree,
         y = y[ftree@label_parent[i]],
         labels = hap.names[i],
         pos = pos,
-        offset = offset.lab,
         cex = cex.lab,
+        family = family.lab,
+        offset = offset.lab,
         font = 2 - hap.is.singleton * 1,
         xpd = TRUE
       )

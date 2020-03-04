@@ -5,18 +5,18 @@
 #'otherwise for the specified alleles. Alleles must be specified by their
 #'internal coding, i.e. '0' for ancestral resp. major allele, etc.
 #'@param group_by_allele logical. If \code{TRUE} (default), group chromosomes
-#'by their allele at the focal marker. Otherwise haplotypes are drawn by
+#'by their allele at the focal marker; alleles are ordered by their internal coding
+#'unless parameter \code{alleles} is specified. If \code{FALSE}, haplotypes are drawn by
 #'their order in the input file.
-#'@param main main title of the plot. By default, the name of the focal marker.
-#'@param xlab title of the x-axis.
-#'@param xlim x coordinate ranges. If \code{NULL}, maximal range of haplotype length are taken.
+#'@param order_by_length if \code{TRUE}, chromosomes are ordered by their
+#'shared haplotype length.
 #'@param col color for each allele (as coded internally).
 #'@param mrk.col color of the vertical line at the focal marker position.
 #'@param lwd line width.
 #'@param hap.names a vector containing the names of chromosomes.
-#'@param bty type of box around plot (see \code{\link[graphics]{par}}).
-#'@param cex.lab relative letter size of labels.
-#'@param offset.lab offset of labels.
+#'@param cex.lab relative letter size of labels. See \code{\link[graphics]{par}}.
+#'@param family.lab font family for labels. See \code{\link[graphics]{par}}.
+#'@param offset.lab offset of labels. See \code{\link[graphics]{par}}.
 #'@param pos.lab position of haplotype labels. Either \code{"left"} , \code{"right"} or \code{"both"}.
 #'@param legend legend text.
 #'@param legend.xy.coords if \code{"automatic"} (default) places legend either top left or top right;
@@ -39,17 +39,15 @@ plot.haplen <-
   function(x,
            allele = NA,
            group_by_allele = TRUE,
-           main = paste0("Haplotype length around '", x$mrk.name, "'"),
-           xlab = "Position",
-           xlim = NULL,
+           order_by_length = FALSE,
            col = c("blue", "red", "violet", "orange"),
            mrk.col = "gray",
            lwd = 1,
            hap.names = NULL,
-           pos.lab = "left",
-           offset.lab = 0.5,
            cex.lab = 1.0,
-           bty = "n",
+           family.lab = "",
+           offset.lab = 0.5,
+           pos.lab = "left",
            legend = NA,
            legend.xy.coords = "automatic",
            ...) {
@@ -60,8 +58,10 @@ plot.haplen <-
     
     if (!is.null(hap.names)) {
       if (length(hap.names) != nrow(x$haplen)) {
-        stop("Number of specified haplotype names has to be equal to number of haplotypes.",
-             call. = FALSE)
+        stop(
+          "Number of specified haplotype names has to be equal to number of haplotypes.",
+          call. = FALSE
+        )
       }
     }
     
@@ -69,11 +69,16 @@ plot.haplen <-
       stop("alleles have to be specified by integers 0,1,2,...", call. = FALSE)
     }
     
-    if (!is.null(xlim)) {
-      if (!is.numeric(xlim) | length(xlim) != 2 | xlim[2] < xlim[1]) {
+    dot_args <- list(...)
+    
+    if (!is.null(dot_args$xlim)) {
+      if (!is.numeric(dot_args$xlim) |
+          length(dot_args$xlim) != 2 |
+          dot_args$xlim[2] < dot_args$xlim[1]) {
         stop("Incorrect specification of xlim.", call. = FALSE)
       }
-      if (!(xlim[1] <= x$position & x$position <= xlim[2])) {
+      if (!((dot_args$xlim)[1] <= x$position &
+            x$position <= (dot_args$xlim)[2])) {
         stop("Focal marker must lie in specified xlim.", call. = FALSE)
       }
     }
@@ -88,11 +93,7 @@ plot.haplen <-
         }
       }
     } else{
-      t <- tabulate(x$haplen$ALLELE + 1L)
-      allele <- which(t != 0) - 1L
-      
-      ## order alleles by their frequency
-      allele <- allele[order(t[t != 0], decreasing = TRUE)]
+      allele <- sort(unique(x$haplen$ALLELE))
     }
     
     if (!anyNA(legend.xy.coords)) {
@@ -117,11 +118,18 @@ plot.haplen <-
     }
     haplen_subset <- x$haplen[x$haplen$ALLELE %in% allele, ]
     
+    if (order_by_length) {
+      ord <- order(haplen_subset$MAX - haplen_subset$MIN)
+      haplen_subset <- haplen_subset[ord, ]
+      hap.names <- hap.names[ord]
+    }
+    
     if (group_by_allele) {
-      #sort in order of specified alleles
+      #sort in order of specified alleles ("radix" -> stable sort)
       ord <- order(vapply(haplen_subset$ALLELE, function(x) {
         which(x == allele)
-      }, FUN.VALUE = 0L))
+      }, FUN.VALUE = 0L),
+      method = "radix")
       haplen_subset <- haplen_subset[ord, ]
       hap.names <- hap.names[ord]
     }
@@ -129,40 +137,52 @@ plot.haplen <-
     haplen_subset$MIN[is.na(haplen_subset$MIN)] <- x$position
     haplen_subset$MAX[is.na(haplen_subset$MAX)] <- x$position
     
-    if (is.null(xlim)) {
-      xlim <- c(min(haplen_subset$MIN),
-                max(haplen_subset$MAX))
+    if (is.null(dot_args$xlim)) {
+      dot_args$xlim <- c(min(haplen_subset$MIN),
+                         max(haplen_subset$MAX))
     } else{
-      haplen_subset$MIN <- pmax(haplen_subset$MIN, xlim[1])
-      haplen_subset$MAX <- pmin(haplen_subset$MAX, xlim[2])
+      haplen_subset$MIN <- pmax(haplen_subset$MIN, dot_args$xlim[1])
+      haplen_subset$MAX <- pmin(haplen_subset$MAX, dot_args$xlim[2])
     }
     
-    p <- floor(log(xlim[2], 1000))
+    p <- floor(log(dot_args$xlim[2], 1000))
     ## only shrink big scales, but never magnify small ones (p<0)
     scale <- 1000 ** max(0, p)
     ## no unit if p < 0
     unit <- c("", "(bp)", "(kb)", "(Mb)", "(Gb)")[max(-1, p)  + 2]
     
-    if (xlab == "Position") {
-      xlab <- paste(xlab, unit, sep = " ")
+    dot_args$xlim <- dot_args$xlim / scale
+    
+    dot_args$ylim <- c(0, 1)
+    
+    if (is.null(dot_args$xlab)) {
+      dot_args$xlab <- paste("Position", unit)
+    }
+    
+    if (is.null(dot_args$ylab)) {
+      dot_args$ylab <- ""
+    }
+    
+    if (is.null(dot_args$bty)) {
+      dot_args$bty <- "n"
+    }
+    
+    if (is.null(dot_args$yaxt)) {
+      dot_args$yaxt <- "n"
+    }
+    
+    if (is.null(dot_args$main)) {
+      dot_args$main <-
+        paste0("Haplotype length around '", x$mrk.name, "'")
     }
     
     ##perform plot
     description_colors <-
       get_description_colors(haplen_subset$DESCRIPTION, col)
     
-    #invisible plot of extremal points to get coordinate system
-    plot(
-      xlim / scale,
-      c(0, 1),
-      pch = "",
-      yaxt = "n",
-      bty = bty,
-      xlab = xlab,
-      main = main,
-      ylab = "",
-      ...
-    )
+    #invisible plot to get coordinate system
+    do.call("plot", c(list(NULL),
+                      dot_args))
     
     #dashed vertical line at focal mrk
     abline(v = x$position / scale,
@@ -182,23 +202,25 @@ plot.haplen <-
       if (!is.null(hap.names)) {
         if (pos.lab == "left" || pos.lab == "both") {
           text(
-            x = xlim[1] / scale,
+            x = dot_args$xlim[1],
             y = rep(1 - (i - 0.5) / nrow(haplen_subset), 2),
             labels = hap.names[i],
-            pos = 2,
-            offset = offset.lab,
             cex = cex.lab,
+            family = family.lab,
+            offset = offset.lab,
+            pos = 2,
             xpd = TRUE
           )
         }
         if (pos.lab == "right" || pos.lab == "both") {
           text(
-            x = xlim[2] / scale,
+            x = dot_args$xlim[2],
             y = rep(1 - (i - 0.5) / nrow(haplen_subset), 2),
             labels = hap.names[i],
-            pos = 4,
-            offset = offset.lab,
             cex = cex.lab,
+            family = family.lab,
+            offset = offset.lab,
+            pos = 4,
             xpd = TRUE
           )
         }
@@ -206,9 +228,9 @@ plot.haplen <-
     }
     if (legend.x != "none") {
       if (legend.x == "automatic") {
-        picturemiddle <- sum(xlim) / 2
+        picturemiddle <- mean(dot_args$xlim)
         legend.x <-
-          ifelse(x$position > picturemiddle, "topleft", "topright")
+          ifelse(x$position / scale > picturemiddle, "topleft", "topright")
       } else if (is.numeric(legend.x)) {
         legend.x <- legend.x / scale
       }
@@ -223,7 +245,7 @@ plot.haplen <-
         legend.x,
         legend.y,
         legend = legend,
-        bty = bty,
+        bty = dot_args$bty,
         col = get_description_colors(descriptions, col),
         lwd = lwd,
         xpd = TRUE

@@ -7,10 +7,20 @@
 \alias{ehhs}
 \title{EHHS and iES computation for a given focal marker}
 \usage{
-calc_ehhs(haplohh, mrk, limhaplo = 2, limehhs = 0.05,
-  include_zero_values = FALSE, include_nhaplo = FALSE, phased = TRUE,
-  scalegap = NA, maxgap = NA, discard_integration_at_border = TRUE,
-  lower_y_bound = limehhs)
+calc_ehhs(
+  haplohh,
+  mrk,
+  limhaplo = 2,
+  limhomohaplo = 2,
+  limehhs = 0.05,
+  include_zero_values = FALSE,
+  include_nhaplo = FALSE,
+  phased = TRUE,
+  scalegap = NA,
+  maxgap = NA,
+  discard_integration_at_border = TRUE,
+  lower_y_bound = limehhs
+)
 }
 \arguments{
 \item{haplohh}{an object of class \code{haplohh} (see \code{\link{data2haplohh}}).}
@@ -22,6 +32,10 @@ or string representing its ID/name.}
 the calculation of EHH, the calculation is stopped. The option is intended for the case of missing data,
 which leads to the successive exclusion of haplotypes: the further away from the focal marker
 the less haplotypes contribute to EHH.}
+
+\item{limhomohaplo}{if there are less than \code{limhomohaplo} homozygous chromosomes, the
+calculation is stopped. This option is intended for unphased data and should be invoked only
+if relatively low frequency variants are not filtered subsequently (see main vignette and Klassmann et al. 2020).}
 
 \item{limehhs}{limit at which EHHS stops to be evaluated.}
 
@@ -75,6 +89,9 @@ ehhs <- calc_ehhs(haplohh_cgu_bta12, mrk = "F1205400")
 }
 \references{
 Gautier, M. and Naves, M. (2011). Footprints of selection in the ancestral admixture of a New World Creole cattle breed. \emph{Molecular Ecology}, \strong{20}, 3128-3143.
+
+Klassmann, A. et al. (2020). Detecting selection using Extended Haplotype
+Homozygosity (EHH)-based statistics on unphased or unpolarized data. (submitted).
 
 Sabeti, P.C. et al. (2002). Detecting recent positive selection in the human genome from haplotype structure. \emph{Nature}, \strong{419}, 832-837.
 

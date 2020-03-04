@@ -4,10 +4,19 @@
 \alias{calc_candidate_regions}
 \title{Determine candidate regions of selection}
 \usage{
-calc_candidate_regions(scan, threshold = NA, pval = FALSE,
-  ignore_sign = FALSE, window_size = 1e+06, overlap = 0,
-  right = TRUE, min_n_mrk = 1, min_n_extr_mrk = 1,
-  min_perc_extr_mrk = 0, join_neighbors = TRUE)
+calc_candidate_regions(
+  scan,
+  threshold = NA,
+  pval = FALSE,
+  ignore_sign = FALSE,
+  window_size = 1e+06,
+  overlap = 0,
+  right = TRUE,
+  min_n_mrk = 1,
+  min_n_extr_mrk = 1,
+  min_perc_extr_mrk = 0,
+  join_neighbors = TRUE
+)
 }
 \arguments{
 \item{scan}{a data frame containing scores (output of \code{\link{ihh2ihs}}, \code{\link{ines2rsb}} or \code{\link{ies2xpehh}}).}

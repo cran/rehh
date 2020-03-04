@@ -43,7 +43,7 @@ freqbinplot <- function(x,
   #omit NAs and standard deviation
   frequency.class <- na.omit(x[, -3])
   bin_names <- rownames(frequency.class)
-  pos <- regexpr(',', bin_names)
+  pos <- regexpr(",", bin_names)
   
   if (pos[1] == -1) {
     #discrete classes

@@ -23,7 +23,7 @@ Population genetic data such as 'Single Nucleotide
         Various plotting functions are also included to facilitate
         visualization and interpretation of these statistics. 
         Due to changes in the API, albeit mostly minor, 
-        this version is not compatible with versions 2.0.X.
+        versions 3.X are not compatible with versions 2.0.X.
 }
 \details{
 See \code{vignette("rehh", package = "rehh")} for an overview of the package and

@@ -7,6 +7,9 @@
 #'the calculation of EHH(S), the calculation is stopped. The option is intended for the case of missing data,
 #'which leads to the successive exclusion of haplotypes: the further away from the focal marker
 #'the less haplotypes contribute to EHH(S).
+#'@param limhomohaplo if there are less than \code{limhomohaplo} homozygous chromosomes, the
+#'calculation is stopped. This option is intended for unphased data and should be invoked only
+#'if relatively low frequency variants are not filtered subsequently (see main vignette and Klassmann et al. 2020). 
 #'@param limehh limit at which EHH stops to be evaluated.
 #'@param limehhs limit at which EHHS stops to be evaluated.
 #'@param phased logical. If \code{TRUE} (default) chromosomes are expected to be phased. If \code{FALSE}, the haplotype data is assumed to
@@ -42,11 +45,16 @@
 #'\item iHH of the second-most frequent remaining allele
 #'\item iES (used by Sabeti et al 2007)
 #'\item inES (used by Tang et al 2007)}
-#'Note that while for phased data the number of evaluated haplotypes
-#'of an allele corresponds to its frequency in the sample,
-#'in case of unphased data the evaluation is restricted to
-#'haplotypes of homozygous individuals.
+#'Note that in case of unphased data the evaluation is restricted to
+#'haplotypes of homozygous individuals which reduces the power
+#'to detect selection, particularly for iHS (for appropriate parameter setting 
+#'see the main vignette and Klassmann et al (2020)).
+#'
+#
 #'@references Gautier, M. and Naves, M. (2011). Footprints of selection in the ancestral admixture of a New World Creole cattle breed. \emph{Molecular Ecology}, \strong{20}, 3128-3143.
+#'
+#'Klassmann, A. et al. (2020). Detecting selection using Extended Haplotype
+#'Homozygosity (EHH)-based statistics on unphased or unpolarized data. (submitted).
 #'
 #'Sabeti, P.C. et al. (2002). Detecting recent positive selection in the human genome from haplotype structure. \emph{Nature}, \strong{419}, 832-837.
 #'
@@ -66,6 +74,7 @@
 scan_hh <-
   function(haplohh,
            limhaplo = 2,
+           limhomohaplo = 2,
            limehh = 0.05,
            limehhs = 0.05,
            phased = TRUE,
@@ -82,6 +91,9 @@ scan_hh <-
     }
     if (limhaplo < 2) {
       stop("limhaplo must be larger than 1.", call. = FALSE)
+    }
+    if (limhomohaplo < 2) {
+      stop("limhomohaplo must be larger than 1.", call. = FALSE)
     }
     if (limehh < 0 |
         limehh > 1) {
@@ -137,10 +149,11 @@ scan_hh <-
       nhap(haplohh),
       nmrk(haplohh),
       #ancestral or major allele
-      allele_stats[1,],
+      allele_stats[1, ],
       #derived or minor allele
-      allele_stats[2,],
+      allele_stats[2, ],
       as.integer(limhaplo),
+      as.integer(limhomohaplo),
       as.double(limehh),
       as.double(limehhs),
       as.integer(scalegap),

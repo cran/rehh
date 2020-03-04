@@ -5,7 +5,7 @@
 #'@param haplohh an object of class haplohh (see \code{\link{data2haplohh}}).
 #'@param mrk integer representing the number of the focal marker within the haplohh object
 #'or string representing its ID/name.
-#'@param allele a vector of alleles as coded internally, i.e. in case of polarized alleles, 
+#'@param allele a vector of alleles as coded internally, i.e. in case of polarized alleles,
 #'0 represents the ancestral, 1 or higher the derived alleles.
 #'If \code{NULL}, all alleles of the focal marker are considered.
 #'@param limhaplo if there are less than \code{limhaplo} chromosomes that can be used for
@@ -17,8 +17,8 @@
 #'belong to diploid individuals and furcation trees are limited to within individuals which
 #'are homozygous at the focal marker.
 #'@param polarized logical. Affects only the order of furcations. If \code{TRUE} (default), the ancestral allele
-#'becomes the first furcation and derived alleles are sorted by their frequency. Otherwise all alleles
-#'are sorted by their frequency.
+#'becomes the first furcation and derived alleles are sorted by their internal coding. Otherwise all alleles
+#'are sorted by their internal coding.
 #'@details A haplotype furcation tree visualizes the breakdown
 #'of LD at increasing distances from the focal marker.
 #'The root of each tree is an allele of the focal marker, which in turn is identified
@@ -82,12 +82,8 @@ calc_furcation <-
       mrk <- which(mrk.names(haplohh) == mrk)
     }
     
-    t <- tabulate(haplo(haplohh)[, mrk] + 1L)
-    mrk_allele <- which(t != 0) - 1L
-    freq <- t[t != 0] / sum(t)
-    
-    ## order alleles by their frequency
-    mrk_allele <- mrk_allele[order(freq, decreasing = TRUE)]
+    ## order alleles by their internal coding
+    mrk_allele <- sort(unique(haplo(haplohh)[, mrk]))
     
     ## create description of alleles ("Ancestral", "Major", etc.)
     if (polarized) {

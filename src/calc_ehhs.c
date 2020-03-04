@@ -7,7 +7,7 @@
  * EHHS Tang is equal to EHHS Sabeti normalized by the homozygosity at the focal marker
  */
 void extend_ehhs(const int* const data, const int nbr_chr, const int foc_mrk, const int end_mrk, const int lim_haplo,
-		const double lim_ehhs, const int phased, int* const hap, int* const nbr_hap, int* const nbr_chr_with_hap,
+		const int lim_homo_haplo, const double lim_ehhs, const int phased, int* const hap, int* const nbr_hap, int* const nbr_chr_with_hap,
 		int* const tot_nbr_chr_in_hap, double* const ehhs, double* const nehhs) {
 
 	int increment = foc_mrk <= end_mrk ? 1 : -1;
@@ -20,6 +20,13 @@ void extend_ehhs(const int* const data, const int nbr_chr, const int foc_mrk, co
 			if (tot_nbr_chr_in_hap[mrk] < lim_haplo) {
 				break; //stop, if too few chromosomes left due to missing values
 			}
+			
+			//if unphased, sequences from different individuals are different by definition
+			int nbr_homo_haplo = phased ? tot_nbr_chr_in_hap[mrk] - *nbr_hap + 1 : (tot_nbr_chr_in_hap[mrk] - *nbr_hap) * 2;
+			if(nbr_homo_haplo < lim_homo_haplo){
+			  break; //stop, if too few homozygous chromosomes left
+			}
+	
 			ehhs[mrk] = homozygosity(tot_nbr_chr_in_hap[mrk], *nbr_hap, nbr_chr_with_hap, phased); // Compute the standardized hapotype homozygosity at the jth SNP, following Sabeti et al's (2007)
 
 			if (phased) {
@@ -81,7 +88,7 @@ void extend_ehhs(const int* const data, const int nbr_chr, const int foc_mrk, co
  * Calculates ehhs values in increasing distance to the focal marker
  */
 void calc_ehhs(const int* const data, const int nbr_chr, const int nbr_mrk, const int foc_mrk, const int lim_haplo,
-		const double lim_ehhs, const int phased, int* const tot_nbr_chr_in_hap, double* const ehhs,
+		const int lim_homo_haplo, const double lim_ehhs, const int phased, int* const tot_nbr_chr_in_hap, double* const ehhs,
 		double* const nehhs) {
 
 	int nbr_hap;                                                   //number of distinct haplotypes
@@ -102,18 +109,23 @@ void calc_ehhs(const int* const data, const int nbr_chr, const int nbr_mrk, cons
 		tot_nbr_chr_in_hap[foc_mrk] += nbr_chr_with_hap[i];
 	}
 
-	if (tot_nbr_chr_in_hap[foc_mrk] >= lim_haplo) { //if the total number of chromosomes is greater than minimum
+  //if unphased, sequences from different individuals are different by definition
+  int nbr_homo_haplo = phased ? tot_nbr_chr_in_hap[foc_mrk] - nbr_hap + 1 : (tot_nbr_chr_in_hap[foc_mrk] - nbr_hap) * 2;
+  if(nbr_homo_haplo < lim_homo_haplo){
+	    //do nothing, if too few homozygous chromosomes
+	} else if (tot_nbr_chr_in_hap[foc_mrk] >= lim_haplo) { //if the total number of chromosomes is greater than minimum
 		nehhs[foc_mrk] = 1.0; //normalized EHHS is 1.0 at the focal marker by definition
 		ehhs[foc_mrk] = homozygosity(tot_nbr_chr_in_hap[foc_mrk], nbr_hap, nbr_chr_with_hap, phased);
 
-		extend_ehhs(data, nbr_chr, foc_mrk, 0, lim_haplo, lim_ehhs, phased, hap, &nbr_hap, nbr_chr_with_hap,
+		extend_ehhs(data, nbr_chr, foc_mrk, 0, lim_haplo, lim_homo_haplo, lim_ehhs, phased, hap, &nbr_hap, nbr_chr_with_hap,
 				tot_nbr_chr_in_hap, ehhs, nehhs);
 
 		init_site_hap(data, nbr_chr, foc_mrk, phased, hap, &nbr_hap, nbr_chr_with_hap); // initialize again
 
-		extend_ehhs(data, nbr_chr, foc_mrk, nbr_mrk - 1, lim_haplo, lim_ehhs, phased, hap, &nbr_hap, nbr_chr_with_hap,
+		extend_ehhs(data, nbr_chr, foc_mrk, nbr_mrk - 1, lim_haplo, lim_homo_haplo, lim_ehhs, phased, hap, &nbr_hap, nbr_chr_with_hap,
 				tot_nbr_chr_in_hap, ehhs, nehhs);
 	}
+	
 	free(hap);
 	free(nbr_chr_with_hap);
 }

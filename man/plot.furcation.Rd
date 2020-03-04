@@ -4,12 +4,20 @@
 \alias{plot.furcation}
 \title{Plots furcation trees around a focal marker}
 \usage{
-\method{plot}{furcation}(x, allele = NA,
-  main = paste0("Haplotype furcations around '", x@mrk.name, "'"),
-  xlab = "Position", xlim = NULL, col = c("blue", "red", "violet",
-  "orange"), mrk.col = "gray", lwd = 0.1, hap.names = NULL,
-  bty = "n", cex.lab = 1, offset.lab = 0.5, legend = NA,
-  legend.xy.coords = "automatic", ...)
+\method{plot}{furcation}(
+  x,
+  allele = NA,
+  col = c("blue", "red", "violet", "orange"),
+  mrk.col = "gray",
+  lwd = 0.1,
+  hap.names = NULL,
+  cex.lab = 1,
+  family.lab = "",
+  offset.lab = 0.5,
+  legend = NA,
+  legend.xy.coords = "automatic",
+  ...
+)
 }
 \arguments{
 \item{x}{an object of class furcation (see \code{\link{calc_furcation}}).}
@@ -17,12 +25,6 @@
 \item{allele}{If \code{NA} (default), furcation trees for all alleles of the focal marker are plotted,
 otherwise for the specified alleles. Alleles must be specified by their
 internal coding, i.e. '0' for ancestral resp. major allele, etc.}
-
-\item{main}{title of the plot.}
-
-\item{xlab}{title of the x-axis.}
-
-\item{xlim}{x coordinate ranges. If \code{NULL}, maximal range of branch lengths are taken.}
 
 \item{col}{color for each allele (as coded internally).}
 
@@ -32,11 +34,11 @@ internal coding, i.e. '0' for ancestral resp. major allele, etc.}
 
 \item{hap.names}{a vector containing names of chromosomes.}
 
-\item{bty}{type of box around plots (see \code{\link[graphics]{par}}).}
+\item{cex.lab}{relative size of labels. See \code{\link[graphics]{par}}.}
 
-\item{cex.lab}{relative size of labels.}
+\item{family.lab}{font family for labels. See \code{\link[graphics]{par}}.}
 
-\item{offset.lab}{offset of labels.}
+\item{offset.lab}{offset of labels. See \code{\link[graphics]{par}}.}
 
 \item{legend}{legend text.}
 

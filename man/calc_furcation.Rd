@@ -4,8 +4,14 @@
 \alias{calc_furcation}
 \title{calculate furcation trees around a focal marker}
 \usage{
-calc_furcation(haplohh, mrk, allele = NA, limhaplo = 2,
-  phased = TRUE, polarized = TRUE)
+calc_furcation(
+  haplohh,
+  mrk,
+  allele = NA,
+  limhaplo = 2,
+  phased = TRUE,
+  polarized = TRUE
+)
 }
 \arguments{
 \item{haplohh}{an object of class haplohh (see \code{\link{data2haplohh}}).}
@@ -13,7 +19,7 @@ calc_furcation(haplohh, mrk, allele = NA, limhaplo = 2,
 \item{mrk}{integer representing the number of the focal marker within the haplohh object
 or string representing its ID/name.}
 
-\item{allele}{a vector of alleles as coded internally, i.e. in case of polarized alleles, 
+\item{allele}{a vector of alleles as coded internally, i.e. in case of polarized alleles,
 0 represents the ancestral, 1 or higher the derived alleles.
 If \code{NULL}, all alleles of the focal marker are considered.}
 
@@ -28,8 +34,8 @@ belong to diploid individuals and furcation trees are limited to within individu
 are homozygous at the focal marker.}
 
 \item{polarized}{logical. Affects only the order of furcations. If \code{TRUE} (default), the ancestral allele
-becomes the first furcation and derived alleles are sorted by their frequency. Otherwise all alleles
-are sorted by their frequency.}
+becomes the first furcation and derived alleles are sorted by their internal coding. Otherwise all alleles
+are sorted by their internal coding.}
 }
 \value{
 An object of class furcation, containing the furcation structure of the specified alleles at the focal marker.

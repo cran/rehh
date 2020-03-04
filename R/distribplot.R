@@ -3,12 +3,11 @@
 #'the standard Gaussian distribution.
 #'@param data a vector of iHS, Rsb or XPEHH values.
 #'@param col a vector describing the colors of the observed and Gaussian distribution, respectively.
-#'@param main an overall title for the plot.
-#'@param xlab a title for the x axis.
 #'@param lty line type.
 #'@param lwd line width.
 #'@param qqplot logical. If \code{TRUE} a qq-plot is drawn instead of the distribution density curve.
-#'@param pch point character for qqplot (see \code{\link[graphics]{points}}).
+#'@param resolution affects only qqplot. Rasterize data points to a quadratic grid with the specified resolution and remove
+#'duplicate points. Defaults to 0.01.
 #'@param ... further arguments passed to \code{\link[graphics]{plot.default}}.
 #'@return The function returns a plot.
 #'@seealso \code{\link{ihh2ihs}}, \code{\link{ines2rsb}}, \code{\link{ies2xpehh}}, \code{\link{manhattanplot}}.
@@ -27,22 +26,39 @@ distribplot <-
            lty = 1,
            lwd = 1.5,
            col = c("blue", "red"),
-           main = "Genome-wide distribution",
-           xlab = "",
            qqplot = FALSE,
-           pch = 20,
+           resolution = 0.01,
            ...) {
+    if (qqplot &
+        (!is.numeric(resolution) |
+         length(resolution) != 1 | resolution <= 0)) {
+      stop("Resolution has to be specified by a positive number.",
+           call. = FALSE)
+    }
+    
+    dot.args <- list(...)
+    
     if (!qqplot) {
-      plot(
-        density(data, na.rm = TRUE),
-        main = main,
-        xlab = xlab,
-        col = col[1],
-        lty = lty,
-        lwd = lwd,
-        ...
-      )
-      curve(dnorm, col = col[2], add = TRUE)
+      if (is.null(dot.args$main)) {
+        dot.args$main <- "Genome-wide distribution"
+      }
+      if (is.null(dot.args$xlab)) {
+        dot.args$xlab <- ""
+      }
+      
+      do.call(plot,
+              c(list(
+                density(data, na.rm = TRUE),
+                col = col[1],
+                lwd = lwd
+              ),
+              dot.args))
+      
+      curve(dnorm,
+            col = col[2],
+            lty = lty,
+            add = TRUE)
+      
       legend(
         "topright",
         c("Observed", "Gaussian"),
@@ -52,9 +68,25 @@ distribplot <-
         lwd = lwd
       )
     } else {
-      qqnorm(data[!is.na(data)],
-             pch = pch,
-             ...)
+      coord <-
+        unique(round(as.data.frame(qqnorm(data, plot.it = FALSE)) / resolution)) *
+        resolution
+      
+      if (is.null(dot.args$main)) {
+        dot.args$main <- "Normal Q-Q Plot"
+      }
+      if (is.null(dot.args$xlab)) {
+        dot.args$xlab <- "Theoretical Quantiles"
+      }
+      if (is.null(dot.args$ylab)) {
+        dot.args$ylab <- "Sample Quantiles"
+      }
+      
+      do.call(plot,
+              c(list(x = coord$x,
+                     y = coord$y),
+                dot.args))
+      
       abline(a = 0, b = 1, lty = 2)
     }
   }

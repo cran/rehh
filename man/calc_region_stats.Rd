@@ -4,8 +4,14 @@
 \alias{calc_region_stats}
 \title{Calculate score statistics for given regions}
 \usage{
-calc_region_stats(scan, regions, threshold = NA, pval = FALSE,
-  ignore_sign = FALSE, right = TRUE)
+calc_region_stats(
+  scan,
+  regions,
+  threshold = NA,
+  pval = FALSE,
+  ignore_sign = FALSE,
+  right = TRUE
+)
 }
 \arguments{
 \item{scan}{a data frame containing scores (output of \code{\link{ihh2ihs}}, \code{\link{ines2rsb}} or \code{\link{ies2xpehh}}).}

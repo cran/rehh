@@ -142,7 +142,7 @@ calc_candidate_regions <- function(scan,
       chr_cand_reg <- data.frame(matrix(ncol = 6, nrow = 0))
       
       if (overlap != 0) {
-        offsets <- seq(0, window_size - overlap , overlap)
+        offsets <- seq(0, window_size - overlap, overlap)
       } else{
         offsets <- 0
       }
@@ -213,7 +213,7 @@ calc_candidate_regions <- function(scan,
       
       if (nrow(chr_cand_reg) > 1) {
         # sort different offset windows by position
-        chr_cand_reg <- chr_cand_reg[order(chr_cand_reg[[2]]),]
+        chr_cand_reg <- chr_cand_reg[order(chr_cand_reg[[2]]), ]
         
         # join neighboring windows
         if (join_neighbors) {
@@ -224,7 +224,7 @@ calc_candidate_regions <- function(scan,
             # increase j until there is no overlap between
             # consecutive windows any more
             while (i + j < nrow(chr_cand_reg) &
-                   chr_cand_reg[i + j , 3] >= chr_cand_reg[i + j + 1, 2]) {
+                   chr_cand_reg[i + j, 3] >= chr_cand_reg[i + j + 1, 2]) {
               j <- j + 1
             }
             # if there are overlapping windows ...
@@ -246,7 +246,7 @@ calc_candidate_regions <- function(scan,
                                         threshold])
               #e liminate all right neighbors
               chr_cand_reg <- chr_cand_reg[-((i + 1):(i +
-                                                        j)),]
+                                                        j)), ]
             }
             i <- i + 1
           }

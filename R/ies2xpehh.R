@@ -6,6 +6,8 @@
 #'marker, frequency of the ancestral allele and iES as obtained by \code{\link{scan_hh}} on the second population.
 #'@param popname1 short ID/name of the first population; to be added to an output column name.
 #'@param popname2 short ID/name of the second population; to be added to an output column name.
+#'@param min_nhaplo discard positions where in at least one of the populations fewer than \code{min_nhaplo} haplotypes
+#'have been evaluated (default \code{NA}).
 #'@param standardize logical. If \code{TRUE} (default), then standardize XP-EHH, else report unstandardized XP-EHH.
 #'@param include_freq logical. If \code{TRUE} include columns with allele frequencies into result.
 #'@param p.side side to which refers the p-value. Default \code{NA}, meaning two-sided. Can be set
@@ -40,6 +42,7 @@ ies2xpehh <-
            scan_pop2,
            popname1 = NA,
            popname2 = NA,
+           min_nhaplo = NA,
            standardize = TRUE,
            include_freq = FALSE,
            p.side = NA,
@@ -73,6 +76,10 @@ ies2xpehh <-
     if (anyDuplicated(scan_pop2[c("CHR", "POSITION")])) {
       stop("Data for population 2 contains duplicated chromosomal positions.",
            call. = FALSE)
+    }
+    if (!is.na(min_nhaplo) &
+        (round(min_nhaplo) != min_nhaplo | min_nhaplo < 2)) {
+      stop("min_nhaplo must be an integer number greater than 1.")
     }
     
     if (is.null(scan_pop1[[initial_score_colname]])) {
@@ -129,6 +136,82 @@ ies2xpehh <-
         colnames2 <- c("CHR", "POSITION", initial_score_colname)
     }
     
+    if (!is.na(min_nhaplo)) {
+      nhaplo1_col_nr <- which(colnames(scan_pop1) == "NHAPLO_A")
+      nhaplo2_col_nr <- which(colnames(scan_pop1) == "NHAPLO_D")
+      if (length(nhaplo1_col_nr) != 1 |
+          length(nhaplo2_col_nr) != 1) {
+        nhaplo1_col_nr <- which(colnames(scan_pop1) == "NHAPLO_MAJ")
+        nhaplo2_col_nr <- which(colnames(scan_pop1) == "NHAPLO_MIN")
+        if (length(nhaplo1_col_nr) != 1 |
+            length(nhaplo2_col_nr) != 1) {
+          stop("Column(s) with number of haplotypes not found in population 1.",
+               call. = FALSE)
+        }
+      }
+      
+      if (verbose)
+        cat(
+          "Discard focal markers with less than",
+          min_nhaplo,
+          "evaluated haplotypes in population 1.\n"
+        )
+      
+      mrk_sel <-
+        scan_pop1[[nhaplo1_col_nr]] + scan_pop1[[nhaplo2_col_nr]] >= min_nhaplo
+      
+      if (sum(mrk_sel) == nrow(scan_pop1)) {
+        if (verbose)
+          cat("No marker discarded.\n")
+      } else{
+        if (verbose)
+          cat(nrow(scan_pop1) - sum(mrk_sel), "markers discarded.\n")
+        
+        scan_pop1 <- scan_pop1[mrk_sel, ]
+        
+        if (verbose)
+          cat(nrow(scan_pop1), "markers remaining.\n")
+        
+      }
+      
+      nhaplo1_col_nr <- which(colnames(scan_pop2) == "NHAPLO_A")
+      nhaplo2_col_nr <- which(colnames(scan_pop2) == "NHAPLO_D")
+      if (length(nhaplo1_col_nr) != 1 |
+          length(nhaplo2_col_nr) != 1) {
+        nhaplo1_col_nr <- which(colnames(scan_pop2) == "NHAPLO_MAJ")
+        nhaplo2_col_nr <- which(colnames(scan_pop2) == "NHAPLO_MIN")
+        if (length(nhaplo1_col_nr) != 1 |
+            length(nhaplo2_col_nr) != 1) {
+          stop("Column(s) with number of haplotypes not found in population 2.",
+               call. = FALSE)
+        }
+      }
+      if (verbose)
+        cat(
+          "Discard focal markers with less than",
+          min_nhaplo,
+          "evaluated haplotypes in population 2.\n"
+        )
+      
+      mrk_sel <-
+        scan_pop2[[nhaplo1_col_nr]] + scan_pop2[[nhaplo2_col_nr]] >= min_nhaplo
+      
+      if (sum(mrk_sel) == nrow(scan_pop2)) {
+        if (verbose)
+          cat("No marker discarded.\n")
+      } else{
+        if (verbose)
+          cat(nrow(scan_pop2) - sum(mrk_sel), "markers discarded.\n")
+        
+        scan_pop2 <- scan_pop2[mrk_sel, ]
+        
+        if (verbose)
+          cat(nrow(scan_pop2), "markers remaining.\n")
+        
+      }
+      
+    }
+    
     if (verbose) {
       cat("Scan of pop1 contains", nrow(scan_pop1), "markers.\n")
       cat("Scan of pop2 contains", nrow(scan_pop2), "markers.\n")
@@ -147,6 +230,11 @@ ies2xpehh <-
       suffixes = suffixes,
       sort = FALSE
     )
+    
+    if (nrow(res) == 0) {
+      stop("Merged data contains no marker.",
+           call. = FALSE)
+    }
     
     # remove big objects
     rm(scan_pop1)
@@ -170,6 +258,9 @@ ies2xpehh <-
     
     un_log_ratio <-
       log(res[[paste0(initial_score_colname, suffixes[1])]] / res[[paste0(initial_score_colname, suffixes[2])]])
+    
+    # replace infinity by NA
+    un_log_ratio[is.infinite(un_log_ratio)] <- NA
     
     # remove iES values
     res[paste0(initial_score_colname, suffixes)] <- NULL

@@ -3,9 +3,10 @@
 #'@param furcation an object of \code{\link{furcation-class}}.
 #'@param allele the allele to be considered (default 0).
 #'@param side side (either \code{"left"} or \code{"right"}).
-#'@param hap.names names/labels of chromosomes in haplotype data file. Per default
-#'haplotypes are numbered by their order in the input file.
-#'@seealso \code{\link{ftree-class}}, \code{\link{calc_furcation}}, \code{\link{plot.furcation}}
+#'@param hap.names names/labels of chromosomes in haplotype data file.
+#'Per default haplotypes are numbered by their order in the input file.
+#'@seealso \code{\link{ftree-class}}, \code{\link{calc_furcation}},
+#'\code{\link{plot.furcation}}
 #'@examples #example haplohh object (280 haplotypes, 1424 SNPs)
 #'#see ?haplohh_cgu_bta12 for details
 #'data(haplohh_cgu_bta12)
@@ -40,25 +41,25 @@ as.newick <-
     if (!is.null(hap.names)) {
       if (length(hap.names) != furcation@nhap) {
         stop(
-          "Number of specified haplotype names has to be equal to number of haplotypes.",
+          "Number of specified haplotype names must match the number of haplotypes.",
           call. = FALSE
         )
       }
     } else{
       hap.names <- seq_len(furcation@nhap)
     }
-    
+
     ##calculations
     if (side == "left") {
       ftree <- furcation[[allele]]@left
     } else{
       ftree <- furcation[[allele]]@right
     }
-    
+
     ## usage of temporary file is a work-around for
-    ## C string streams are missing under Windows 
+    ## C string streams are missing under Windows
     tmp_file_name <- tempfile()
-    
+
     #calculation and output done by C
     if (.Call(
       "CALL_ASNEWICK",
@@ -75,7 +76,7 @@ as.newick <-
     } else{
       stop("Could not write to a temporary file.", call. = FALSE)
     }
-    
+
     unlink(tmp_file_name)
     return(newick)
   }

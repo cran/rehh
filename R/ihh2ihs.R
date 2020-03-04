@@ -182,7 +182,7 @@ ihh2ihs <- function(scan,
       if (verbose)
         cat(nrow(scan) - sum(mrk_sel), "markers discarded.\n")
       
-      scan <- scan[mrk_sel,]
+      scan <- scan[mrk_sel, ]
       
       if (verbose)
         cat(nrow(scan), "markers remaining.\n")
@@ -210,7 +210,7 @@ ihh2ihs <- function(scan,
       if (verbose)
         cat(nrow(scan) - sum(mrk_sel), "markers discarded.\n")
       
-      scan <- scan[mrk_sel,]
+      scan <- scan[mrk_sel, ]
       
       if (verbose)
         cat(nrow(scan), "markers remaining.\n")

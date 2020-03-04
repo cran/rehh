@@ -4,9 +4,17 @@
 \alias{freqbinplot}
 \title{Plot of unstandardized iHS within frequency bins}
 \usage{
-freqbinplot(x, spectrum = FALSE, main = NA,
-  xlab = "Derived allele frequency", ylab = NA, xlim = c(0, 1),
-  ylim = NULL, pch = 20, ...)
+freqbinplot(
+  x,
+  spectrum = FALSE,
+  main = NA,
+  xlab = "Derived allele frequency",
+  ylab = NA,
+  xlim = c(0, 1),
+  ylim = NULL,
+  pch = 20,
+  ...
+)
 }
 \arguments{
 \item{x}{data (output of function \code{ihh2ihs})}

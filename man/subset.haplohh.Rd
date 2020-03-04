@@ -4,9 +4,16 @@
 \alias{subset.haplohh}
 \title{Subsets object of \code{\link{haplohh-class}}}
 \usage{
-\method{subset}{haplohh}(x, select.hap = NULL, select.mrk = NULL,
-  min_perc_geno.hap = NA, min_perc_geno.mrk = 100, min_maf = NA,
-  verbose = TRUE, ...)
+\method{subset}{haplohh}(
+  x,
+  select.hap = NULL,
+  select.mrk = NULL,
+  min_perc_geno.hap = NA,
+  min_perc_geno.mrk = 100,
+  min_maf = NA,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{x}{object of class \code{\link{haplohh-class}} to be subset.}

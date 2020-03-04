@@ -13,7 +13,7 @@
  * R objects are marked by a trailing underscore.
  */
 SEXP CALL_SCAN_HH(SEXP data_, SEXP nbr_chr_, SEXP nbr_mrk_, SEXP first_allele_, SEXP second_allele_,
-                  SEXP lim_haplo_, SEXP lim_ehh_, SEXP lim_ehhs_,
+                  SEXP lim_haplo_, SEXP lim_homo_haplo_, SEXP lim_ehh_, SEXP lim_ehhs_,
                   SEXP scale_gap_, SEXP max_gap_, SEXP map_, SEXP phased_, SEXP discard_integration_at_border_,
                   SEXP lower_ehh_y_bound_, SEXP lower_ehhs_y_bound_, SEXP nbr_threads_) {
 
@@ -27,6 +27,7 @@ SEXP CALL_SCAN_HH(SEXP data_, SEXP nbr_chr_, SEXP nbr_mrk_, SEXP first_allele_, 
 	int nbr_chr = asInteger(nbr_chr_);
 	int nbr_mrk = asInteger(nbr_mrk_);
 	int lim_haplo = asInteger(lim_haplo_);
+	int lim_homo_haplo = asInteger(lim_homo_haplo_);
 	double lim_ehh = asReal(lim_ehh_);
 	double lim_ehhs = asReal(lim_ehhs_);
 	int max_gap = asInteger(max_gap_);
@@ -63,77 +64,67 @@ SEXP CALL_SCAN_HH(SEXP data_, SEXP nbr_chr_, SEXP nbr_mrk_, SEXP first_allele_, 
 		ines[i] = 0.0;
 	}
 
-	int idx_thread;
-	int **nhaplo; // re-used for each marker
-	double **ehh, **ehhs, **nehhs;
-
-	nhaplo = (int **) malloc(nbr_threads * sizeof(int *));          // Allocate memory for thread-specific vectors
-	ehh = (double **) malloc(nbr_threads * sizeof(double *));
-	ehhs = (double **) malloc(nbr_threads * sizeof(double *));
-	nehhs = (double **) malloc(nbr_threads * sizeof(double *));
-
-	for (int i = 0; i < nbr_threads; i++) {
-		nhaplo[i] = (int *) malloc(nbr_mrk * sizeof(int));
-		ehh[i] = (double *) malloc(nbr_mrk * sizeof(double));
-		ehhs[i] = (double *) malloc(nbr_mrk * sizeof(double));
-		nehhs[i] = (double *) malloc(nbr_mrk * sizeof(double));
-	}
-
+	int j;
+	
 #ifdef _OPENMP
-#pragma omp parallel for num_threads(nbr_threads) private(idx_thread)
+#pragma omp parallel num_threads(nbr_threads) private(j)
+{
 #endif
-
-	for (int j = 0; j < nbr_mrk; j++) {
-
+  
+  int* nhaplo = (int *) malloc(nbr_mrk * sizeof(int));
+  double* ehh = (double *) malloc(nbr_mrk * sizeof(double));
+  double* ehhs = (double *) malloc(nbr_mrk * sizeof(double));
+  double* nehhs = (double *) malloc(nbr_mrk * sizeof(double));
+  
 #ifdef _OPENMP
-		idx_thread = omp_get_thread_num();
-#else
-		idx_thread = 0;
+#pragma omp for schedule(dynamic, 256)
 #endif
+  
+	for (j = 0; j < nbr_mrk; j++) {
+
 		// compute EHH for the ancestral allele
-		calc_ehh(data, nbr_chr, nbr_mrk, j, first_allele[j], lim_haplo, lim_ehh, phased, nhaplo[idx_thread],
-				ehh[idx_thread]);
+		calc_ehh(data, nbr_chr, nbr_mrk, j, first_allele[j], lim_haplo, lim_homo_haplo, lim_ehh, phased, nhaplo,
+				ehh);
 		
 		// store nhaplo for ancestral allele at focal marker
-		nhaplo_A[j] = nhaplo[idx_thread][j];
+		nhaplo_A[j] = nhaplo[j];
 		
 		// compute IHH for the ancestral allele
-		ihhA[j] = integrate(map, ehh[idx_thread], nbr_mrk, j, lim_ehh, scale_gap, max_gap, discard_integration_at_border,
+		ihhA[j] = integrate(map, ehh, nbr_mrk, j, lim_ehh, scale_gap, max_gap, discard_integration_at_border,
                       lower_ehh_y_bound);
 
 		// compute EHH for the derived allele
-		calc_ehh(data, nbr_chr, nbr_mrk, j, second_allele[j], lim_haplo, lim_ehh, phased, nhaplo[idx_thread],
-				ehh[idx_thread]);
+		calc_ehh(data, nbr_chr, nbr_mrk, j, second_allele[j], lim_haplo, lim_homo_haplo, lim_ehh, phased, nhaplo,
+				ehh);
 		
 		// store nhaplo for derived allele at focal marker
-		nhaplo_D[j] = nhaplo[idx_thread][j];
+		nhaplo_D[j] = nhaplo[j];
 		
 		// compute IHH for the derived allele
-		ihhD[j] = integrate(map, ehh[idx_thread], nbr_mrk, j, lim_ehh, scale_gap, max_gap, discard_integration_at_border,
+		ihhD[j] = integrate(map, ehh, nbr_mrk, j, lim_ehh, scale_gap, max_gap, discard_integration_at_border,
                       lower_ehh_y_bound);
 
 		//compute EHHS for both Tang et al.'s (2007) and Sabeti et al.'s (2007) definitions
-		calc_ehhs(data, nbr_chr, nbr_mrk, j, lim_haplo, lim_ehhs, phased, nhaplo[idx_thread],
-				ehhs[idx_thread], nehhs[idx_thread]);
+		calc_ehhs(data, nbr_chr, nbr_mrk, j, lim_haplo, lim_homo_haplo, lim_ehhs, phased, nhaplo,
+				ehhs, nehhs);
 		//compute IES, using Tang et al.'s (2007) definition of EHHS
-		ies[j] = integrate(map, ehhs[idx_thread], nbr_mrk, j, lim_ehhs, scale_gap, max_gap,
+		ies[j] = integrate(map, ehhs, nbr_mrk, j, lim_ehhs, scale_gap, max_gap,
 				discard_integration_at_border, lower_ehhs_y_bound);
 		//compute IES, using Sabeti et al.'s (2007) definition of EHHS
-		ines[j] = integrate(map, nehhs[idx_thread], nbr_mrk, j, lim_ehhs, scale_gap, max_gap,
+		ines[j] = integrate(map, nehhs, nbr_mrk, j, lim_ehhs, scale_gap, max_gap,
 				discard_integration_at_border, lower_ehhs_y_bound);
 	}
 
-	for (int i = 0; i < nbr_threads; i++) {
-		free(ehh[i]);
-		free(ehhs[i]);
-		free(nehhs[i]);
-		free(nhaplo[i]);
-	}
+
 	free(ehh);
 	free(ehhs);
 	free(nehhs);
 	free(nhaplo);
-
+	
+#ifdef _OPENMP
+}
+#endif
+  
 	//create R list of length 6
 	SEXP list_ = PROTECT(allocVector(VECSXP, 6));
 

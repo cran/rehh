@@ -4,8 +4,7 @@
 \alias{as.newick}
 \title{Convert a furcation tree into Newick format}
 \usage{
-as.newick(furcation, allele = 0, side,
-  hap.names = seq_len(furcation@nhap))
+as.newick(furcation, allele = 0, side, hap.names = seq_len(furcation@nhap))
 }
 \arguments{
 \item{furcation}{an object of \code{\link{furcation-class}}.}
@@ -14,8 +13,8 @@ as.newick(furcation, allele = 0, side,
 
 \item{side}{side (either \code{"left"} or \code{"right"}).}
 
-\item{hap.names}{names/labels of chromosomes in haplotype data file. Per default
-haplotypes are numbered by their order in the input file.}
+\item{hap.names}{names/labels of chromosomes in haplotype data file.
+Per default haplotypes are numbered by their order in the input file.}
 }
 \description{
 Convert a furcation tree into Newick format.
@@ -31,5 +30,6 @@ f <- calc_furcation(haplohh_cgu_bta12, mrk = "F1205400")
 as.newick(f, 0, "left")
 }
 \seealso{
-\code{\link{ftree-class}}, \code{\link{calc_furcation}}, \code{\link{plot.furcation}}
+\code{\link{ftree-class}}, \code{\link{calc_furcation}},
+\code{\link{plot.furcation}}
 }

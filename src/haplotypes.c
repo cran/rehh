@@ -21,8 +21,15 @@
  * Only for debugging. Prints the index(+1) of the marker and the indices(+1) of chromosomes, ordered by haplotype.
  */
 void print_haplotypes(const int mrk, const int *hap, const int *nbr_hap, const int *nbr_chr_with_hap) {
-	printf("Haplotypes at marker %i: ", mrk + 1);
-  printf("Number of distinct haplotypes : %i\n",*nbr_hap);
+  int tot_nbr_chr_in_hap = 0;
+  
+  for (int i = 0; i < *nbr_hap; i++) {
+    tot_nbr_chr_in_hap += nbr_chr_with_hap[i]; //total number of chromosomes; changes only by missing data
+  }
+  
+  printf("Marker %i: ", mrk + 1);
+  printf("Number haplotypes: %i , ", tot_nbr_chr_in_hap);
+  printf("Distinct : %i\n", *nbr_hap);
 
 	int counter = 0;
 	for (int i = 0; i < *nbr_hap; i++) {

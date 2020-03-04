@@ -452,18 +452,18 @@ test_that("checked_example2", {
     discard_integration_at_border = FALSE,
     include_nhaplo = TRUE
   )
-  expect_equivalent(res$freq, c(4 / 11, 4 / 11, 3 / 11))
+  expect_equivalent(res$freq, c(4 / 11, 3 / 11, 4 / 11))
   expected_ehh_ancestral <-
     c(0, 0, 0, 1 / 6, 1 / 2, 1, 1 / 3, 1 / 6, 0, 0, 0)
-  expected_ehh_derived1 <-
+  expected_ehh_derived1 <- c(rep(1, 10), 0)
+  expected_ehh_derived2 <-
     c(0, 0, 1 / 3, 1 / 3, 1, 1, 1, 1, 0, 0, 0)
-  expected_ehh_derived2 <- c(rep(1, 10), 0)
   expect_identical(res$ehh$EHH_A, expected_ehh_ancestral)
   expect_identical(res$ehh$EHH_D1, expected_ehh_derived1)
   expect_identical(res$ehh$EHH_D2, expected_ehh_derived2)
   expect_identical(res$ehh$NHAPLO_A, c(0L, 0L, 2L, rep(4L, 6), 0L, 0L))
-  expect_identical(res$ehh$NHAPLO_D1, c(0L, 2L, rep(3L, 3), rep(4L, 3), 3L, 0L, 0L))
-  expect_identical(res$ehh$NHAPLO_D2, c(rep(3L, 9), 2L, 2L))
+  expect_identical(res$ehh$NHAPLO_D1, c(rep(3L, 9), 2L, 2L))
+  expect_identical(res$ehh$NHAPLO_D2, c(0L, 2L, rep(3L, 3), rep(4L, 3), 3L, 0L, 0L))
   expected_ihh_A <-
     sum(expected_ehh_ancestral[2:10] * 10000) + sum(expected_ehh_ancestral[c(1, 11)] *
                                                       5000)
@@ -479,7 +479,7 @@ test_that("checked_example2", {
   ## check scan
   scan <- scan_hh(hh, discard_integration_at_border = FALSE)
   expected <- data.frame(
-    CHR = as.factor(rep("chr1", 11)),
+    CHR = rep("chr1", 11),
     POSITION = c(
       10000,
       20000,
@@ -627,6 +627,48 @@ test_that("checked_unpolarized", {
   expect_identical(ihh_2, ihh_3)
   sink()
   file.remove("test_unpolarized.log")
+})
+
+test_that("checked_limhaplo", {
+  sink(file = "test_limhaplo.log")
+  hh <- data2haplohh(
+    hap_file = system.file(
+      "extdata",
+      "example2.vcf",
+      package = "rehh",
+      mustWork = TRUE
+    ),
+    min_perc_geno.mrk = 1
+  )
+  
+  expected_ihh <-
+    c(IHH_A = 18816.6666666667,
+      IHH_D1 = 80512.5,
+      IHH_D2 = 43216.6666666667)
+  ehh <-
+    calc_ehh(
+      hh,
+      mrk = "rs6",
+      limhaplo = 3,
+      discard_integration_at_border = FALSE
+    )
+  expect_equal(ehh$ihh, expected_ihh)
+  
+  expected_ihh <-
+    c(IHH_A = 18816.6666666667,
+      IHH_D1 = 0,
+      IHH_D2 = 28025)
+  ehh <-
+    calc_ehh(
+      hh,
+      mrk = "rs6",
+      limhaplo = 4,
+      discard_integration_at_border = FALSE
+    )
+  expect_equal(ehh$ihh, expected_ihh)
+  
+  sink()
+  file.remove("test_limhaplo.log")
 })
 
 test_that("checked_newick", {

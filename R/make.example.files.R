@@ -44,7 +44,7 @@ make.example.files <- function() {
   )
 
   for (file in rehh.data_files) {
-    file.copy(system.file(file, package = 'rehh.data'),
+    file.copy(system.file(file, package = "rehh.data"),
               file)
     unzip(file)
     #remove zipped files
@@ -65,7 +65,7 @@ make.example.files <- function() {
   )
 
   for (file in extdata_files) {
-    file.copy(system.file('extdata', file, package = "rehh"), file)
+    file.copy(system.file("extdata", file, package = "rehh"), file)
   }
 }
 

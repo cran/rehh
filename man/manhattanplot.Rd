@@ -4,10 +4,30 @@
 \alias{manhattanplot}
 \title{Manhattan plot of iHS, XP-EHH or Rsb over a genome.}
 \usage{
-manhattanplot(data, pval = FALSE, threshold = c(-2, 2),
-  chr.name = NA, cr = NULL, cr.col = "gray", cr.opacity = 0.5,
-  cr.lab.cex = 0.6, cr.lab.offset = 0, cr.lab.pos = "top",
-  main = NA, xlim = NULL, cex = 0.5, las = 1, pch = 20, ...)
+manhattanplot(
+  data,
+  pval = FALSE,
+  threshold = c(-2, 2),
+  chr.name = NA,
+  cr = NULL,
+  cr.col = "gray",
+  cr.opacity = 0.5,
+  cr.lab.cex = 0.6,
+  cr.lab.offset = 0,
+  cr.lab.pos = "top",
+  mrk = NULL,
+  mrk.cex = 1,
+  mrk.col = "gray",
+  mrk.pch = 1,
+  mrk.lab.cex = 0.4,
+  mrk.lab.pos = 4,
+  ignore_sign = FALSE,
+  cex = 0.5,
+  las = 1,
+  pch = 20,
+  resolution = NULL,
+  ...
+)
 }
 \arguments{
 \item{data}{output of either \code{\link{ihh2ihs}}, \code{\link{ies2xpehh}} or \code{\link{ines2rsb}}.}
@@ -20,9 +40,8 @@ A single value (upper or lower threshold) or two values (upper and lower) can be
 
 \item{chr.name}{if \code{NA} (default), all chromosomes are plotted, otherwise only those specified.}
 
-\item{cr}{highlight "candidate regions" specified by a data.frame with three
-columns: the first containing the chromosome, the other begin and end of the region as
-obtained by the function \code{\link{calc_candidate_regions}}.}
+\item{cr}{highlight "candidate regions" specified by a data.frame with columns \code{CHR}, \code{START}
+and \code{END} as obtained by the function \code{\link{calc_candidate_regions}}.}
 
 \item{cr.col}{the color for highlighting}
 
@@ -34,15 +53,32 @@ obtained by the function \code{\link{calc_candidate_regions}}.}
 
 \item{cr.lab.pos}{if \code{"top"} (default) or \code{"bottom"}, candidate regions are labeled by numbers; to turn off, use \code{"none"}}
 
-\item{main}{main title of the plot.}
+\item{mrk}{highlight marker specified by a data.frame containing the
+colums \code{CHR} and \code{POSITION}. The row names of that data frame are taken as labels.
+Alternatively a vector with marker IDs can be specified. In the latter case the ID is used as label.}
 
-\item{xlim}{set x coordinate range of the plot. Ignored, if more than one chromosome is depicted.}
+\item{mrk.cex}{size of marker label.}
+
+\item{mrk.col}{color of the highlighted points.}
+
+\item{mrk.pch}{type of the highlighted points.}
+
+\item{mrk.lab.cex}{text size of marker label. If zero, no labels are printed.}
+
+\item{mrk.lab.pos}{a position specifier for the text.
+Values of 1, 2, 3 and 4, respectively indicate positions below, to the left of, above and to the right of the highlighted marker.}
+
+\item{ignore_sign}{logical. If \code{TRUE}, absolute values are plotted.}
 
 \item{cex}{size of the points representing markers in the plot(s) (see \code{\link[graphics]{par}}).}
 
 \item{las}{orientation of axis labels (see \code{\link[graphics]{par}}).}
 
 \item{pch}{type of the points representing markers in the plot(s) (see \code{\link[graphics]{points}}).}
+
+\item{resolution}{Rasterize data points to the specified resolution and remove
+duplicate points. Defaults to NULL, i.e. no rasterization. A typical value might be \code{c(1E5, 0.01)},
+meaning that resolution on the x-axis (chromosomal position) is 100000 and on the y-axis (score or p-value) is 0.01.}
 
 \item{...}{further arguments to be passed to \code{\link[graphics]{plot.default}}.}
 }
@@ -54,6 +90,9 @@ Manhattanplot of iHS, XP-EHH or Rsb over a genome.
 }
 \details{
 The color of chromosomes is taken from the "Graphics Palette", see \code{\link[grDevices]{palette}}.
+
+If a single chromosome is plotted, a genomic region can be specified by
+argument \code{xlim}.
 }
 \examples{
 library(rehh.data)

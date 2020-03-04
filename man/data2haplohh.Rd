@@ -4,12 +4,23 @@
 \alias{data2haplohh}
 \title{Convert data from input file to an object of class haplohh}
 \usage{
-data2haplohh(hap_file, map_file = NA, min_perc_geno.hap = NA,
-  min_perc_geno.mrk = 100, min_maf = NA, chr.name = NA,
-  popsel = NA, recode.allele = FALSE, allele_coding = "12",
-  haplotype.in.columns = FALSE, remove_multiple_markers = FALSE,
-  polarize_vcf = TRUE, capitalize_AA = TRUE,
-  position_scaling_factor = NA, verbose = TRUE)
+data2haplohh(
+  hap_file,
+  map_file = NA,
+  min_perc_geno.hap = NA,
+  min_perc_geno.mrk = 100,
+  min_maf = NA,
+  chr.name = NA,
+  popsel = NA,
+  recode.allele = FALSE,
+  allele_coding = "12",
+  haplotype.in.columns = FALSE,
+  remove_multiple_markers = FALSE,
+  polarize_vcf = TRUE,
+  capitalize_AA = TRUE,
+  position_scaling_factor = NA,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{hap_file}{file containing haplotype data (see details below).}

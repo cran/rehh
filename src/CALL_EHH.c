@@ -6,8 +6,8 @@
  * Interface between R and C.
  * R objects are marked by a trailing underscore.
  */
-SEXP CALL_EHH(SEXP data_, SEXP nbr_chr_, SEXP nbr_mrk_, SEXP foc_mrk_, SEXP foc_all_, SEXP lim_haplo_, SEXP lim_ehh_,
-		SEXP phased_) {
+SEXP CALL_EHH(SEXP data_, SEXP nbr_chr_, SEXP nbr_mrk_, SEXP foc_mrk_, SEXP foc_all_, SEXP lim_haplo_, SEXP lim_homo_haplo_,
+              SEXP lim_ehh_, SEXP phased_) {
 
 	//get pointer to R data vector
 	int *data = INTEGER(data_);
@@ -18,6 +18,7 @@ SEXP CALL_EHH(SEXP data_, SEXP nbr_chr_, SEXP nbr_mrk_, SEXP foc_mrk_, SEXP foc_
 	int foc_mrk = asInteger(foc_mrk_) - 1; //change to C indexing!
 	int foc_all = asInteger(foc_all_);
 	int lim_haplo = asInteger(lim_haplo_);
+	int lim_homo_haplo = asInteger(lim_homo_haplo_);
 	double lim_ehh = asReal(lim_ehh_);
 	int phased = asInteger(phased_);
 
@@ -31,7 +32,7 @@ SEXP CALL_EHH(SEXP data_, SEXP nbr_chr_, SEXP nbr_mrk_, SEXP foc_mrk_, SEXP foc_
 	double* ehh = REAL(ehh_);
 
 	//perform calculation
-	calc_ehh(data, nbr_chr, nbr_mrk, foc_mrk, foc_all, lim_haplo, lim_ehh, phased, nhaplo_eval, ehh);
+	calc_ehh(data, nbr_chr, nbr_mrk, foc_mrk, foc_all, lim_haplo, lim_homo_haplo, lim_ehh, phased, nhaplo_eval, ehh);
 
 	//create R list of length 2
 	SEXP list_ = PROTECT(allocVector(VECSXP, 2));

@@ -3,8 +3,7 @@
 haplen <- setClass("haplen",
                    contains = "list")
 
-is.haplen <- function (x)
-{
+is.haplen <- function(x){
   res <- (is(x, "haplen") & validObject(x))
   return(res)
 }

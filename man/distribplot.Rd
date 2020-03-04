@@ -4,9 +4,15 @@
 \alias{distribplot}
 \title{Plot distribution of standardized iHS, Rsb or XP-EHH values}
 \usage{
-distribplot(data, lty = 1, lwd = 1.5, col = c("blue", "red"),
-  main = "Genome-wide distribution", xlab = "", qqplot = FALSE,
-  pch = 20, ...)
+distribplot(
+  data,
+  lty = 1,
+  lwd = 1.5,
+  col = c("blue", "red"),
+  qqplot = FALSE,
+  resolution = 0.01,
+  ...
+)
 }
 \arguments{
 \item{data}{a vector of iHS, Rsb or XPEHH values.}
@@ -17,13 +23,10 @@ distribplot(data, lty = 1, lwd = 1.5, col = c("blue", "red"),
 
 \item{col}{a vector describing the colors of the observed and Gaussian distribution, respectively.}
 
-\item{main}{an overall title for the plot.}
-
-\item{xlab}{a title for the x axis.}
-
 \item{qqplot}{logical. If \code{TRUE} a qq-plot is drawn instead of the distribution density curve.}
 
-\item{pch}{point character for qqplot (see \code{\link[graphics]{points}}).}
+\item{resolution}{affects only qqplot. Rasterize data points to a quadratic grid with the specified resolution and remove
+duplicate points. Defaults to 0.01.}
 
 \item{...}{further arguments passed to \code{\link[graphics]{plot.default}}.}
 }
