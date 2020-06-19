@@ -1,9 +1,9 @@
 #include <R.h>
-#include <Rinternals.h>
+#include "definitions.h"
 #include "calc_furcation.h"
 
-SEXP CALL_FURCATION(SEXP data_, SEXP nbr_chr_, SEXP foc_mrk_, SEXP end_mrk_, SEXP foc_all_, SEXP lim_haplo_,
-		SEXP phased_) {
+SEXP CALL_FURCATION(SEXP data_, SEXP nbr_chr_, SEXP foc_mrk_, SEXP end_mrk_, SEXP foc_all_, 
+                    SEXP lim_haplo_, SEXP phased_) {
 	//get pointer to R data vector
 	int *data = INTEGER(data_);
 
@@ -13,7 +13,7 @@ SEXP CALL_FURCATION(SEXP data_, SEXP nbr_chr_, SEXP foc_mrk_, SEXP end_mrk_, SEX
 	int foc_mrk = asInteger(foc_mrk_) - 1; //change to C indexing
 	int foc_all = asInteger(foc_all_);
 	int lim_haplo = asInteger(lim_haplo_);
-	int phased = asInteger(phased_);
+	bool phased = asLogical(phased_);
 
 	//create R vectors
 	SEXP node_mrk_ = PROTECT(allocVector(INTSXP, 2 * nbr_chr - 1));

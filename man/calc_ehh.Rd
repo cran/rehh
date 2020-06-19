@@ -20,7 +20,8 @@ calc_ehh(
   scalegap = NA,
   maxgap = NA,
   discard_integration_at_border = TRUE,
-  lower_y_bound = limehh
+  lower_y_bound = limehh,
+  interpolate = TRUE
 )
 }
 \arguments{
@@ -64,6 +65,10 @@ iHH is set to \code{NA}.}
 
 \item{lower_y_bound}{lower y boundary of the area to be integrated over (default: \code{limehh}). Can be set
 to zero for compatibility with the program hapbin.}
+
+\item{interpolate}{logical. Affects only IHH values. If \code{TRUE} (default), integration
+is performed over a continuous EHH curve (values are interpolated linearly between consecutive markers),
+otherwise the EHH curve decreases stepwise at markers.}
 }
 \value{
 The returned value is a list containing the following elements:

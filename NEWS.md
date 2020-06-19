@@ -1,4 +1,14 @@
+### rehh 3.1.1 (June 19, 2020)
+
+* option to use stepwise continuous EHH(S) curves for integration and plotting
+* refactored C-code for calculation of furcation trees
+  + bug fix for false rendering of missing values in furcations of unphased data
+* bug fix: removed reliance of examples and tests on suggested packages
+* updated section on calc_ehh() in main vignette
+* added functions calc_pairwise_haplen() and scan_hh_full()
+
 ### rehh 3.1.0 (March 03, 2020)
+
 * functions ies2xpehh() and ines2rsb():
   + bug fix for unphased data and markers with no homozygous individuals
 * function manhattanplot(): 

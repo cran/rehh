@@ -2,14 +2,14 @@
 #'@description Plot curve of EHH values around a focal marker.
 #'@param x data (output of \code{\link{calc_ehh}}).
 #'@param ylim the y limits of the plot
-#'@param type plot type (see \code{\link[graphics]{matplot}}).
+#'@param type plot type (see code{\link[graphics]{plot.default}} and \code{\link[graphics]{matplot}}). 
+#'Type \code{"s"} or \code{"S"} yield both (the same) piecewise constant curve.
 #'@param main title for the plot (default \code{NA}, i.e. none).
 #'@param xlab title for the x-axis.
 #'@param ylab title for the y-axis.
 #'@param bty box type around plot (see \code{\link[graphics]{par}}).
 #'@param col color for the ancestral and derived alleles (respectively) curves.
 #'@param mrk.col color of the vertical line at the focal marker position.
-#'@param lty line type for the ancestral and derived allele EHH (respectively) curves.
 #'@param legend legend text.
 #'@param legend.xy.coords if \code{"automatic"} (default) places legend either top left or top right;
 #'if \code{"none"}, no legend is drawn; otherwise the argument is passed to \code{\link[graphics]{legend}}.
@@ -35,7 +35,6 @@ plot.ehh <-
            col = c("blue", "red", "violet", "orange"),
            mrk.col = "gray",
            bty = "n",
-           lty = 1,
            legend = NA,
            legend.xy.coords = "automatic",
            ...) {
@@ -77,20 +76,55 @@ plot.ehh <-
     dot_args <- list(...)
     if (!is.null(dot_args$xlim)) {
       dot_args$xlim <- dot_args$xlim / scale
+    } else{
+      dot_args$xlim <- range(x$ehh$POSITION / scale)
     }
     
-    do.call("matplot", c(
+    if (is.null(dot_args$lty)) {
+      dot_args$lty <- 1
+    }
+    
+    do.call("plot", c(
       list(
-        x = x$ehh$POSITION / scale,
-        y = ehh,
+        0,
         ylim = ylim,
-        type = type,
         main = main,
-        xlab = paste(xlab, unit),
+        xlab = ifelse(xlab == "Position", paste(xlab, unit), xlab),
         ylab = ylab,
-        bty = bty,
-        col = description_colors,
-        lty = lty
+        bty = bty
+      ),
+      dot_args
+    ))
+    
+    # split data into left and right (necessary for step-wise curve)
+    foc_index <- which(x$ehh$POSITION == foc_pos)
+    left_x <- x$ehh$POSITION[1:foc_index]
+    left_y <- ehh[1:foc_index, ]
+    right_x <- x$ehh$POSITION[foc_index:length(x$ehh$POSITION)]
+    right_y <- ehh[foc_index:length(x$ehh$POSITION), ]
+    
+    # change all "s" to upper case
+    type <- chartr("s","S",type)
+    
+    do.call("matlines", c(
+      list(
+        x = left_x / scale,
+        y = left_y,
+        type = type,
+        col = description_colors
+      ),
+      dot_args
+    ))
+    
+    # change all "S" to lower case
+    type <- chartr("S","s",type)
+    
+    do.call("matlines", c(
+      list(
+        x = right_x / scale,
+        y = right_y,
+        type = type,
+        col = description_colors
       ),
       dot_args
     ))
@@ -111,7 +145,7 @@ plot.ehh <-
           legend = description,
           bty = bty,
           col = description_colors,
-          lty = lty,
+          lty = dot_args$lty,
           xpd = TRUE
         )
       } else{
@@ -130,7 +164,7 @@ plot.ehh <-
             legend = description,
             bty = bty,
             col = description_colors,
-            lty = lty,
+            lty = dot_args$lty,
             xpd = TRUE
           )
         }

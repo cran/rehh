@@ -1,5 +1,5 @@
 #include <R.h>
-#include <Rinternals.h>
+#include "definitions.h"
 #include "calc_ehh.h"
 
 /**
@@ -20,7 +20,7 @@ SEXP CALL_EHH(SEXP data_, SEXP nbr_chr_, SEXP nbr_mrk_, SEXP foc_mrk_, SEXP foc_
 	int lim_haplo = asInteger(lim_haplo_);
 	int lim_homo_haplo = asInteger(lim_homo_haplo_);
 	double lim_ehh = asReal(lim_ehh_);
-	int phased = asInteger(phased_);
+	bool phased = asLogical(phased_);
 
 	//create R integer vector
 	SEXP nhaplo_eval_ = PROTECT(allocVector(INTSXP, nbr_mrk));

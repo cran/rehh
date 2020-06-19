@@ -1,5 +1,5 @@
 #include <R.h>
-#include <Rinternals.h>
+#include "definitions.h"
 #include "calc_ehh.h"
 #include "calc_ehhs.h"
 #include "integrate.h"
@@ -12,10 +12,10 @@
  * Interface between R and C.
  * R objects are marked by a trailing underscore.
  */
-SEXP CALL_SCAN_HH(SEXP data_, SEXP nbr_chr_, SEXP nbr_mrk_, SEXP first_allele_, SEXP second_allele_,
-                  SEXP lim_haplo_, SEXP lim_homo_haplo_, SEXP lim_ehh_, SEXP lim_ehhs_,
-                  SEXP scale_gap_, SEXP max_gap_, SEXP map_, SEXP phased_, SEXP discard_integration_at_border_,
-                  SEXP lower_ehh_y_bound_, SEXP lower_ehhs_y_bound_, SEXP nbr_threads_) {
+SEXP CALL_SCAN_HH(SEXP data_, SEXP nbr_chr_, SEXP nbr_mrk_, SEXP first_allele_, SEXP second_allele_, SEXP map_,
+                  SEXP lim_haplo_, SEXP lim_homo_haplo_, SEXP lim_ehh_, SEXP lim_ehhs_, 
+                  SEXP lower_ehh_y_bound_, SEXP lower_ehhs_y_bound_, SEXP scale_gap_, SEXP max_gap_,  
+                  SEXP phased_, SEXP discard_integration_at_border_, SEXP interpolate_, SEXP nbr_threads_) {
 
 	//get pointer to R data vectors
 	int* data = INTEGER(data_);
@@ -30,12 +30,13 @@ SEXP CALL_SCAN_HH(SEXP data_, SEXP nbr_chr_, SEXP nbr_mrk_, SEXP first_allele_, 
 	int lim_homo_haplo = asInteger(lim_homo_haplo_);
 	double lim_ehh = asReal(lim_ehh_);
 	double lim_ehhs = asReal(lim_ehhs_);
-	int max_gap = asInteger(max_gap_);
-	int scale_gap = asInteger(scale_gap_);
-	int phased = asInteger(phased_);
-	int discard_integration_at_border = asInteger(discard_integration_at_border_);
 	double lower_ehh_y_bound = asReal(lower_ehh_y_bound_);
 	double lower_ehhs_y_bound = asReal(lower_ehhs_y_bound_);
+	int max_gap = asInteger(max_gap_);
+	int scale_gap = asInteger(scale_gap_);
+	bool phased = asLogical(phased_);
+	bool discard_integration_at_border = asLogical(discard_integration_at_border_);
+	bool interpolate = asLogical(interpolate_);
 	int nbr_threads = asInteger(nbr_threads_);
 
 	//create R numerical vectors
@@ -91,7 +92,7 @@ SEXP CALL_SCAN_HH(SEXP data_, SEXP nbr_chr_, SEXP nbr_mrk_, SEXP first_allele_, 
 		
 		// compute IHH for the ancestral allele
 		ihhA[j] = integrate(map, ehh, nbr_mrk, j, lim_ehh, scale_gap, max_gap, discard_integration_at_border,
-                      lower_ehh_y_bound);
+                      lower_ehh_y_bound, interpolate);
 
 		// compute EHH for the derived allele
 		calc_ehh(data, nbr_chr, nbr_mrk, j, second_allele[j], lim_haplo, lim_homo_haplo, lim_ehh, phased, nhaplo,
@@ -102,17 +103,17 @@ SEXP CALL_SCAN_HH(SEXP data_, SEXP nbr_chr_, SEXP nbr_mrk_, SEXP first_allele_, 
 		
 		// compute IHH for the derived allele
 		ihhD[j] = integrate(map, ehh, nbr_mrk, j, lim_ehh, scale_gap, max_gap, discard_integration_at_border,
-                      lower_ehh_y_bound);
+                      lower_ehh_y_bound, interpolate);
 
 		//compute EHHS for both Tang et al.'s (2007) and Sabeti et al.'s (2007) definitions
 		calc_ehhs(data, nbr_chr, nbr_mrk, j, lim_haplo, lim_homo_haplo, lim_ehhs, phased, nhaplo,
 				ehhs, nehhs);
 		//compute IES, using Tang et al.'s (2007) definition of EHHS
 		ies[j] = integrate(map, ehhs, nbr_mrk, j, lim_ehhs, scale_gap, max_gap,
-				discard_integration_at_border, lower_ehhs_y_bound);
+				discard_integration_at_border, lower_ehhs_y_bound, interpolate);
 		//compute IES, using Sabeti et al.'s (2007) definition of EHHS
 		ines[j] = integrate(map, nehhs, nbr_mrk, j, lim_ehhs, scale_gap, max_gap,
-				discard_integration_at_border, lower_ehhs_y_bound);
+				discard_integration_at_border, lower_ehhs_y_bound, interpolate);
 	}
 
 

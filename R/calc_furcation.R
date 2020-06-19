@@ -162,7 +162,7 @@ calc_furcation <-
         ftree@node_parent <- allelefurcation_list[[2]] + 1L
         #replace marker index by its chromosomal position
         ftree@node_pos <-
-          positions(haplohh)[allelefurcation_list[[1]] + 1]
+          positions(haplohh)[allelefurcation_list[[1]] + 1L]
         #transform to logical
         ftree@node_with_missing_data <-
           as.logical(allelefurcation_list[[3]])

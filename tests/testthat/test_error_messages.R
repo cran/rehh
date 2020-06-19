@@ -112,6 +112,8 @@ test_that("errors_hap_file", {
 })
 
 test_that("errors_ms", {
+  skip_if_not_installed("gap")
+  
   expect_error(data2haplohh("ms.out"),
                "Please select one by specifying its number in 'chr.name'.")
   expect_error(
@@ -126,6 +128,7 @@ test_that("errors_ms", {
 
 
 test_that("errors_vcf", {
+  skip_if_not_installed("vcfR")
   tmp <- tempfile()
   writeLines(
     c(

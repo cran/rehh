@@ -1,206 +1,12 @@
 #checkes various statistics of example 1
 context("examples")
 
-test_that("compare_example_coding", {
-  # example files can be read in by coding "012" and "map"
-  sink(file = "test_compare_coding.log")
-  
-  ## example 1
-  hh1 <-
-    data2haplohh(
-      hap_file = system.file(
-        "extdata",
-        "example1.hap",
-        package = "rehh",
-        mustWork = TRUE
-      ),
-      map_file = system.file(
-        "extdata",
-        "example1.map",
-        package = "rehh",
-        mustWork = TRUE
-      ),
-      allele_coding = "01"
-    )
-  hh2 <-
-    data2haplohh(
-      hap_file = system.file(
-        "extdata",
-        "example1.hap",
-        package = "rehh",
-        mustWork = TRUE
-      ),
-      map_file = system.file(
-        "extdata",
-        "example1.map",
-        package = "rehh",
-        mustWork = TRUE
-      ),
-      allele_coding = "map"
-    )
-  expect_identical(hh1, hh2)
-  
-  hh3 <-
-    data2haplohh(
-      hap_file = system.file(
-        "extdata",
-        "example1.hap",
-        package = "rehh",
-        mustWork = TRUE
-      ),
-      map_file = system.file(
-        "extdata",
-        "example1.map",
-        package = "rehh",
-        mustWork = TRUE
-      ),
-      allele_coding = "none"
-    )
-  expect_identical(hh1, hh3)
-  
-  ## example 2
-  hh1 <-
-    data2haplohh(
-      hap_file = system.file(
-        "extdata",
-        "example2.hap",
-        package = "rehh",
-        mustWork = TRUE
-      ),
-      map_file = system.file(
-        "extdata",
-        "example2.map",
-        package = "rehh",
-        mustWork = TRUE
-      ),
-      allele_coding = "01"
-    )
-  hh2 <-
-    data2haplohh(
-      hap_file = system.file(
-        "extdata",
-        "example2.hap",
-        package = "rehh",
-        mustWork = TRUE
-      ),
-      map_file = system.file(
-        "extdata",
-        "example2.map",
-        package = "rehh",
-        mustWork = TRUE
-      ),
-      allele_coding = "map"
-    )
-  expect_identical(hh1, hh2)
-  
-  sink()
-  
-  file.remove("test_compare_coding.log")
-})
-
-test_that("compare_example_formats", {
-  sink(file = "test_compare_example_formats.log")
-  hh1 <-
-    data2haplohh(
-      hap_file = system.file(
-        "extdata",
-        "example1.hap",
-        package = "rehh",
-        mustWork = TRUE
-      ),
-      map_file = system.file(
-        "extdata",
-        "example1.map",
-        package = "rehh",
-        mustWork = TRUE
-      ),
-      allele_coding = "map"
-    )
-  hh2 <-
-    data2haplohh(hap_file = system.file(
-      "extdata",
-      "example1.vcf",
-      package = "rehh",
-      mustWork = TRUE
-    ))
-  expect_identical(hh1, hh2)
-  sink()
-  sink(file = "test_compare_example_formats.log")
-  hh1 <- data2haplohh(
-    hap_file = system.file(
-      "extdata",
-      "example2.hap",
-      package = "rehh",
-      mustWork = TRUE
-    ),
-    map_file = system.file(
-      "extdata",
-      "example2.map",
-      package = "rehh",
-      mustWork = TRUE
-    ),
-    allele_coding = "01"
-  )
-  hh2 <-
-    data2haplohh(hap_file = system.file(
-      "extdata",
-      "example2.vcf",
-      package = "rehh",
-      mustWork = TRUE
-    ))
-  expect_equivalent(hh1, hh2)
-  sink()
-  ## test with filtering
-  sink(file = "test_compare_example_formats.log")
-  hh1 <- data2haplohh(
-    hap_file = system.file(
-      "extdata",
-      "example2.hap",
-      package = "rehh",
-      mustWork = TRUE
-    ),
-    map_file = system.file(
-      "extdata",
-      "example2.map",
-      package = "rehh",
-      mustWork = TRUE
-    ),
-    allele_coding = "01",
-    min_perc_geno.hap = 50,
-    min_perc_geno.mrk = 50
-  )
-  hh2 <-
-    data2haplohh(
-      hap_file = system.file(
-        "extdata",
-        "example2.vcf",
-        package = "rehh",
-        mustWork = TRUE
-      ),
-      min_perc_geno.hap = 50,
-      min_perc_geno.mrk = 50
-    )
-  expect_equivalent(hh1, hh2)
-  sink()
-  file.remove("test_compare_example_formats.log")
-})
-
 test_that("checked_example1", {
   sink(file = "test_example1.log")
   hh <-
     data2haplohh(
-      hap_file = system.file(
-        "extdata",
-        "example1.hap",
-        package = "rehh",
-        mustWork = TRUE
-      ),
-      map_file = system.file(
-        "extdata",
-        "example1.map",
-        package = "rehh",
-        mustWork = TRUE
-      ),
+      hap_file = "example1.hap",
+      map_file = "example1.map",
       allele_coding = "map"
     )
   
@@ -347,23 +153,36 @@ test_that("checked_example1", {
   scan_regions <- extract_regions(scan, regions)
   
   expect_identical(scan_regions, scan[c(6, 7, 11), ])
-  sink()
+  
+  # check integration over stepwise constant rehh curve
+  ehh <- calc_ehh(
+    hh,
+    mrk = "rs6",
+    discard_integration_at_border = FALSE,
+    phased = FALSE,
+    limehh = 0.05,
+    interpolate = FALSE
+  )
+  expected_ihh_A <- 25000 - 0.05 * 30000
+  expected_ihh_D <- 100000 - 0.05 * 100000
+  expect_equivalent(ehh$ihh, cbind(expected_ihh_A, expected_ihh_D))
+  
+  ehh <- calc_ehh(
+    hh,
+    mrk = "rs6",
+    discard_integration_at_border = FALSE,
+    phased = FALSE,
+    limehh = 0,
+    interpolate = FALSE
+  )
+  expected_ihh_A <- 25000
+  expected_ihh_D <- 100000
+  expect_equivalent(ehh$ihh, cbind(expected_ihh_A, expected_ihh_D))
   
   # check that min_maf excludes mrks
-  sink(file = "test_example1.log")
   hh <- data2haplohh(
-    hap_file = system.file(
-      "extdata",
-      "example1.hap",
-      package = "rehh",
-      mustWork = TRUE
-    ),
-    map_file = system.file(
-      "extdata",
-      "example1.map",
-      package = "rehh",
-      mustWork = TRUE
-    ),
+    hap_file = "example1.hap",
+    map_file = "example1.map",
     allele_coding = "map",
     min_maf = 0.2
   )
@@ -428,18 +247,8 @@ test_that("checked_example1", {
 test_that("checked_example2", {
   sink(file = "test_example2.log")
   hh <- data2haplohh(
-    hap_file = system.file(
-      "extdata",
-      "example2.hap",
-      package = "rehh",
-      mustWork = TRUE
-    ),
-    map_file = system.file(
-      "extdata",
-      "example2.map",
-      package = "rehh",
-      mustWork = TRUE
-    ),
+    hap_file = "example2.hap",
+    map_file = "example2.map",
     allele_coding = "01",
     min_perc_geno.hap = 0,
     min_perc_geno.mrk = 1
@@ -595,12 +404,9 @@ test_that("checked_example2", {
 
 test_that("checked_unpolarized", {
   sink(file = "test_unpolarized.log")
-  hh <- data2haplohh(hap_file = system.file(
-    "extdata",
-    "example1.vcf",
-    package = "rehh",
-    mustWork = TRUE
-  ))
+  hh <- data2haplohh(hap_file = "example1.hap",
+                     map_file = "example1.map", 
+                     allele_coding = "map")
   
   ihh_1 <- scan_hh(hh,
                    discard_integration_at_border = FALSE,
@@ -632,12 +438,9 @@ test_that("checked_unpolarized", {
 test_that("checked_limhaplo", {
   sink(file = "test_limhaplo.log")
   hh <- data2haplohh(
-    hap_file = system.file(
-      "extdata",
-      "example2.vcf",
-      package = "rehh",
-      mustWork = TRUE
-    ),
+    hap_file = "example2.hap",
+    map_file = "example2.map",
+    allele_coding = "map",
     min_perc_geno.mrk = 1
   )
   
@@ -671,60 +474,3 @@ test_that("checked_limhaplo", {
   file.remove("test_limhaplo.log")
 })
 
-test_that("checked_newick", {
-  sink(file = "test_newick.log")
-  hh <- data2haplohh(hap_file = system.file(
-    "extdata",
-    "example1.vcf",
-    package = "rehh",
-    mustWork = TRUE
-  ))
-  f <- calc_furcation(hh, mrk = "rs6")
-  
-  expect_identical(
-    as.newick(f, allele = 0, side = "left"),
-    "(((4:0,(3:0,1:0):10000):10000,2:0):10000);"
-  )
-  expect_identical(
-    as.newick(f, allele = 0, side = "right"),
-    "(((1:0,4:0):10000,(3:0,2:0):20000):10000);"
-  )
-  expect_identical(as.newick(f, allele = 1, side = "left"),
-                   "((5/6/8:0,7:0):50000);")
-  expect_identical(as.newick(f, allele = 1, side = "right"),
-                   "((7/8:0,5/6:0):50000);")
-  
-  hh <- data2haplohh(
-    hap_file = system.file(
-      "extdata",
-      "example2.vcf",
-      package = "rehh",
-      mustWork = TRUE
-    ),
-    min_perc_geno.mrk = 50
-  )
-  
-  f <- calc_furcation(hh, mrk = "rs6")
-  
-  expect_identical(
-    as.newick(f, allele = 0, side = "left"),
-    "(((4:0,(1/3:20000):10000):10000,2:0):10000);"
-  )
-  expect_identical(
-    as.newick(f, allele = 0, side = "right"),
-    "(((1:0,4:0):10000,(3:0,2:0):20000):10000);"
-  )
-  expect_identical(as.newick(f, allele = 1, side = "left"),
-                   "(5/6/8:50000);")
-  expect_identical(as.newick(f, allele = 1, side = "right"),
-                   "(((8:0,5:0):10000,6:0):40000);")
-  expect_identical(
-    as.newick(f, allele = 2, side = "left"),
-    "((((9:0,11:0):20000,10:0):10000,12:0):10000);"
-  )
-  expect_identical(as.newick(f, allele = 2, side = "right"),
-                   "((12:0,11:0,9:0,10:0):30000);")
-  
-  sink()
-  file.remove("test_newick.log")
-})

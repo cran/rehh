@@ -40,9 +40,14 @@
 #'@seealso \code{\link{calc_haplen}}, \code{\link{plot.furcation}}.
 #'@examples #example haplohh object
 #'make.example.files()
-#'hh <- data2haplohh("example1.vcf")
+#'hh <- data2haplohh(hap_file = "example1.hap", 
+#'                    map_file = "example1.map",
+#'                    allele_coding = "01")
 #'plot(hh)
-#'hh <- data2haplohh("example2.vcf", min_perc_geno.mrk = 50)
+#'hh <- data2haplohh(hap_file = "example2.hap", 
+#'                    map_file = "example2.map", 
+#'                    allele_coding = "01", 
+#'                    min_perc_geno.mrk = 50)
 #'plot(hh)
 #'remove.example.files()
 #'@export

@@ -1,46 +1,45 @@
-#'Compute iHH, iES and inES over a whole chromosome
-#'@description Compute integrated EHH (iHH), integrated EHHS (iES) and integrated normalized EHHS (inES)
-#'for all markers of a chromosome (or linkage group).
+#'Compute iHH, iES and inES over a whole chromosome without cut-offs
+#'@description Compute integrated EHH (iHH), integrated EHHS (iES) and integrated normalized EHHS (inES) for all markers of a chromosome (or linkage group).
+#'This function computes the statistics by a slightly different algorithm than \code{\link{scan_hh}}: it sidesteps the calculation of EHH and EHHS values and their subsequent integration and 
+#'consequently no cut-offs relying on these values can be specified. Instead
+#'it computes the full lengths of pairwise shared haplotypes and averages them afterwords.
+#'
+#'This function is (as yet) exclusively intended for the study of general properties of these statistics
+#'using simulated data. The omission of all cut-offs is not recommended for a scan on experimental data.
 #'
 #'@param haplohh an object of class \code{haplohh} (see \code{\link{data2haplohh}})
-#'@param limhaplo if there are less than \code{limhaplo} chromosomes that can be used for
-#'the calculation of EHH(S), the calculation is stopped. The option is intended for the case of missing data,
-#'which leads to the successive exclusion of haplotypes: the further away from the focal marker
-#'the less haplotypes contribute to EHH(S).
-#'@param limhomohaplo if there are less than \code{limhomohaplo} homozygous chromosomes, the
-#'calculation is stopped. This option is intended for unphased data and should be invoked only
-#'if relatively low frequency variants are not filtered subsequently (see main vignette and Klassmann et al. 2020). 
-#'@param limehh limit at which EHH stops to be evaluated.
-#'@param limehhs limit at which EHHS stops to be evaluated.
 #'@param phased logical. If \code{TRUE} (default) chromosomes are expected to be phased. If \code{FALSE}, the haplotype data is assumed to
 #'consist of pairwise ordered chromosomes belonging to diploid individuals.
 #'EHH(S) is then estimated over individuals which are homozygous at the focal marker.
 #'@param polarized logical. \code{TRUE} by default. If \code{FALSE}, use major and minor allele instead of ancestral and derived. If there
 #'are more than two alleles then the minor allele refers to the second-most frequent allele.
-#'@param scalegap scale or cap gaps larger than the specified size to the specified size (default=\code{NA}, i.e. no scaling).
 #'@param maxgap maximum allowed gap in bp between two markers. If exceeded, further calculation of EHH(S) is stopped at the gap
 #'(default=\code{NA}, i.e no limitation).
-#'@param discard_integration_at_border logical. If \code{TRUE} (default) and computation reaches first or last marker or a gap larger than \code{maxgap},
-#'iHH, iES and inES are set to \code{NA}.
-#'@param lower_ehh_y_bound lower y boundary of the area to be integrated over (default: \code{limehh}). Can be set
-#'to zero for compatibility with the program hapbin.
-#'@param lower_ehhs_y_bound lower y boundary of the area to be integrated (default: \code{limehhs}). Can be set
-#'to zero for compatibility with the program hapbin.
-#'@param interpolate logical. If \code{TRUE} (default), integration
-#'is performed over a continuous EHH(S) curve (values are interpolated linearly between consecutive markers),
-#'otherwise the EHH(S) curve decreases stepwise at markers.
+#'@param discard_integration_at_border logical. If \code{TRUE} (default) and computation of any of the statistics reaches first or last 
+#'marker or a gap larger than \code{maxgap}, iHH, iES and inES are set to \code{NA}.
+#'@param geometric.mean logical. If \code{FALSE} (default), the standard arithmetic mean is used to average
+#'shared haplotype lengths. If \code{TRUE} 
+#'the geometric mean is used instead (IES values are undefined in this case). Note that usage of the geometric mean has not 
+#'yet been studied formally and should be considered experimental!
 #'@param threads number of threads to parallelize computation
 #'
 #'@details Integrated EHH (iHH), integrated EHHS (iES) and integrated normalized EHHS (inES)
-#'are computed for all markers of the chromosome (or linkage group). This function is several
-#'times faster as a procedure calling in turn \code{calc_ehh} and \code{calc_ehhs}
-#'for all markers. To perform a whole genome-scan this function needs
-#'to be called for each chromosome and results concatenated.
+#'are computed for all markers of the chromosome (or linkage group). This function sidesteps
+#'the computation of EHH and EHHS values and their stepwise integration. Instead, the length of all shared haplotypes
+#'is computed and afterwords averaged.  In the absence of missing values the
+#'statistics are identical to those calculated by \code{\link{scan_hh}} with settings
+#'\code{limehh = 0}, \code{limehhs = 0} and \code{interpolate = FALSE}, yet this function is faster. 
+#'The former two settings are however not recommended for the application on experimental data
+#'(see vignette).
 #'
-#'Note that setting \code{limehh} or \code{limehhs} to zero is likely to reduce power, 
-#'since even under neutrality a tiny fraction (<<0.05) of extremely long shared haplotypes is expected
-#'which, if fully accounted for, would obfuscate the signal at selected sites.
+#'If \code{discard_integration_at_border} is set to \code{TRUE} and the extension of shared haplotypes
+#'reaches a border (i.e. chromosomal boundaries or a gap larger than \code{maxgap}), this function discards all statistics, 
+#'while \code{\link{scan_hh}} handles each statistic independently. 
 #'
+#'\code{\link{scan_hh}} "removes" chromosomes with missing values from further calculations, 
+#'while this function treats each missing value
+#'as a different allele. This yields a somewhat faster decay of all statistics with respect to the
+#'distance to the focal marker.
 #'@return The returned value is a dataframe with markers in rows and the following columns
 #'\enumerate{
 #'\item chromosome name
@@ -61,8 +60,7 @@
 #
 #'@references Gautier, M. and Naves, M. (2011). Footprints of selection in the ancestral admixture of a New World Creole cattle breed. \emph{Molecular Ecology}, \strong{20}, 3128-3143.
 #'
-#'Klassmann, A. et al. (2020). Detecting selection using Extended Haplotype
-#'Homozygosity (EHH)-based statistics on unphased or unpolarized data. (submitted).
+#'Klassmann A., Vitalis R., and Gautier M. Detecting selection using Extended Haplotype Homozygosity (EHH)-based statistics on unphased or unpolarized data. Preprint. https://doi.org/10.22541/au.158584282.24875401.
 #'
 #'Sabeti, P.C. et al. (2002). Detecting recent positive selection in the human genome from haplotype structure. \emph{Nature}, \strong{419}, 832-837.
 #'
@@ -71,56 +69,28 @@
 #'Tang, K. and Thornton, K.R. and Stoneking, M. (2007). A New Approach for Using Genome Scans to Detect Recent Positive Selection in the Human Genome. \emph{Plos Biology}, \strong{7}, e171.
 #'
 #'Voight, B.F. and Kudaravalli, S. and Wen, X. and Pritchard, J.K. (2006). A map of recent positive selection in the human genome. \emph{Plos Biology}, \strong{4}, e72.
-#'@seealso \code{\link{data2haplohh}}, \code{\link{calc_ehh}}, \code{\link{calc_ehhs}}
+#'@seealso \code{\link{data2haplohh}}, code{\link{scan_hh}},
 #'\code{\link{ihh2ihs}},\code{\link{ines2rsb}}, \code{\link{ies2xpehh}}
 #'@examples
 #'#example haplohh object (280 haplotypes, 1424 SNPs)
 #'#see ?haplohh_cgu_bta12 for details
 #'data(haplohh_cgu_bta12)
-#'scan <- scan_hh(haplohh_cgu_bta12)
+#'scan <- scan_hh_full(haplohh_cgu_bta12)
 #'@export
-scan_hh <-
+scan_hh_full <-
   function(haplohh,
-           limhaplo = 2,
-           limhomohaplo = 2,
-           limehh = 0.05,
-           limehhs = 0.05,
            phased = TRUE,
            polarized = TRUE,
-           scalegap = NA,
            maxgap = NA,
            discard_integration_at_border = TRUE,
-           lower_ehh_y_bound = limehh,
-           lower_ehhs_y_bound = limehhs,
-           interpolate = TRUE,
+           geometric.mean = FALSE,
            threads = 1) {
     ##check parameters
     if (!(is.haplohh(haplohh))) {
       stop("Data is not a valid haplohh object.", call. = FALSE)
     }
-    if (limhaplo < 2) {
-      stop("limhaplo must be larger than 1.", call. = FALSE)
-    }
-    if (limhomohaplo < 2) {
-      stop("limhomohaplo must be larger than 1.", call. = FALSE)
-    }
-    if (limehh < 0 |
-        limehh > 1) {
-      stop("limehh must lie between 0 and 1.", call. = FALSE)
-    }
-    if (limehhs < 0 |
-        limehhs > 1) {
-      stop("limehhs must lie between 0 and 1.", call. = FALSE)
-    }
     if (is.na(maxgap)) {
       maxgap <- (max(positions(haplohh)) + 1)
-    }
-    
-    if (is.na(scalegap)) {
-      scalegap <- (max(positions(haplohh)) + 1)
-    } else if (scalegap > maxgap) {
-      stop("scalegap has to be smaller than maxgap in order to have an effect.",
-           call. = FALSE)
     }
     
     ##perform calculation
@@ -153,7 +123,7 @@ scan_hh <-
     })
     
     res.list <- .Call(
-      "CALL_SCAN_HH",
+      "CALL_SCAN_HH2",
       haplo(haplohh),
       nhap(haplohh),
       nmrk(haplohh),
@@ -162,17 +132,10 @@ scan_hh <-
       #derived or minor allele
       allele_stats[2, ],
       positions(haplohh),
-      as.integer(limhaplo),
-      as.integer(limhomohaplo),
-      as.double(limehh),
-      as.double(limehhs),
-      as.double(lower_ehh_y_bound),
-      as.double(lower_ehhs_y_bound),
-      as.integer(scalegap),
       as.integer(maxgap),
-      phased,
-      discard_integration_at_border,
-      interpolate,
+      as.integer(phased),
+      as.integer(discard_integration_at_border),
+      as.integer(geometric.mean),
       as.integer(threads)
     )
     
@@ -199,13 +162,15 @@ scan_hh <-
     
     #if not polarized, change column names
     if (!polarized) {
-      colnames(res)[3:8] <-
+      colnames(res)[3:10] <-
         c("FREQ_MAJ",
           "FREQ_MIN",
           "NHAPLO_MAJ",
           "NHAPLO_MIN",
           "IHH_MAJ",
-          "IHH_MIN")
+          "IHH_MIN",
+          "IES",
+          "INES")
     }
     
     return(res)

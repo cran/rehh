@@ -6,7 +6,7 @@
  * Calculates ehh values in increasing distance (either in positive or negative direction) form the focal marker.
  */
 void extend_ehh(const int* const data, const int nbr_chr, const int foc_mrk, const int end_mrk, const int lim_haplo, const int lim_homo_haplo,
-		const double lim_ehh, const int phased, int* const hap, int* const nbr_hap, int* const nbr_chr_with_hap,
+		const double lim_ehh, const bool phased, int* const hap, int* const nbr_hap, int* const nbr_chr_with_hap,
 		int* const tot_nbr_chr_in_hap, double* const ehh) {
 
 	int increment = foc_mrk <= end_mrk ? 1 : -1;
@@ -43,7 +43,7 @@ void extend_ehh(const int* const data, const int nbr_chr, const int foc_mrk, con
  * Calculates ehh values in increasing distance to the focal marker
  */
 void calc_ehh(const int* const data, const int nbr_chr, const int nbr_mrk, const int foc_mrk, const int foc_all,
-		const int lim_haplo, const int lim_homo_haplo, const double lim_ehh, const int phased, int* const tot_nbr_chr_in_hap, double* const ehh) {
+		const int lim_haplo, const int lim_homo_haplo, const double lim_ehh, const bool phased, int* const tot_nbr_chr_in_hap, double* const ehh) {
 
 	int nbr_hap;                                                   //number of distinct haplotypes
 

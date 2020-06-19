@@ -69,7 +69,7 @@ allelefurcation <- setClass(
 #'@examples # copy example files into working directory
 #'make.example.files()
 #'# read first example file
-#'hh <- data2haplohh("example1.vcf")
+#'hh <- data2haplohh(hap_file = "example1.hap", map_file = "example1.map", allele_coding = "01")
 #'# remove example files
 #'remove.example.files()
 #'# calculate furcation structure around marker "rs6"

@@ -1,7 +1,7 @@
 ---
-title: "Vignette for package *rehh* (version 3.1.0)"
+title: "Vignette for package *rehh* (version 3.1.x)"
 author: "Alexander Klassmann, Renaud Vitalis and Mathieu Gautier"
-date: "2020-03-03"
+date: "`r Sys.Date()`"
 output:
   bookdown::html_document2:
     base_format: rmarkdown::html_vignette
@@ -383,21 +383,33 @@ Like *EHH*, *EHHS* has its maximum at the focal marker and decays to 0 with incr
 ## The function `calc_ehh()` {#calcehh}
 The function `calc_ehh()` computes *EHH* for all alleles of a focal marker $s$ relative to markers $t$ upstream and downstream. For each allele the corresponding integral *iHH* of the *EHH* curve is calculated as well. 
 
-Two options can be specified to constrain the computation of *EHH*. The first, `limehh` sets a threshold below which further calculation of *EHH* is stopped. The second, `limhaplo` defines the smallest acceptable number of evaluated chromosomes. This number decreases at subsequent markers with missing values. The default values of these two conditions are 0.05 and 2, respectively. 
+Three options can be specified to constrain the computation of *EHH*:
 
-By default, the option `include_zero_values` is `FALSE` and the output contains only *EHH* values for markers up to the two thresholds. If the parameter is toggled to `TRUE`, then values for all markers are returned, the remaining ones being zero. 
+- `limehh` sets a threshold below which further calculation of *EHH* is stopped. Its default value is 0.05. Note that lowering this cut-off, although increasing the accuracy of *EHH* estimates, might actually decrease the power to detect selective events since under neutrality a tiny fraction (<<0.05) of very long shared haplotypes can be expected, too. 
 
-If calculation reaches the border of the chromosome, i.e. the first or last marker, or a large gap (see below), the integral *iHH* is discarded in order to avoid boundary effects. This behavior can be turned off by setting `discard_integration_at_border` to `FALSE`. 
+- `limhaplo` defines the smallest acceptable number of evaluated chromosomes and has a default (and mimimum) value of 2. This parameter might be increased if missing values are suspected to be non-randomly distributed leading to a biased drop-out of evaluated chromosomes.
 
-To account for gaps between consecutive markers, two parameters can be set (see also section \@ref(gaps)): `scalegap` specifies a distance such that any greater gap is re-scaled (or capped) to that size. The option `maxgap` can be used to stop integration at gaps that are greater than the specified value. 
+- `limhomohaplo` sets a minimum number of homozygous chromosomes below which calculation of *EHH* is stopped (or not even started). Its default (and minimum) value is 2. This number should be increased to 4 for small samples of unphased haplotypes in order to limit the influence of a single pair of shared haplotypes (see section \@ref(phasing).)
 
-Furthermore, integration is performed by default over the area between the graph defined by the *EHH* values and the line y = `limehh`. If numerical agreement with the program *Hapbin* is wanted, this area should be extended to the x-axis by setting `lower_y_bound` to zero.
+Several parameters influence the *IHH* values (the integral over *EHH*):
 
-The option `polarized`, `TRUE` by default, merely affects the order and labeling of alleles. 
+- by default, when the calculation of *EHH* reaches the border of the chromosome, i.e. the first or last marker, or encounters a large gap (see below), the integral *iHH* is discarded in order to avoid possible boundary effects. In order to retain the integrals set `discard_integration_at_border` to `FALSE`. 
 
-Finally, the parameter `phased` can be toggled to `FALSE` in order to calculate *EHH* by the formula for unphased data (see section \@ref(EHH) and \@ref(phasing)). 
+- to account for gaps between consecutive markers, two parameters can be set (see also section \@ref(gaps))
+  - gaps greater than `scalegap` are re-scaled (capped) to that size. 
+  - integration is stopped/discarded if a gap greater than `maxgap` is encountered. 
 
-More details are available in the R documentation by using the command:
+- integration is performed by default over the area between the graph defined by the *EHH* values and the horizontal line y = `limehh`. If numerical agreement with the program *Hapbin* is wanted, this area should be extended to the x-axis by setting `lower_y_bound` to zero.
+
+- by default the *EHH* curve is defined by linearly interpolating *EHH* values between consecutive markers, yielding a continuous curve. However in particular for full re-sequencing data, it is more accurate to let this function decrease step-wise at each marker by setting `interpolate`to `FALSE` (although the effect is likely to be minor).
+
+The option `polarized`, `TRUE` by default, in this function merely affects the order and labeling of alleles. 
+
+The parameter `phased` can be toggled to `FALSE` in order to calculate *EHH* by the formula for unphased data (see section \@ref(EHH) and \@ref(phasing)). 
+
+The option `include_zero_values` concerns only the output. If `FALSE` (by default), the output contains only *EHH* values for markers up to the specified cut-offs. If the parameter is toggled to `TRUE`, then values for all markers are returned, the remaining ones being zero. 
+
+Details are available in the R documentation by using the command:
 ```{r eval=FALSE}
 ?calc_ehh
 ```

@@ -4,7 +4,9 @@
 \name{haplohh_cgu_bta12}
 \alias{haplohh_cgu_bta12}
 \title{Example of an \code{haplohh} object}
-\format{An object of \code{\link{haplohh-class}}.}
+\format{
+An object of \code{\link{haplohh-class}}.
+}
 \usage{
 data(haplohh_cgu_bta12)
 }

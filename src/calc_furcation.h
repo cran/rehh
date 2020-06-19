@@ -1,8 +1,4 @@
-#ifdef Conly
-#define NA_INTEGER -1
-#else
-#include <Rinternals.h>
-#endif
+#include "definitions.h"
 
 void calc_furcation(const int* const data, const int nbr_chr, const int foc_mrk, const int end_mrk, const int foc_all,
 		const int lim_haplo, const int phased, int* const node_mrk, int* const node_parent,

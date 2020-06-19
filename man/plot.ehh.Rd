@@ -14,7 +14,6 @@
   col = c("blue", "red", "violet", "orange"),
   mrk.col = "gray",
   bty = "n",
-  lty = 1,
   legend = NA,
   legend.xy.coords = "automatic",
   ...
@@ -25,7 +24,8 @@
 
 \item{ylim}{the y limits of the plot}
 
-\item{type}{plot type (see \code{\link[graphics]{matplot}}).}
+\item{type}{plot type (see code{\link[graphics]{plot.default}} and \code{\link[graphics]{matplot}}). 
+Type \code{"s"} or \code{"S"} yield both (the same) piecewise constant curve.}
 
 \item{main}{title for the plot (default \code{NA}, i.e. none).}
 
@@ -38,8 +38,6 @@
 \item{mrk.col}{color of the vertical line at the focal marker position.}
 
 \item{bty}{box type around plot (see \code{\link[graphics]{par}}).}
-
-\item{lty}{line type for the ancestral and derived allele EHH (respectively) curves.}
 
 \item{legend}{legend text.}
 

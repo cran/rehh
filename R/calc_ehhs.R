@@ -26,6 +26,9 @@
 #'iHH is set to \code{NA}.
 #'@param lower_y_bound lower y boundary of the area to be integrated over (default: \code{limehhs}). Can be set
 #'to zero for compatibility with the program hapbin.
+#'@param interpolate logical. Affects only IES and INES values. If \code{TRUE} (default), integration
+#'is performed over a continuous EHHS curve (values are interpolated linearly between consecutive markers),
+#'otherwise the EHHS curve decreases stepwise at markers.
 #'@details Values for site-specific Extended Haplotype Homozygosity (EHHS) are computed at each position upstream and downstream
 #'of the focal marker. These values are integrated with respect to their
 #'genomic position to yield an 'integrated EHHS' (iES) value.
@@ -70,7 +73,8 @@ calc_ehhs <-
            scalegap = NA,
            maxgap = NA,
            discard_integration_at_border = TRUE,
-           lower_y_bound = limehhs) {
+           lower_y_bound = limehhs,
+           interpolate = TRUE) {
     ##check parameters
     if (!(is.haplohh(haplohh))) {
       stop("Data is not a valid haplohh object.", call. = FALSE)
@@ -157,7 +161,8 @@ calc_ehhs <-
       scalegap,
       maxgap,
       discard_integration_at_border,
-      lower_y_bound
+      lower_y_bound,
+      interpolate
     )
     
     ies <- .Call(
@@ -169,7 +174,8 @@ calc_ehhs <-
       scalegap,
       maxgap,
       discard_integration_at_border,
-      lower_y_bound
+      lower_y_bound,
+      interpolate
     )
     
     if (!include_zero_values) {

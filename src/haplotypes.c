@@ -30,19 +30,19 @@ void print_haplotypes(const int mrk, const int *hap, const int *nbr_hap, const i
   printf("Marker %i: ", mrk + 1);
   printf("Number haplotypes: %i , ", tot_nbr_chr_in_hap);
   printf("Distinct : %i\n", *nbr_hap);
-
-	int counter = 0;
-	for (int i = 0; i < *nbr_hap; i++) {
-		for (int j = counter; j < counter + nbr_chr_with_hap[i]; j++) {
-			printf("%i ", hap[j] + 1);
-		}
-		counter += nbr_chr_with_hap[i];
-		if(i < *nbr_hap - 1) {
-			printf("| ");
-		} else {
-			printf("\n");
-		}
-	}
+  
+  int counter = 0;
+  for (int i = 0; i < *nbr_hap; i++) {
+    for (int j = counter; j < counter + nbr_chr_with_hap[i]; j++) {
+      printf("%i ", hap[j] + 1);
+    }
+    counter += nbr_chr_with_hap[i];
+    if(i < *nbr_hap - 1) {
+      printf("| ");
+    } else {
+      printf("\n");
+    }
+  }
 }
 #endif
 
@@ -53,48 +53,48 @@ void print_haplotypes(const int mrk, const int *hap, const int *nbr_hap, const i
  * If chromosomes 0,3,4 have the allele, while chromosomes 1,2,5 don't, we get a single haplotype
  * with index 0, the vector 'hap' yields (0,3,4,x,x,x), nbr_chr_with_hap=(3) and nbr_hap=1.
  */
-void init_allele_hap(const int *data, const int nbr_chr, const int foc_mrk, const int foc_all, const int phased,
-		int* const hap, int* const nbr_hap, int* const nbr_chr_with_hap) {
-
-	*nbr_hap = 0;  // current haplogroup has number 0
-	nbr_chr_with_hap[0] = 0;  // haplogroup 0 has 0 elements
-
+void init_allele_hap(const int *data, const int nbr_chr, const int foc_mrk, const int foc_all, const bool phased,
+                     int* const hap, int* const nbr_hap, int* const nbr_chr_with_hap) {
+  
+  *nbr_hap = 0;  // current haplogroup has number 0
+  nbr_chr_with_hap[0] = 0;  // haplogroup 0 has 0 elements
+  
 #ifdef DEBUG
-	printf("### Allele: %i\n", foc_all);
+  printf("### Allele: %i\n", foc_all);
 #endif
-
-	if (!phased) {
-	  // run through all (assumed) diploid individuals
-		for (int i = 0; i < nbr_chr - 1; i += 2) {
-		  //check if individual is homozygous for the focal allele
-			//read as data[i][foc_mrk], data[i+1][foc_mrk]
-			if (data[foc_mrk * nbr_chr + i] == foc_all && data[foc_mrk * nbr_chr + i + 1] == foc_all) {
+  
+  if (!phased) {
+    // run through all (assumed) diploid individuals
+    for (int i = 0; i < nbr_chr - 1; i += 2) {
+      //check if individual is homozygous for the focal allele
+      //read as data[i][foc_mrk], data[i+1][foc_mrk]
+      if (data[foc_mrk * nbr_chr + i] == foc_all && data[foc_mrk * nbr_chr + i + 1] == foc_all) {
         //current haplogroup points to the two chromosomes of the individual
-			  hap[(*nbr_hap) * 2] = i;
-			  hap[(*nbr_hap) * 2 + 1] = i + 1;
-			  //size of haplogroup
-				nbr_chr_with_hap[*nbr_hap] = 2;
-				//next haplogroup
-				(*nbr_hap)++;
-			}
-		}
-	} else {
-		for (int i = 0; i < nbr_chr; i++) {								// Loop over all chromosomes in the sample
-			//read as data[i][foc_mrk]
-			if (data[foc_mrk * nbr_chr + i] == foc_all) {
-			  //add all chromosomes carrying the focal allele to a single haplogroup
-				hap[nbr_chr_with_hap[0]] = i;
-				nbr_chr_with_hap[0]++;
-			}
-		}
-
-		if (nbr_chr_with_hap[0] > 0) {
-			*nbr_hap = 1;
-		}
-	}
-
+        hap[(*nbr_hap) * 2] = i;
+        hap[(*nbr_hap) * 2 + 1] = i + 1;
+        //size of haplogroup
+        nbr_chr_with_hap[*nbr_hap] = 2;
+        //next haplogroup
+        (*nbr_hap)++;
+      }
+    }
+  } else {
+    for (int i = 0; i < nbr_chr; i++) {								// Loop over all chromosomes in the sample
+      //read as data[i][foc_mrk]
+      if (data[foc_mrk * nbr_chr + i] == foc_all) {
+        //add all chromosomes carrying the focal allele to a single haplogroup
+        hap[nbr_chr_with_hap[0]] = i;
+        nbr_chr_with_hap[0]++;
+      }
+    }
+    
+    if (nbr_chr_with_hap[0] > 0) {
+      *nbr_hap = 1;
+    }
+  }
+  
 #ifdef DEBUG
-	print_haplotypes(foc_mrk, hap, nbr_hap, nbr_chr_with_hap);
+  print_haplotypes(foc_mrk, hap, nbr_hap, nbr_chr_with_hap);
 #endif
 }
 
@@ -105,33 +105,33 @@ void init_allele_hap(const int *data, const int nbr_chr, const int foc_mrk, cons
  * The algorithm for phased data starts with a fictitious monomorphic site on which the update
  * algorithm is applied for the focal site.
  */
-void init_site_hap(const int *data, const int nbr_chr, const int foc_mrk, const int phased, int* const hap,
-		int* const nbr_hap, int* const nbr_chr_with_hap) {
-
-	if (!phased) {
-	  // create for each homozygous individual (with non-missing values) a haplogroup
-		*nbr_hap = 0;
-		nbr_chr_with_hap[0] = 0;                                           // Initialize the haplotype counts
-		for (int i = 0; i < nbr_chr - 1; i += 2) {
-			//read as data[i][foc_mrk]==data[i+1][foc_mrk]
-			if (data[foc_mrk * nbr_chr + i] != MISSING_VALUE
-					&& data[foc_mrk * nbr_chr + i] == data[foc_mrk * nbr_chr + i + 1]) {
-				hap[(*nbr_hap) * 2] = i;
-				hap[(*nbr_hap) * 2 + 1] = i + 1;
-				nbr_chr_with_hap[*nbr_hap] = 2;
-				(*nbr_hap)++;
-			}
-		}
-	} else {
-	  // put all chromosomes into an "artificial" single haplogroup
-		for (int i = 0; i < nbr_chr; i++) {
-			hap[i] = i;
-		}
-		nbr_chr_with_hap[0] = nbr_chr;
-		*nbr_hap = 1;
-		//update at the focal marker to split the single haplogroup into allele haplogroups
-		update_hap(data, nbr_chr, foc_mrk, hap, nbr_hap, nbr_chr_with_hap);
-	}
+void init_site_hap(const int *data, const int nbr_chr, const int foc_mrk, const bool phased, int* const hap,
+                   int* const nbr_hap, int* const nbr_chr_with_hap) {
+  
+  if (!phased) {
+    // create for each homozygous individual (with non-missing values) a haplogroup
+    *nbr_hap = 0;
+    nbr_chr_with_hap[0] = 0;                                           // Initialize the haplotype counts
+    for (int i = 0; i < nbr_chr - 1; i += 2) {
+      //read as data[i][foc_mrk]==data[i+1][foc_mrk]
+      if (data[foc_mrk * nbr_chr + i] != MISSING_VALUE
+            && data[foc_mrk * nbr_chr + i] == data[foc_mrk * nbr_chr + i + 1]) {
+        hap[(*nbr_hap) * 2] = i;
+        hap[(*nbr_hap) * 2 + 1] = i + 1;
+        nbr_chr_with_hap[*nbr_hap] = 2;
+        (*nbr_hap)++;
+      }
+    }
+  } else {
+    // put all chromosomes into an "artificial" single haplogroup
+    for (int i = 0; i < nbr_chr; i++) {
+      hap[i] = i;
+    }
+    nbr_chr_with_hap[0] = nbr_chr;
+    *nbr_hap = 1;
+    //update at the focal marker to split the single haplogroup into allele haplogroups
+    update_hap(data, nbr_chr, foc_mrk, hap, nbr_hap, nbr_chr_with_hap);
+  }
 }
 
 /**
@@ -155,100 +155,85 @@ void init_site_hap(const int *data, const int nbr_chr, const int foc_mrk, const 
  * Already existing "singleton"-haplotypes are not changed any further, i.e. neither subdivided nor removed.
  */
 int update_hap(const int *data, const int nbr_chr, const int mrk, int* const hap, int* const nbr_hap,
-		int* const nbr_chr_with_hap) {
-
-	int index_in_hap = 0;  // current index within hap
-	int *sub_nbr_chr_with_hap = (int *) malloc(nbr_chr * sizeof(int)); // the number of identical hapotypes within each group
-	int *dstnct_alleles = (int *) malloc(nbr_chr * sizeof(int));	// the distinct alleles at the current mrk
-	const int mrk_index = mrk * nbr_chr; // position of the marker column in the matrix regarded as linear array
-
-	short int tree_changed = 0;
-
-	// Look over all distinct haplotypes
-	for (int i = 0; i < *nbr_hap; i++) {
-		// Loop over the chromosomes with the i-th haplotype
-		// If the i-th haplotype is present only on a single chromosome, nothing can change any more; skip it.
-		if (nbr_chr_with_hap[i] > 1) {
-			// remove all chromosomes with missing alleles at the marker
-			for (int j = index_in_hap; j < index_in_hap + nbr_chr_with_hap[i]; j++) {
-				if (data[mrk_index + hap[j]] == MISSING_VALUE) {
-					// delete chromosomes by shifting the remaineder leftwards
-					for (int k = j; k < nbr_chr - 1; k++) {
-						hap[k] = hap[k + 1];
-					}
-					nbr_chr_with_hap[i]--;
-					j--;
-					tree_changed = 1;
-				}
-			}
-			if (nbr_chr_with_hap[i] == 0) { // implies missing values found
-				// empty set, hence remove haplotype group
-				for (int k = i; k < *nbr_hap - 1; k++) {
-					nbr_chr_with_hap[k] = nbr_chr_with_hap[k + 1];
-				}
-				(*nbr_hap)--;
-	    } else {
-				// Sort the chromosomes with respect to the allele at the current marker ("Insertion sort")
-				// important: this sort is conservative, it does not change the order of equal elements
-				for (int j = index_in_hap + 1; j < index_in_hap + nbr_chr_with_hap[i]; j++) {
-					int tmp = hap[j];
-					int k = j;
-					//read as data[hap[k-1]][mrk] > data[hap[j]][mrk]
-					while (k > index_in_hap && data[mrk_index + hap[k - 1]] > data[mrk_index + tmp]) {
-						hap[k] = hap[k - 1];
-						k--;
-					}
-					hap[k] = tmp;
-				}
-
-				// now lets partition the sorted haplotypes
-				int sub_nbr_hap = 1;
-
-				sub_nbr_chr_with_hap[0] = 1;
-				// loop over the same chromosomes as before
-				for (int j = index_in_hap + 1; j < index_in_hap + nbr_chr_with_hap[i]; j++) {
-					//read as data[hap[j]][mrk] != data[hap[j-1]][mrk]
-					//if *subsequent* chromosomes have different alleles at the marker,
-					//define a new subgroup
-					if (data[mrk_index + hap[j]] != data[mrk_index + hap[j - 1]]) {
-						sub_nbr_hap++;
-						sub_nbr_chr_with_hap[sub_nbr_hap - 1] = 1;
-					} else {
-						sub_nbr_chr_with_hap[sub_nbr_hap - 1]++;
-					}
-				}
-
-				int old_nbr_chr_with_hap = nbr_chr_with_hap[i];
-
-				//if there is a furcation, insert new haps
-				if (sub_nbr_hap > 1) {
-					//signal tree structure change
-					tree_changed = 1;
-					//shift all groups to the right and make place for new subgroups
-					for (int j = *nbr_hap - 1; j > i; j--) {
-						nbr_chr_with_hap[j + sub_nbr_hap - 1] = nbr_chr_with_hap[j];
-					}
-					//insert new subgroups
-					for (int j = 0; j < sub_nbr_hap; j++) {
-						nbr_chr_with_hap[i + j] = sub_nbr_chr_with_hap[j];
-					}
-					//shift index
-					i += sub_nbr_hap - 1;
-					//add number of new sub groups to total number of groups
-					(*nbr_hap) += sub_nbr_hap - 1;
-				}
-
-				index_in_hap += old_nbr_chr_with_hap;
-			}
-		} else {
-			index_in_hap++;
-		}
-	}
-
-	free(dstnct_alleles);
-	free(sub_nbr_chr_with_hap);
+               int* const nbr_chr_with_hap) {
+  
+  int index_in_hap = 0;  // position within hap array
+  const int mrk_index = mrk * nbr_chr; // position of the marker column in the matrix regarded as linear array
+  short int tree_changed = 0; //"boolean" value that notifies if tree structure has changed
+  
+  // Loop over all distinct haplotypes
+  for (int i = 0; i < *nbr_hap; i++) {
+    if (nbr_chr_with_hap[i] == 1) {
+      //haplogroup cannot change any more; set index to next haplogroup
+      index_in_hap++;
+    } else {
+      // Loop over the chromosomes with the i-th haplotype
+      // remove all chromosomes with a missing value at the current marker
+      for (int j = index_in_hap; j < index_in_hap + nbr_chr_with_hap[i]; j++) {
+        if (data[mrk_index + hap[j]] == MISSING_VALUE) {
+          //remove chromosome from the hap array by shifting the remainder indices leftwards
+          for (int k = j; k < nbr_chr - 1; k++) {
+            hap[k] = hap[k + 1];
+          }
+          nbr_chr_with_hap[i]--;
+          j--;
+          //"pseudo" furcation (new "node" with missing value)
+          tree_changed = 1;
+        }
+      }
+      if (nbr_chr_with_hap[i] == 0) { //whole haplogroup has missing values
+        for (int k = i; k < *nbr_hap - 1; k++) {
+          nbr_chr_with_hap[k] = nbr_chr_with_hap[k + 1];
+        }
+        (*nbr_hap)--;
+      } else {
+        // Sort the chromosomes with respect to the allele at the current marker ("Insertion sort")
+        // important: this sort is conservative, it does not change the order of equal elements
+        for (int j = index_in_hap + 1; j < index_in_hap + nbr_chr_with_hap[i]; j++) {
+          int tmp = hap[j];
+          int k = j;
+          //read as data[hap[k-1]][mrk] > data[hap[j]][mrk]
+          while (k > index_in_hap && data[mrk_index + hap[k - 1]] > data[mrk_index + tmp]) {
+            hap[k] = hap[k - 1];
+            k--;
+          }
+          hap[k] = tmp;
+        }
+        
+        // loop over the sorted chromosomes
+        int j = 1;
+        while(j < nbr_chr_with_hap[i]) {
+          //do *subsequent* chromosomes within the haplotype group have different alleles at the marker?
+          if (data[mrk_index + hap[index_in_hap + j - 1]] != data[mrk_index + hap[index_in_hap + j]]) {
+            //new furcation
+            tree_changed = 1;
+            //shift upper indices to the right
+            for (int k = *nbr_hap; k > i + 1; k--) {
+              nbr_chr_with_hap[k] = nbr_chr_with_hap[k - 1];
+            }
+            //split current number of haplotypes to the two "daughter nodes"
+            nbr_chr_with_hap[i + 1] = nbr_chr_with_hap[i] - j;
+            nbr_chr_with_hap[i] = j;
+            //increase number of haplogroups
+            (*nbr_hap)++;
+            //set indices to next haplogroup
+            index_in_hap += nbr_chr_with_hap[i];	
+            i++;
+            //reset index within new haplogroup
+            j = 1;
+          }else{
+            //next index in same haplogroup
+            j++;
+          }
+        }
+        //set index to next haplogroup
+        index_in_hap += nbr_chr_with_hap[i];
+      }
+    }
+  }
+  
 #ifdef DEBUG
-	print_haplotypes(mrk, hap, nbr_hap, nbr_chr_with_hap);
+  print_haplotypes(mrk, hap, nbr_hap, nbr_chr_with_hap);
 #endif
-	return (tree_changed);
+  return (tree_changed);
 }

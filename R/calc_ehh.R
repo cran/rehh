@@ -28,6 +28,9 @@
 #'iHH is set to \code{NA}.
 #'@param lower_y_bound lower y boundary of the area to be integrated over (default: \code{limehh}). Can be set
 #'to zero for compatibility with the program hapbin.
+#'@param interpolate logical. Affects only IHH values. If \code{TRUE} (default), integration
+#'is performed over a continuous EHH curve (values are interpolated linearly between consecutive markers),
+#'otherwise the EHH curve decreases stepwise at markers.
 #'@details Values for allele-specific Extended Haplotype Homozygosity (EHH) are computed
 #'upstream and downstream of the focal marker for each of its alleles.
 #'These values are integrated with respect to their genomic positions to yield
@@ -73,7 +76,8 @@ calc_ehh <-
            scalegap = NA,
            maxgap = NA,
            discard_integration_at_border = TRUE,
-           lower_y_bound = limehh) {
+           lower_y_bound = limehh,
+           interpolate = TRUE) {
     # check parameters
     if (!(is.haplohh(haplohh))) {
       stop("Data is not a valid haplohh object.", call. = FALSE)
@@ -171,7 +175,8 @@ calc_ehh <-
         scalegap,
         maxgap,
         discard_integration_at_border,
-        lower_y_bound
+        lower_y_bound,
+        interpolate
       )
     }
     
@@ -209,7 +214,8 @@ calc_ehh <-
           scalegap,
           maxgap,
           discard_integration_at_border,
-          lower_y_bound
+          lower_y_bound,
+          interpolate
         )
         
         ihh <- c(ihh, ihh_allele)

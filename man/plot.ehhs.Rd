@@ -24,7 +24,8 @@
 
 \item{ylim}{the y limits of the plot}
 
-\item{type}{plot type (see \code{\link[graphics]{matplot}}).}
+\item{type}{plot type (see code{\link[graphics]{plot.default}}.
+Type \code{"s"} or \code{"S"} yield both (the same) piecewise constant curve.}
 
 \item{main}{title for the plot (default \code{NA}, i.e. none).}
 
@@ -36,7 +37,7 @@
 
 \item{mrk.col}{color of the vertical line at the focal marker position.}
 
-\item{...}{further arguments to be passed to function \code{\link[graphics]{plot}}.}
+\item{...}{further arguments to be passed to function \code{\link[graphics]{plot.default}}.}
 }
 \description{
 Plot curve of EHHS values around a focal marker.

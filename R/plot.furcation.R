@@ -427,16 +427,18 @@ prune_tree <- function(ftree, xcutoff) {
 #calculates how many haplotypes are present at a node
 calc_node_size <- function(node_parent, label_parent) {
   node_size <- rep(0, length(node_parent))
-  #start with leaves
+  #start with leaves (label nodes)
   for (node in seq_along(label_parent)) {
     node_size[label_parent[node]] <- node_size[label_parent[node]] + 1
   }
   #continue with inner nodes
-  for (node1 in (length(node_parent) - 1):0) {
-    #assumes that index of parent node is less than index of node itself
-    for (node2 in (node1 + 1):length(node_parent)) {
-      if (!is.na(node_parent[node2]) & node_parent[node2] == node1) {
-        node_size[node1] <- node_size[node1] + node_size[node2]
+  if (length(node_parent) > 1) {
+    for (node1 in (length(node_parent) - 1):1) {
+      #assumes that index of parent node is less than index of node itself
+      for (node2 in (node1 + 1):length(node_parent)) {
+        if (node_parent[node2] == node1) {
+          node_size[node1] <- node_size[node1] + node_size[node2]
+        }
       }
     }
   }

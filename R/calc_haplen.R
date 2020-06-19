@@ -8,14 +8,17 @@ is.haplen <- function(x){
   return(res)
 }
 
-#'Calculate length of haplotypes around a focal marker
-#'@description Calculate for each chromosome the length of its extended haplotype homozygosity.
+#'Calculate length of longest shared haplotypes around a focal marker
+#'@description Calculate for each chromosome the maximum length of its extended haplotype homozygosity.
 #'@param furcation an object of class \code{furcation} calculated by \code{\link{calc_furcation}}.
-#'@details The length of an extended haplotype is defined as the region
+#'@details Extended haplotype homozygosity is defined as the region
 #'around a focal marker in which a particular chromosome shares
-#'a haplotype with (i.e. is homozygous to) at least one other chromosome.
-#'It is identical to the (horizontal) branch length from the root to the 
-#'last furcation.
+#'a haplotype with (its sequence is identical to) another chromosome.
+#'The function calculates for each chromosome the boundaries of its longest
+#'shared haplotype. These correspond to the last furcations of a chromsome 
+#'in a furcation diagram. Note that the calculation is performed independently
+#'upstream and downstream of the focal marker and hence upper and lower 
+#'boundaries do not necessarily arise from the same chromosomal pair.
 #'@return The functions returns a list containing four elements:
 #'\describe{
 #'\item{mrk.name}{name/identifier of the focal marker.}
@@ -107,23 +110,4 @@ calc_haplen <- function(furcation) {
   h <- new("haplen", l)
 
   return(h)
-}
-
-#calculates how many haplotypes are present at a node
-calc_node_size <- function(node_parent, label_parent) {
-  node_size <- rep(0, length(node_parent))
-  #start with leaves
-  for (node in seq_along(label_parent)) {
-    node_size[label_parent[node]] <- node_size[label_parent[node]] + 1
-  }
-  #continue with inner nodes
-  for (node1 in (length(node_parent) - 1):0) {
-    #assumes that index of parent node is less than index of node itself
-    for (node2 in (node1 + 1):length(node_parent)) {
-      if (node_parent[node2] == node1) {
-        node_size[node1] <- node_size[node1] + node_size[node2]
-      }
-    }
-  }
-  return(node_size)
 }
