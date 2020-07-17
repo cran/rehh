@@ -1,7 +1,7 @@
 ---
 title: "Examples in detail"
 author: "Alexander Klassmann"
-date: "2019-07-08"
+date: "`r Sys.Date()`"
 output:
   bookdown::html_document2:
     base_format: rmarkdown::html_vignette
@@ -84,8 +84,9 @@ Finally, we use the *vcf* file as input. No map file has to be specified. The op
 
 Again, one yields the same internal representation of the data:
 
-```{r}
+```{r, eval = requireNamespace("data.table", quietly = TRUE) }
 hh_vcf <- data2haplohh(hap_file = "example1.vcf",
+                       vcf_reader = "data.table",
                        verbose = FALSE)
 identical(hh, hh_vcf)
 ```
@@ -230,14 +231,14 @@ par(oldpar)
 
 A furcation diagram consists of trees for each allele and both sides ("left" and "right") of the marker. The individual trees can be exported into a string in *Newick* format to be rendered by external programs, e.g. the phylogenetic R-package [ape](https://cran.r-project.org/package=ape), see Figure \@ref(fig:newick1).
 
-```{r newick1, fig.align = 'center', fig.cap = "Graphical output of the plot.phylo() function of package ape", fig.pos = '!h', fig.lp = 'fig:'}
+```{r newick1, , eval = requireNamespace("ape", quietly = TRUE), fig.align = 'center', fig.cap = "Graphical output of the plot.phylo() function of package ape", fig.pos = '!h', fig.lp = 'fig:'}
 newick <- as.newick(f, 
                     allele = 0, 
                     side = "left", 
                     hap.names = hap.names(hh))
 newick
 library(ape)
-tree <- read.tree(text = newick)
+tree <- ape::read.tree(text = newick)
 plot(tree, 
      direction = "leftwards", 
      edge.color = "blue",
@@ -342,9 +343,11 @@ hh_none <- data2haplohh(hap_file = "example2.hap",
                         min_perc_geno.mrk = 50,
                         verbose = FALSE)
 identical(hh, hh_none)
-
+```
+```{r, eval = requireNamespace("data.table", quietly = TRUE)}
 hh_vcf <- data2haplohh(hap_file = "example2.vcf",
-                       min_perc_geno.mrk = 50, 
+                       min_perc_geno.mrk = 50,
+                       vcf_reader = "data.table",
                        verbose = FALSE)
 identical(hh, hh_vcf)
 ```
@@ -468,12 +471,12 @@ par(oldpar)
 
 Again, it is possible to export each tree into Newick format. This format, however, has no option to mark different kinds of branches. We let package *ape* render the Newick string to yield Figure \@ref(fig:newick2).
 
-```{r newick2, fig.align = 'center', fig.cap = "Graphical output of the plot.phylo() function of package ape", fig.pos = '!h', fig.lp = 'fig:'}
+```{r newick2, , eval = requireNamespace("ape", quietly = TRUE), fig.align = 'center', fig.cap = "Graphical output of the plot.phylo() function of package ape", fig.pos = '!h', fig.lp = 'fig:'}
 newick <- as.newick(f, 
                     allele = 0, 
                     side = "left", 
                     hap.names = hap.names(hh))
-tree <- read.tree(text = newick)
+tree <- ape::read.tree(text = newick)
 plot(tree, 
      direction = "leftwards", 
      edge.color = "blue",

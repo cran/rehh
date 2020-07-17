@@ -3,6 +3,7 @@
 context("scan_hh")
 
 test_that("checked_scan_hh", {
+  skip_if_not_installed("rehh.data")
   # compare calculation with pre-calculated values in object wgscan.cgu
   sink(file = "test_scan_hh.log")
   hh <- data2haplohh(
@@ -15,7 +16,7 @@ test_that("checked_scan_hh", {
   
   scan <- scan_hh(hh, discard_integration_at_border = FALSE)
   
-  library(rehh.data)
+  requireNamespace("rehh.data", quietly = TRUE)
   data(wgscan.cgu)
   
   expect_equal(scan$IHH_A,

@@ -63,11 +63,12 @@ hh <- data2haplohh(hap_file = "bta12_hapguess_switch.out",
                    chr.name = 12,
                    allele_coding = "map")
 
-## ----vcf_example--------------------------------------------------------------
+## ----vcf_example, eval = requireNamespace("data.table", quietly = TRUE) & requireNamespace("R.utils", quietly = TRUE)----
 hh <- data2haplohh(hap_file = "bta12_cgu.vcf.gz",
-                   polarize_vcf = FALSE)
+                   polarize_vcf = FALSE,
+                   vcf_reader = "data.table")
 
-## ----ms_example---------------------------------------------------------------
+## ----ms_example, eval = requireNamespace("gap", quietly = TRUE)---------------
 hh <- data2haplohh(hap_file = "ms.out",
                    chr.name = 2,
                    position_scaling_factor = 1000)
@@ -254,7 +255,7 @@ cr.cgu
 ## ----freqbin, fig.align='center', fig.lp='fig:', fig.cap='Graphical output of the freqbinplot() function', fig.pos='!h'----
 freqbinplot(wgscan.ihs.cgu)
 
-## ----comp,echo=TRUE,fig.align='center',fig.lp='fig:',fig.cap='Comparison of Rsb and XP-EHH values across the CGU and EUT populations',fig.pos="!h"----
+## ----comp, echo = TRUE, fig.align = 'center', fig.lp = 'fig:', fig.cap = 'Comparison of Rsb and XP-EHH values across the CGU and EUT populations', fig.pos = "!h"----
 plot(rsb.cgu_eut[, "RSB_CGU_EUT"],
      xpehh.cgu_eut[, "XPEHH_CGU_EUT"],
      xlab = "Rsb",
@@ -314,14 +315,14 @@ wgscan.cgu.ihs.qqman <- data.frame(
     SNP = row.names(ihs)       # SNP names
     )
 
-## ----qqman, fig.align = 'center', fig.width = 7, fig.lp = 'fig:', fig.cap = 'Graphical output of the qqman::manhattan() function', fig.pos = '!h', message = FALSE----
+## ----qqman, eval = requireNamespace("qqman", quietly = TRUE), fig.align = 'center', fig.width = 7, fig.lp = 'fig:', fig.cap = 'Graphical output of the qqman::manhattan() function', fig.pos = '!h', message = FALSE----
 library(qqman)
-manhattan(wgscan.cgu.ihs.qqman,
-          col = c("red","green"),
-          chrlabs = unique(ihs$CHR),
-          suggestiveline = 4,
-          highlight = "F1205400",
-          annotatePval = 0.0001)
+qqman::manhattan(wgscan.cgu.ihs.qqman,
+                 col = c("red","green"),
+                 chrlabs = unique(ihs$CHR),
+                 suggestiveline = 4,
+                 highlight = "F1205400",
+                 annotatePval = 0.0001)
 
 ## ----plothaplo, results = "hide", fig.align = 'center', fig.width = 7, fig.height = 5, fig.lp = 'fig:', fig.cap = 'Graphical output of the plot.haplohh() function', fig.pos = '!h'----
 hh_subset <- subset(haplohh_cgu_bta12, select.mrk = 350:550)
@@ -361,9 +362,9 @@ newick <- as.newick(furcation,
                     side = "left",
                     hap.names = hap.names(haplohh_cgu_bta12))
 
-## ----newick, fig.align = 'center', fig.width = 6, fig.height = 6, fig.lp = 'fig:', fig.cap = 'Graphical output of the ape::plot.phylo() function', fig.pos = "!h"----
+## ----newick, , eval = requireNamespace("ape", quietly = TRUE), fig.align = 'center', fig.width = 6, fig.height = 6, fig.lp = 'fig:', fig.cap = 'Graphical output of the ape::plot.phylo() function', fig.pos = "!h"----
 library(ape)
-tree <- read.tree(text = newick)
+tree <- ape::read.tree(text = newick)
 plot(tree, 
      cex = 0.5, 
      direction = "leftwards", 

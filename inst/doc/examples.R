@@ -34,8 +34,9 @@ hh_none <- data2haplohh(hap_file = "example1.hap",
                         verbose = FALSE)
 identical(hh, hh_none)
 
-## -----------------------------------------------------------------------------
+## ---- eval = requireNamespace("data.table", quietly = TRUE)-------------------
 hh_vcf <- data2haplohh(hap_file = "example1.vcf",
+                       vcf_reader = "data.table",
                        verbose = FALSE)
 identical(hh, hh_vcf)
 
@@ -102,14 +103,14 @@ plot(f,
 # reset old margins
 par(oldpar)
 
-## ----newick1, fig.align = 'center', fig.cap = "Graphical output of the plot.phylo() function of package ape", fig.pos = '!h', fig.lp = 'fig:'----
+## ----newick1, , eval = requireNamespace("ape", quietly = TRUE), fig.align = 'center', fig.cap = "Graphical output of the plot.phylo() function of package ape", fig.pos = '!h', fig.lp = 'fig:'----
 newick <- as.newick(f, 
                     allele = 0, 
                     side = "left", 
                     hap.names = hap.names(hh))
 newick
 library(ape)
-tree <- read.tree(text = newick)
+tree <- ape::read.tree(text = newick)
 plot(tree, 
      direction = "leftwards", 
      edge.color = "blue",
@@ -175,8 +176,10 @@ hh_none <- data2haplohh(hap_file = "example2.hap",
                         verbose = FALSE)
 identical(hh, hh_none)
 
+## ---- eval = requireNamespace("data.table", quietly = TRUE)-------------------
 hh_vcf <- data2haplohh(hap_file = "example2.vcf",
-                       min_perc_geno.mrk = 50, 
+                       min_perc_geno.mrk = 50,
+                       vcf_reader = "data.table",
                        verbose = FALSE)
 identical(hh, hh_vcf)
 
@@ -245,12 +248,12 @@ plot(f,
      legend.xy.coords = "none")
 par(oldpar)
 
-## ----newick2, fig.align = 'center', fig.cap = "Graphical output of the plot.phylo() function of package ape", fig.pos = '!h', fig.lp = 'fig:'----
+## ----newick2, , eval = requireNamespace("ape", quietly = TRUE), fig.align = 'center', fig.cap = "Graphical output of the plot.phylo() function of package ape", fig.pos = '!h', fig.lp = 'fig:'----
 newick <- as.newick(f, 
                     allele = 0, 
                     side = "left", 
                     hap.names = hap.names(hh))
-tree <- read.tree(text = newick)
+tree <- ape::read.tree(text = newick)
 plot(tree, 
      direction = "leftwards", 
      edge.color = "blue",

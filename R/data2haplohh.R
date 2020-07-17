@@ -24,14 +24,18 @@
 #'@param haplotype.in.columns logical. If \code{TRUE}, phased input haplotypes are assumed to be in columns (as produced
 #'by the SHAPEIT2 program (O'Connell et al., 2014).
 #'@param remove_multiple_markers logical. If \code{FALSE} (default), conversion
-#'stops, if multiple markers with the same chromosomal position are encountered. 
+#'stops, if multiple markers with the same chromosomal position are encountered.
 #'If \code{TRUE}, duplicated markers are removed (all but the first marker with identical positions).
 #'@param polarize_vcf logical. Only of relevance for vcf files. If \code{TRUE} (default), tries to polarize
-#'variants with help of the AA entry in the INFO field. Unpolarized alleles are discarded. 
+#'variants with help of the AA entry in the INFO field. Unpolarized alleles are discarded.
 #'If \code{FALSE}, allele coding of vcf file is used unchanged as internal coding.
 #'@param capitalize_AA logical. Only of relevance for vcf files with ancestral allele information.
 #'Low confidence ancestral alleles are usually coded by lower-case letters. If \code{TRUE} (default), these are
 #'changed to upper case before the alleles of the sample are matched for polarization.
+#'@param vcf_reader library used to read vcf. By default, low-level parsing is
+#'performed using the generic package \code{data.table}. In order to read compressed files, 
+#'the package \code{R.utils} must be installed, too.
+#'If the specialized package \code{vcfR} is available, set this parameter to \code{"vcfR"}. 
 #'@param position_scaling_factor intended primarily for output of ms where
 #'positions lie in the interval [0,1]. These can be rescaled to sizes
 #'of typical markers in real data.
@@ -49,7 +53,7 @@
 #'(if this parameter is not or wrongly set, the error message will provide a list of
 #'the population numbers contained in the file).
 #'\item files in variant call format (vcf). No mapfile is needed is this case. If
-#'the file contains several chromosomes, it is necessary to  choose one by parameter
+#'the file contains several chromosomes, it is necessary to choose one by parameter
 #'\code{chr.name}.
 #'\item output of the simulation program 'ms'. No mapfile is needed in this case. If the file
 #'contains several 'runs', a specific number has to be specified by the
@@ -120,7 +124,7 @@
 #'                    popsel = 7,
 #'                    allele_coding = "map")
 #'#clean up demo files
-#'remove.example.files()                    
+#'remove.example.files()
 #'@export
 #'@importFrom methods new
 #'@importFrom utils read.table
@@ -138,6 +142,7 @@ data2haplohh <-
            remove_multiple_markers = FALSE,
            polarize_vcf = TRUE,
            capitalize_AA = TRUE,
+           vcf_reader = "data.table",
            position_scaling_factor = NA,
            verbose = TRUE) {
     ## check parameters
@@ -165,6 +170,11 @@ data2haplohh <-
     if (recode.allele) {
       warning("Deprecated option: recode.allele. Use 'allele_coding' instead.")
       allele_coding <- "map"
+    }
+    
+    ### vcf_readere
+    if (!vcf_reader %in% c("vcfR", "data.table")) {
+      stop("vcf_reader must be either 'data.table' or 'vcfR'.", call. = FALSE)
     }
     
     ### check possible coding options
@@ -202,6 +212,7 @@ data2haplohh <-
           chr.name = chr.name,
           polarize_vcf = polarize_vcf,
           capitalize_AA =  capitalize_AA,
+          vcf_reader = vcf_reader,
           verbose = verbose
         )
     } else if (is.ms(hap_file)) {
@@ -213,10 +224,12 @@ data2haplohh <-
       }
       
       map <-
-        read.table(map_file,
-                   row.names = 1,
-                   colClasses = "character",
-                   stringsAsFactors = FALSE)
+        read.table(
+          map_file,
+          row.names = 1,
+          colClasses = "character",
+          stringsAsFactors = FALSE
+        )
       
       if (allele_coding == "map" & ncol(map) < 4) {
         stop(
@@ -249,7 +262,7 @@ data2haplohh <-
         check_chromosome_names(map_file, unique(as.character(map[, 1])), chr.name)
       
       ### subset map data frame to specified chromosome
-      map <- map[as.character(map[, 1]) == chr.name, ]
+      map <- map[as.character(map[, 1]) == chr.name,]
       
       ### set first slots of haplohh
       hh <- new("haplohh")
@@ -411,7 +424,7 @@ data2haplohh <-
     if (sum(multiple_markers) > 0) {
       if (remove_multiple_markers) {
         hh@positions <- hh@positions[!multiple_markers]
-        hh@haplo <- hh@haplo[, !multiple_markers, drop = FALSE]
+        hh@haplo <- hh@haplo[,!multiple_markers, drop = FALSE]
         warning(paste(
           "Removed",
           sum(multiple_markers),
@@ -555,7 +568,7 @@ read.standard <- function(hap_file, verbose) {
   }
   rownames(tmp_haplo) <- rownames
   
-  return(tmp_haplo[, -1])
+  return(tmp_haplo[,-1])
 }
 
 read.transposed <- function(hap_file, verbose) {
@@ -660,10 +673,10 @@ read.fastPhase <- function(hap_file, popsel, verbose) {
     }
     
     hap1 <- unlist(strsplit(out_fphase[hap1_line], split = " "))
-    tmp_haplo[hap1_index, ] <- hap1
+    tmp_haplo[hap1_index,] <- hap1
     
     hap2 <- unlist(strsplit(out_fphase[hap2_line], split = " "))
-    tmp_haplo[hap2_index, ] <- hap2
+    tmp_haplo[hap2_index,] <- hap2
   }
   
   if (!anyDuplicated(hapnames)) {
@@ -733,73 +746,125 @@ read.vcf <-
            chr.name,
            polarize_vcf,
            capitalize_AA,
+           vcf_reader,
            verbose) {
-    if (!requireNamespace("vcfR", quietly = TRUE)) {
+    if (vcf_reader == "vcfR" &
+        !requireNamespace("vcfR", quietly = TRUE)) {
       stop("Package 'vcfR' needed to read vcf files. Conversion stopped.",
            call. = FALSE)
     }
+    if (vcf_reader == "data.table" &
+        !requireNamespace("data.table", quietly = TRUE)) {
+      stop("Package 'data.table' needed to read vcf files. Conversion stopped.",
+           call. = FALSE)
+    }
     
-    vcf <- vcfR::read.vcfR(vcf_file, verbose = verbose)
+    if (verbose)
+      cat("Using package '", vcf_reader, "' to read vcf.\n", sep = "")
     
     if (verbose)
       cat("Extracting map information.\n")
     
-    map <- data.frame(
-      vcfR::getCHROM(vcf),
-      vcfR::getPOS(vcf),
-      vcfR::getREF(vcf),
-      vcfR::getALT(vcf),
-      stringsAsFactors = FALSE
-    )
+    if (vcf_reader == "vcfR") {
+      vcf <- vcfR::read.vcfR(vcf_file, verbose = verbose)
+      
+      map <- data.frame(
+        CHROM = vcfR::getCHROM(vcf),
+        POS = vcfR::getPOS(vcf),
+        REF = vcfR::getREF(vcf),
+        ALT = vcfR::getALT(vcf),
+        stringsAsFactors = FALSE
+      )
+    } else{
+      map <- data.table::fread(
+        vcf_file,
+        skip = "#CHROM",
+        select = c("#CHROM", "POS", "ID", "REF", "ALT", "INFO"),
+        stringsAsFactors = FALSE,
+        showProgress = FALSE
+      )
+    }
     
     chr.name <-
-      check_chromosome_names(vcf_file, unique(map[, 1]), chr.name)
+      check_chromosome_names(vcf_file, as.character(unique(map[, 1])), chr.name)
     selected <- map[, 1] == chr.name
-    map <- map[selected, ]
+    map <- map[selected,]
     
     if (polarize_vcf) {
-      if ("AA" %in% vcfR::vcf_field_names(vcf, tag = "INFO")$ID) {
-        if (verbose)
-          cat("Extracting ancestral allele from info field of vcf file.\n")
-        
-        #get ancestal allele as nucleotide
+      if (verbose)
+        cat("Extracting ancestral allele from info field of vcf file.\n")
+      
+      if (vcf_reader == "vcfR") {
+        if (!("AA" %in% vcfR::vcf_field_names(vcf, tag = "INFO")$ID)) {
+          stop("Key 'AA' not found in INFO field of vcf file. Conversion stopped.",
+               call. = FALSE)
+        }
+        #get ancestral allele as nucleotide
         AA <- vcfR::extract.info(vcf, "AA")[selected]
-        # get rid of big object before creating haplo matrix
-        if (sum(is.na(AA)) > 0) {
-          warning(paste(
-            "Ancestral allele info field is empty for",
-            sum(is.na(AA)),
-            "markers."
-          ))
-        }
-        if (capitalize_AA) {
-          AA <- toupper(AA)
-        }
-        
       } else{
-        stop("No key 'AA' found in INFO field of vcf file. Conversion stopped.",
-             call. = FALSE)
+        # if key 'AA' is absent or empty, set whole string to NA
+        map$INFO[!grepl("AA=[^;]+", map$INFO)] <- NA
+        # extract value for key 'AA'
+        AA <- sub(";.*$", "", sub("^.*AA=", "", map$INFO))
+        # remove column to free memory
+        map$INFO <- NULL
+      }
+      if (sum(is.na(AA)) > 0) {
+        warning(paste(
+          "Ancestral allele info field is empty for",
+          sum(is.na(AA)),
+          "markers."
+        ))
+      }
+      if (capitalize_AA) {
+        AA <- toupper(AA)
       }
     }
+    
     if (verbose)
       cat("Extracting haplotypes.\n")
     
-    gt <- vcfR::extract.gt(vcf)[selected, , drop = FALSE]
+    if (vcf_reader == "vcfR") {
+      gt <- vcfR::extract.gt(vcf)[selected, , drop = FALSE]
+    } else{
+      # extract GT field (always the first) from sample columns
+      gt <- sub(":.*$", "", as.matrix(
+        data.table::fread(
+          vcf_file,
+          skip = "#CHROM",
+          drop = c(
+            "#CHROM",
+            "POS",
+            "ID",
+            "REF",
+            "ALT",
+            "QUAL",
+            "FILTER",
+            "INFO",
+            "FORMAT"
+          ),
+          stringsAsFactors = FALSE,
+          showProgress = FALSE,
+        )[selected,]
+      ))
+    }
     
-    ### vcfR translates completely absent genotypes like . or .|. into a single NA
-    ### However, we need the right number of NAs!
-    ### Work-around: replace NA by "." , ".|." , etc. using the ploidy
-    ### of the non-absent markers of the same individual.
+    # check that ploidy of each individual is the same at all markers
     ind_ploidy <- apply(gt, MARGIN = 2,
                         function(x) {
+                          # replace NAs by empty string
                           x[is.na(x)] <- ""
                           l <- strsplit(x, split = "[/|]")
                           t <- tabulate(lengths(l))
+                          # if no information at all
+                          if (all(t == 0)) {
+                            stop("Cannot determine ploidy for at least one individual. Conversion stopped.",
+                                 call. = FALSE)
+                          }
                           # if multiple ploidies, return NA
                           ifelse(length(t[t != 0]) != 1, NA, which.max(t))
                         })
     
-    # no way to handle different ploidy levels of a single individual!
     if (anyNA(ind_ploidy)) {
       stop(paste(
         sum(is.na(ind_ploidy)),
@@ -808,12 +873,16 @@ read.vcf <-
       call. = FALSE)
     }
     
-    
-    # replace NAs by '.', '.|.', etc.
-    for (i in seq_len(ncol(gt))) {
-      gt[is.na(gt[, i]), i] <- paste0(rep(".|", ind_ploidy[i] - 1), ".")
+    ### vcfR translates all absent genotypes, irrespective of ploidy, to single NA
+    ### However, we need the correct ploidy for absent genotypes, too!
+    ### Work-around: replace NA by "." , ".|." , etc. using the ploidy
+    ### of the non-absent genotypes at other markers of the same individual,
+    ### hence (hopefully) reconstructing the original information in the vcf file
+    if (vcf_reader == "vcfR") {
+      for (i in seq_len(ncol(gt))) {
+        gt[is.na(gt[, i]), i] <- paste0(rep(".|", ind_ploidy[i] - 1), ".")
+      }
     }
-    
     ### end of work-around
     
     # report sample statistics
@@ -825,6 +894,8 @@ read.vcf <-
       cat(names(ploidy), "\n")
       cat(ploidy, "\n")
     }
+    
+    # parse vcf genotypes into integers
     tmp_haplo <- matrix(apply(gt, MARGIN = 1,
                               function(x) {
                                 suppressWarnings(as.integer(unlist(strsplit(x, split = "[/|]"))))
@@ -854,13 +925,33 @@ read.vcf <-
     hh@haplo <- tmp_haplo
     hh@positions <- as.numeric(map[, 2])
     
-    mrk.names <- vcfR::getID(vcf)[selected]
+    if (vcf_reader == "vcfR") {
+      mrk.names <- vcfR::getID(vcf)[selected]
+    } else{
+      # replace point by NA
+      mrk.names <- sub("\\.", NA, map$ID)
+      # check on duplicates (done automatically by vcfR)
+      if (anyDuplicated(na.omit(mrk.names))) {
+        stop("ID column contains non-unique names.", call. = FALSE)
+      }
+    }
+    
     if (!anyNA(mrk.names)) {
       colnames(hh@haplo) <- mrk.names
       names(hh@positions) <- mrk.names
     } else{
-      if (verbose)
-        cat("No (unique) marker identifiers found in vcf file.\n")
+      if (verbose) {
+        if (sum(is.na(mrk.names)) == ncol(hh@haplo)) {
+          cat("No marker identifiers found in vcf file.\n")
+        } else{
+          cat(
+            sum(is.na(mrk.names)),
+            "out of",
+            ncol(hh@haplo),
+            "markers have no identifier in vcf file.\n"
+          )
+        }
+      }
     }
     
     # polarize
@@ -869,11 +960,15 @@ read.vcf <-
         cat("Polarizing variants.\n")
       
       allele_list <-
-        strsplit(paste(map[, 3], map[, 4], sep = ","), ",", fixed = TRUE)
+        strsplit(paste(map[, "REF"], map[, "ALT"], sep = ","), ",", fixed = TRUE)
       
       #if ancestral allele among REF or ALT, get number, otherwise zero
       aan <-
         mapply(match, AA, allele_list, USE.NAMES = FALSE) - 1L
+      
+      if (sum(is.na(aan)) == ncol(hh@haplo)) {
+        stop("No marker could be polarized. Conversion stopped.", call. = FALSE)
+      }
       
       #switch allele coding 0 with aan, if aan is not zero.
       #if the ancestral allele is not known/does not match, this yield NA
@@ -881,7 +976,12 @@ read.vcf <-
         aan * (x == 0L) + x * (aan == 0L | (aan > 0L & x != aan))
       }))
       
-      hh@haplo <- hh@haplo[, !is.na(aan)]
+      # if only one marker then matrix must be explicitly coerxed
+      if (nrow(hh@haplo) == 1) {
+        hh@haplo <- as.matrix(hh@haplo[,!is.na(aan)])
+      } else{
+        hh@haplo <- hh@haplo[,!is.na(aan)]
+      }
       hh@positions <- hh@positions[!is.na(aan)]
       
       if (verbose) {

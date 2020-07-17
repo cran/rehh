@@ -24,6 +24,9 @@ Population genetic data such as 'Single Nucleotide
         visualization and interpretation of these statistics. 
         Due to changes in the API, albeit mostly minor, 
         versions 3.X are not compatible with versions 2.0.X.
+        Note: optionally, vcf files can be imported using package vcfR. That package
+        is currently removed from CRAN, but can still be installed from 
+        <https://github.com/knausb/vcfR> following instructions there.
 }
 \details{
 See \code{vignette("rehh", package = "rehh")} for an overview of the package and

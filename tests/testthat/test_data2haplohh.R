@@ -104,13 +104,22 @@ test_that("checked_bta", {
   
   expect_equivalent(hap1, hap3)
   
-  skip_if_not_installed("vcfR")
+  skip_if_not_installed("data.table")
+  skip_if_not_installed("R.utils")
   
   hap4 <-
     data2haplohh(hap_file = "bta12_cgu.vcf.gz",
-                 polarize_vcf = FALSE)
+                 polarize_vcf = FALSE, vcf_reader = "data.table")
   
   expect_equal(hap3, hap4)
+  
+  skip_if_not_installed("vcfR")
+  
+  hap5 <-
+    data2haplohh(hap_file = "bta12_cgu.vcf.gz",
+                 polarize_vcf = FALSE, vcf_reader = "vcfR")
+  
+  expect_equal(hap3, hap5)
   
   sink()
   

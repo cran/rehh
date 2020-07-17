@@ -1,5 +1,5 @@
 ---
-title: "Vignette for package *rehh* (version 3.1.x)"
+title: "Vignette for package *rehh* (version 3.1.2)"
 author: "Alexander Klassmann, Renaud Vitalis and Mathieu Gautier"
 date: "`r Sys.Date()`"
 output:
@@ -130,7 +130,7 @@ Five haplotype input file formats are supported:
  - a *standard* haplotype format. Each row represents a haplotype with marker genotype in columns as in the example file `bta12_cgu.hap` containing 280 haplotypes with 1424 SNPs each (see section \@ref(LoadDataEx1)). The first element of each row is taken as a haplotype identifier.
 -  a *transposed* format with haplotypes in columns and markers in rows as in the example file `bta12_cgu.thap`. This format is similar to the one produced by the phasing program *SHAPEIT2* [@OConnell2014]. This format assumes neither row nor column names and hence no haplotype identifiers can be specified (see section \@ref(LoadDataEx2)).
  - the output file format from the phasing program *fastPHASE* [@Scheet2006] as in the `bta12_hapguess_switch.out` example file. Note that this file format allows to include haplotypes from several populations (if the -u *fastPHASE* option was used) (see section \@ref(LoadDataEx3)).
- - *variant call format (vcf)*, comprising both haplotype and marker information. In order to read files in this format, the package *vcfR* has to be installed (see section \@ref(LoadDataEx4)).
+ - *variant call format (vcf)*, comprising both haplotype and marker information. In order to read files in this format, the package *vcfR* or the packages *data.table* and *R.utils* (the latter is needed for compressed files) have to be installed (see section \@ref(LoadDataEx4)).
  - The output of the simulation program *ms* [@Hudson2002] and its derivatives *msHOT* [@Hellenthal2007],  *ms^2^* [@Ewing2010] and *ms'* [@Kelleher2016]. In order to read these files, the package *gap* has to be installed (see section \@ref(LoadDataEx5)).
 
 Alleles in standard or transposed haplotype format can be provided either coded (by integer numbers) or without coding (e.g. as nucleotides) (see section \@ref(LoadData)). 
@@ -265,13 +265,16 @@ If the `AA` key is absent, the option `polarize_vcf` should be set to `FALSE` an
 
 If there is data for more than one chromosome in the file, the chromosome of interest has to be specified by `chr.name`. Since always the whole file is read in, it may be advisable for large data sets to create chromosome-specific files.
 
-In order to process *vcf* files, the package [vcfR](https://cran.r-project.org/package=vcfR) has to be installed. 
+In order to process *vcf* files, the package [vcfR](https://cran.r-project.org/package=vcfR) or the package
+[data.table](https://cran.r-project.org/package=data.table) (which in turn needs [R.utils](https://cran.r-project.org/package=R.utils) to read compressed files) have to be installed. The parameter `vcf_reader` has to be set to either `"vcfR"` or `"data.table"`. [Note: at the time of writing, the package *vcfR* has been removed from CRAN, but can still be installed from https://github.com/knausb/vcfR, following instructions there.]
+
 
 In the file `bta12_cgu.vcf.gz` the ancestral allele was set as reference and hence no further polarizing is necessary.
 
-```{r vcf_example}
+```{r vcf_example, eval = requireNamespace("data.table", quietly = TRUE) & requireNamespace("R.utils", quietly = TRUE)} 
 hh <- data2haplohh(hap_file = "bta12_cgu.vcf.gz",
-                   polarize_vcf = FALSE)
+                   polarize_vcf = FALSE,
+                   vcf_reader = "data.table")
 ```
 
 ### Example 5: reading ms output {#LoadDataEx5}
@@ -283,7 +286,7 @@ Note that *rehh* does not accept multiple markers with the same position and hen
 
 In order to read this format, the package [gap](https://cran.r-project.org/package=gap) has to be installed. 
 
-```{r ms_example}
+```{r ms_example, eval = requireNamespace("gap", quietly = TRUE)}
 hh <- data2haplohh(hap_file = "ms.out",
                    chr.name = 2,
                    position_scaling_factor = 1000)
@@ -787,7 +790,7 @@ Note that this frequency dependence is expected under neutral evolution and not 
 
 Figure \@ref(fig:comp) shows a plot of *Rsb* against *XP-EHH* values across the CGU and EUT populations (see section \@ref(ines2rsb) and \@ref(ies2xpehh) respectively). Marked in red is the marker that was repeatedly used in the examples above. The plot was generated using the following R code:
 
-```{r comp,echo=TRUE,fig.align='center',fig.lp='fig:',fig.cap='Comparison of Rsb and XP-EHH values across the CGU and EUT populations',fig.pos="!h"}
+```{r comp, echo = TRUE, fig.align = 'center', fig.lp = 'fig:', fig.cap = 'Comparison of Rsb and XP-EHH values across the CGU and EUT populations', fig.pos = "!h"}
 plot(rsb.cgu_eut[, "RSB_CGU_EUT"],
      xpehh.cgu_eut[, "XPEHH_CGU_EUT"],
      xlab = "Rsb",
@@ -874,17 +877,17 @@ wgscan.cgu.ihs.qqman <- data.frame(
 ```
 We can now use the new data frame as input for the function `manhattan()` to obtain Figure \@ref(fig:qqman):
 
-```{r qqman, fig.align = 'center', fig.width = 7, fig.lp = 'fig:', fig.cap = 'Graphical output of the qqman::manhattan() function', fig.pos = '!h', message = FALSE}
+```{r qqman, eval = requireNamespace("qqman", quietly = TRUE), fig.align = 'center', fig.width = 7, fig.lp = 'fig:', fig.cap = 'Graphical output of the qqman::manhattan() function', fig.pos = '!h', message = FALSE}
 library(qqman)
-manhattan(wgscan.cgu.ihs.qqman,
-          col = c("red","green"),
-          chrlabs = unique(ihs$CHR),
-          suggestiveline = 4,
-          highlight = "F1205400",
-          annotatePval = 0.0001)
+qqman::manhattan(wgscan.cgu.ihs.qqman,
+                 col = c("red","green"),
+                 chrlabs = unique(ihs$CHR),
+                 suggestiveline = 4,
+                 highlight = "F1205400",
+                 annotatePval = 0.0001)
 ```
 
-\clearpage
+<!-- \clearpage -->
 # Visualization of the haplotype structure
 
 ## The function `plot.haplohh()`
@@ -951,9 +954,9 @@ newick <- as.newick(furcation,
                     hap.names = hap.names(haplohh_cgu_bta12))
 ```
 Such a string can be rendered graphically e.g. by the R package [ape](https://cran.r-project.org/package=ape) yielding Figure \@ref(fig:newick):
-```{r newick, fig.align = 'center', fig.width = 6, fig.height = 6, fig.lp = 'fig:', fig.cap = 'Graphical output of the ape::plot.phylo() function', fig.pos = "!h"}
+```{r newick, , eval = requireNamespace("ape", quietly = TRUE), fig.align = 'center', fig.width = 6, fig.height = 6, fig.lp = 'fig:', fig.cap = 'Graphical output of the ape::plot.phylo() function', fig.pos = "!h"}
 library(ape)
-tree <- read.tree(text = newick)
+tree <- ape::read.tree(text = newick)
 plot(tree, 
      cex = 0.5, 
      direction = "leftwards", 

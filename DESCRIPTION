@@ -1,7 +1,7 @@
 Package: rehh
 Maintainer: Alexander Klassmann <rehh@oneoverx.eu>
 Author: Mathieu Gautier, Alexander Klassmann and Renaud Vitalis
-Version: 3.1.1
+Version: 3.1.2
 License: GPL (>= 2)
 Title: Searching for Footprints of Selection using 'Extended Haplotype
         Homozygosity' Based Tests
@@ -22,15 +22,19 @@ Description: Population genetic data such as 'Single Nucleotide
         visualization and interpretation of these statistics. 
         Due to changes in the API, albeit mostly minor, 
         versions 3.X are not compatible with versions 2.0.X.
+        Note: optionally, vcf files can be imported using package vcfR. That package
+        is currently removed from CRAN, but can still be installed from 
+        <https://github.com/knausb/vcfR> following instructions there.
 Depends: R (>= 2.10)
 Imports: methods, rehh.data
-Suggests: ape, bookdown, gap, knitr, qqman, rmarkdown, testthat, vcfR
+Suggests: ape, bookdown, data.table, gap, knitr, qqman, rmarkdown,
+        R.utils, testthat, vcfR
 VignetteBuilder: knitr
 NeedsCompilation: yes
-Packaged: 2020-06-19 09:14:17 UTC; alex
+Packaged: 2020-07-17 09:16:17 UTC; alex
 RoxygenNote: 7.1.0
 URL: https://CRAN.R-project.org/package=rehh,
         https://gitlab.com/oneoverx/rehh
 BugReports: https://gitlab.com/oneoverx/rehh/issues
 Repository: CRAN
-Date/Publication: 2020-06-19 10:00:02 UTC
+Date/Publication: 2020-07-17 10:30:03 UTC

@@ -127,9 +127,10 @@ test_that("errors_ms", {
 })
 
 
-test_that("errors_vcf", {
+test_that("errors_vcf_vcfR", {
   skip_if_not_installed("vcfR")
   tmp <- tempfile()
+  ## different ploidy at different markers
   writeLines(
     c(
       "##fileformat=VCFv4.2",
@@ -141,13 +142,42 @@ test_that("errors_vcf", {
     ),
     tmp
   )
-  
-  expect_error(data2haplohh(tmp),
-               "No key 'AA' found in INFO field of vcf file")
   expect_error(
-    data2haplohh(tmp, polarize_vcf = FALSE),
-    "1 individuals have different ploidy at different markers."
+    data2haplohh(tmp, polarize_vcf = FALSE, vcf_reader = "vcfR"),
+    "1 individuals have different ploidy at different markers"
   )
+  
+  ## absent ancestral alleles
+  writeLines(
+    c(
+      "##fileformat=VCFv4.2",
+      "##INFO=<ID=NS,Number=1,Type=Integer>",
+      "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">",
+      "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tHG1\tHG2",
+      "chr1\t10000\trs1\tG\tT\t100\tPASS\tNS=2\tGT\t.\t0|0",
+      "chr1\t20000\trs2\tG\tA\t100\tPASS\tNS=2\tGT\t0\t1|0"
+    ),
+    tmp
+  )
+  
+  expect_error(data2haplohh(tmp, vcf_reader = "vcfR"),
+               "Key 'AA' not found")
+
+  ## no polarization possible
+  writeLines(
+    c(
+      "##fileformat=VCFv4.2",
+      "##INFO=<ID=AA,Number=1,Type=String,Description=\"Ancestral Allele\">",
+      "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">",
+      "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tHG1\tHG2",
+      "chr1\t10000\trs1\tG\tT\t100\tPASS\tAA=C\tGT\t.\t0|0",
+      "chr1\t20000\trs2\tG\tA\t100\tPASS\tAA=C\tGT\t0\t1|0"
+    ),
+    tmp
+  )
+  
+  expect_error(data2haplohh(tmp, vcf_reader = "vcfR"),
+               "No marker could be polarized")
   
   ## no marker identifiers
   writeLines(
@@ -162,8 +192,100 @@ test_that("errors_vcf", {
     tmp
   )
   expect_output(
-    data2haplohh(tmp, polarize_vcf = FALSE),
-    "No \\(unique\\) marker identifiers found in vcf file"
+    data2haplohh(tmp, polarize_vcf = FALSE, vcf_reader = "vcfR"),
+    "No marker identifiers found in vcf file"
+  )
+  
+  ## non unique identifiers
+  writeLines(
+    c(
+      "##fileformat=VCFv4.2",
+      "##INFO=<ID=NS,Number=1,Type=Integer>",
+      "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">",
+      "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tHG1\tHG2",
+      "chr1\t10000\trs1\tG\tT\t100\tPASS\tNS=2\tGT\t.\t0|0",
+      "chr1\t20000\trs1\tG\tA\t100\tPASS\tNS=2\tGT\t0\t1|0"
+    ),
+    tmp
+  )
+  expect_error(
+    data2haplohh(tmp, polarize_vcf = FALSE, vcf_reader = "vcfR"),
+    "ID column contains non-unique names"
+  )
+  
+  unlink(tmp)
+  
+})
+
+test_that("errors_vcf_data.frame", {
+  skip_if_not_installed("data.table")
+  tmp <- tempfile()
+  ## different ploidy at different markers
+  writeLines(
+    c(
+      "##fileformat=VCFv4.2",
+      "##INFO=<ID=NS,Number=1,Type=Integer>",
+      "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">",
+      "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tHG1\tHG2",
+      "chr1\t10000\trs1\tG\tT\t100\tPASS\tNS=2\tGT\t.\t0",
+      "chr1\t20000\trs2\tG\tA\t100\tPASS\tNS=2\tGT\t0\t1|0"
+    ),
+    tmp
+  )
+  expect_error(
+    data2haplohh(tmp, polarize_vcf = FALSE, vcf_reader = "data.table"),
+    "1 individuals have different ploidy at different markers"
+  )
+  
+  ## no polarization possible
+  writeLines(
+    c(
+      "##fileformat=VCFv4.2",
+      "##INFO=<ID=AA,Number=1,Type=String,Description=\"Ancestral Allele\">",
+      "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">",
+      "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tHG1\tHG2",
+      "chr1\t10000\trs1\tG\tT\t100\tPASS\tAA=C\tGT\t.\t0|0",
+      "chr1\t20000\trs2\tG\tA\t100\tPASS\tAA=C\tGT\t0\t1|0"
+    ),
+    tmp
+  )
+  
+  expect_error(data2haplohh(tmp, vcf_reader = "data.table"),
+               "No marker could be polarized")
+  
+  ## no marker identifiers
+  writeLines(
+    c(
+      "##fileformat=VCFv4.2",
+      "##INFO=<ID=NS,Number=1,Type=Integer>",
+      "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">",
+      "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tHG1\tHG2",
+      "chr1\t10000\t.\tG\tT\t100\tPASS\tNS=2\tGT\t.\t0|0",
+      "chr1\t20000\t.\tG\tA\t100\tPASS\tNS=2\tGT\t0\t1|0"
+    ),
+    tmp
+  )
+  expect_output(
+    data2haplohh(tmp, polarize_vcf = FALSE, vcf_reader = "data.table"),
+    "No marker identifiers found in vcf file"
+  )
+  
+
+  ## non unique identifiers
+  writeLines(
+    c(
+      "##fileformat=VCFv4.2",
+      "##INFO=<ID=NS,Number=1,Type=Integer>",
+      "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">",
+      "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tHG1\tHG2",
+      "chr1\t10000\trs1\tG\tT\t100\tPASS\tNS=2\tGT\t.\t0|0",
+      "chr1\t20000\trs1\tG\tA\t100\tPASS\tNS=2\tGT\t0\t1|0"
+    ),
+    tmp
+  )
+  expect_error(
+    data2haplohh(tmp, polarize_vcf = FALSE, vcf_reader = "data.table"),
+    "ID column contains non-unique names"
   )
   
   unlink(tmp)

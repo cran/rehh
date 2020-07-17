@@ -1,3 +1,7 @@
+### rehh 3.1.2 (July 17, 2020)
+
+* added option to parse vcf files using package 'data.table' in order to avoid reliance on package 'vcfR' which is currently removed from CRAN (but still available on github: https://github.com/knausb/vcfR)
+
 ### rehh 3.1.1 (June 19, 2020)
 
 * option to use stepwise continuous EHH(S) curves for integration and plotting

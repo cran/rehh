@@ -18,6 +18,7 @@ data2haplohh(
   remove_multiple_markers = FALSE,
   polarize_vcf = TRUE,
   capitalize_AA = TRUE,
+  vcf_reader = "data.table",
   position_scaling_factor = NA,
   verbose = TRUE
 )
@@ -57,16 +58,21 @@ The option is irrelevant for vcf files and ms output.}
 by the SHAPEIT2 program (O'Connell et al., 2014).}
 
 \item{remove_multiple_markers}{logical. If \code{FALSE} (default), conversion
-stops, if multiple markers with the same chromosomal position are encountered. 
+stops, if multiple markers with the same chromosomal position are encountered.
 If \code{TRUE}, duplicated markers are removed (all but the first marker with identical positions).}
 
 \item{polarize_vcf}{logical. Only of relevance for vcf files. If \code{TRUE} (default), tries to polarize
-variants with help of the AA entry in the INFO field. Unpolarized alleles are discarded. 
+variants with help of the AA entry in the INFO field. Unpolarized alleles are discarded.
 If \code{FALSE}, allele coding of vcf file is used unchanged as internal coding.}
 
 \item{capitalize_AA}{logical. Only of relevance for vcf files with ancestral allele information.
 Low confidence ancestral alleles are usually coded by lower-case letters. If \code{TRUE} (default), these are
 changed to upper case before the alleles of the sample are matched for polarization.}
+
+\item{vcf_reader}{library used to read vcf. By default, low-level parsing is
+performed using the generic package \code{data.table}. In order to read compressed files, 
+the package \code{R.utils} must be installed, too.
+If the specialized package \code{vcfR} is available, set this parameter to \code{"vcfR"}.}
 
 \item{position_scaling_factor}{intended primarily for output of ms where
 positions lie in the interval [0,1]. These can be rescaled to sizes
@@ -94,7 +100,7 @@ was used), it is necessary to specify the population of interest by parameter \c
 (if this parameter is not or wrongly set, the error message will provide a list of
 the population numbers contained in the file).
 \item files in variant call format (vcf). No mapfile is needed is this case. If
-the file contains several chromosomes, it is necessary to  choose one by parameter
+the file contains several chromosomes, it is necessary to choose one by parameter
 \code{chr.name}.
 \item output of the simulation program 'ms'. No mapfile is needed in this case. If the file
 contains several 'runs', a specific number has to be specified by the
@@ -160,7 +166,7 @@ hap <- data2haplohh(hap_file = "bta12_hapguess_switch.out",
                    popsel = 7,
                    allele_coding = "map")
 #clean up demo files
-remove.example.files()                    
+remove.example.files()
 }
 \references{
 Scheet P, Stephens M (2006) A fast and flexible statistical model for large-scale population genotype
