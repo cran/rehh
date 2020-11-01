@@ -27,6 +27,8 @@
   pos.lab.mrk = "top",
   srt.hap = 0,
   srt.mrk = 0,
+  highlight.mrk = NULL,
+  highlight.mrk.col = c("lightgray", "black", "darkgray"),
   ...
 )
 }
@@ -85,6 +87,10 @@ consecutive sequences are set into the specified colors.}
 
 \item{srt.mrk}{rotation of marker labels (see \code{\link[graphics]{par}}).}
 
+\item{highlight.mrk}{vector of markers to be highlighted}
+
+\item{highlight.mrk.col}{color for each allele (as coded internally) at highlighted markers.}
+
 \item{...}{other parameters to be passed to \code{\link[graphics]{plot.default}}.}
 }
 \description{
@@ -99,13 +105,13 @@ markers produces an error.
 \examples{
 #example haplohh object
 make.example.files()
-hh <- data2haplohh(hap_file = "example1.hap", 
+hh <- data2haplohh(hap_file = "example1.hap",
                    map_file = "example1.map",
                    allele_coding = "01")
 plot(hh)
-hh <- data2haplohh(hap_file = "example2.hap", 
-                   map_file = "example2.map", 
-                   allele_coding = "01", 
+hh <- data2haplohh(hap_file = "example2.hap",
+                   map_file = "example2.map",
+                   allele_coding = "01",
                    min_perc_geno.mrk = 50)
 plot(hh)
 remove.example.files()

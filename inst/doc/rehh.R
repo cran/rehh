@@ -7,7 +7,7 @@ library(rehh)
 ## ----make_examples, results = 'hide'------------------------------------------
 make.example.files()
 
-## ----minimalcodeexample, results = "hide"-------------------------------------
+## ----minimalcodeexample, fig.align = 'center', results = "hide"---------------
 hh <-                  # data input
   data2haplohh(
     hap_file = "bta12_cgu.hap",
@@ -16,7 +16,8 @@ hh <-                  # data input
     allele_coding = "map"
   )
 scan <- scan_hh(hh)    # calculation of EHH and integration
-ihs <- ihh2ihs(scan)   # log ratio for alleles and normalization
+                       # (combine results from different chromosomes)
+ihs <- ihh2ihs(scan)   # log ratio for alleles and standardization
 manhattanplot(ihs)     # plot of the statistics
 
 ## ----map_inp------------------------------------------------------------------
@@ -298,6 +299,7 @@ manhattanplot(wgscan.ihs.cgu,
               main = "iHS (CGU cattle breed)", 
               cr = cr.cgu,
               mrk = "F1205400",
+              inset = 1E+7,
               resolution = c(200000, 0.05))
 # set back to default colors
 palette("default")
@@ -362,7 +364,7 @@ newick <- as.newick(furcation,
                     side = "left",
                     hap.names = hap.names(haplohh_cgu_bta12))
 
-## ----newick, , eval = requireNamespace("ape", quietly = TRUE), fig.align = 'center', fig.width = 6, fig.height = 6, fig.lp = 'fig:', fig.cap = 'Graphical output of the ape::plot.phylo() function', fig.pos = "!h"----
+## ----newick, eval = requireNamespace("ape", quietly = TRUE), fig.align = 'center', fig.width = 6, fig.height = 6, fig.lp = 'fig:', fig.cap = 'Graphical output of the ape::plot.phylo() function', fig.pos = "!h"----
 library(ape)
 tree <- ape::read.tree(text = newick)
 plot(tree, 

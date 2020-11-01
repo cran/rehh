@@ -42,8 +42,9 @@
 #'}
 #'@references Gautier, M. and Naves, M. (2011). Footprints of selection in the ancestral admixture of a New World Creole cattle breed. \emph{Molecular Ecology}, \strong{20}, 3128-3143.
 #'
-#'Klassmann, A. et al. (2020). Detecting selection using Extended Haplotype
-#'Homozygosity (EHH)-based statistics on unphased or unpolarized data. (submitted).
+#'Klassmann, A. and Gautier, M. (2020). Detecting selection using Extended Haplotype
+#'Homozygosity-based statistics on unphased or unpolarized data (preprint). 
+#'https://doi.org/10.22541/au.160405572.29972398/v1
 #'
 #'Sabeti, P.C. et al. (2002). Detecting recent positive selection in the human genome from haplotype structure. \emph{Nature}, \strong{419}, 832-837.
 #'

@@ -33,9 +33,9 @@
 #'Low confidence ancestral alleles are usually coded by lower-case letters. If \code{TRUE} (default), these are
 #'changed to upper case before the alleles of the sample are matched for polarization.
 #'@param vcf_reader library used to read vcf. By default, low-level parsing is
-#'performed using the generic package \code{data.table}. In order to read compressed files, 
+#'performed using the generic package \code{data.table}. In order to read compressed files,
 #'the package \code{R.utils} must be installed, too.
-#'If the specialized package \code{vcfR} is available, set this parameter to \code{"vcfR"}. 
+#'If the specialized package \code{vcfR} is available, set this parameter to \code{"vcfR"}.
 #'@param position_scaling_factor intended primarily for output of ms where
 #'positions lie in the interval [0,1]. These can be rescaled to sizes
 #'of typical markers in real data.
@@ -262,7 +262,7 @@ data2haplohh <-
         check_chromosome_names(map_file, unique(as.character(map[, 1])), chr.name)
       
       ### subset map data frame to specified chromosome
-      map <- map[as.character(map[, 1]) == chr.name,]
+      map <- map[as.character(map[, 1]) == chr.name, ]
       
       ### set first slots of haplohh
       hh <- new("haplohh")
@@ -419,12 +419,17 @@ data2haplohh <-
            call. = FALSE)
     }
     
+    ## scale positions
+    if (!is.na(position_scaling_factor)) {
+      hh@positions <- hh@positions * position_scaling_factor
+    }
+    # 
     ## check for multiple markers
     multiple_markers <- duplicated(hh@positions)
     if (sum(multiple_markers) > 0) {
       if (remove_multiple_markers) {
         hh@positions <- hh@positions[!multiple_markers]
-        hh@haplo <- hh@haplo[,!multiple_markers, drop = FALSE]
+        hh@haplo <- hh@haplo[, !multiple_markers, drop = FALSE]
         warning(paste(
           "Removed",
           sum(multiple_markers),
@@ -439,10 +444,6 @@ data2haplohh <-
       }
     }
     
-    ## scale positions
-    if (!is.na(position_scaling_factor)) {
-      hh@positions <- hh@positions * position_scaling_factor
-    }
     
     # filtering
     hh <- subset(
@@ -568,7 +569,7 @@ read.standard <- function(hap_file, verbose) {
   }
   rownames(tmp_haplo) <- rownames
   
-  return(tmp_haplo[,-1])
+  return(tmp_haplo[, -1])
 }
 
 read.transposed <- function(hap_file, verbose) {
@@ -673,10 +674,10 @@ read.fastPhase <- function(hap_file, popsel, verbose) {
     }
     
     hap1 <- unlist(strsplit(out_fphase[hap1_line], split = " "))
-    tmp_haplo[hap1_index,] <- hap1
+    tmp_haplo[hap1_index, ] <- hap1
     
     hap2 <- unlist(strsplit(out_fphase[hap2_line], split = " "))
-    tmp_haplo[hap2_index,] <- hap2
+    tmp_haplo[hap2_index, ] <- hap2
   }
   
   if (!anyDuplicated(hapnames)) {
@@ -788,7 +789,7 @@ read.vcf <-
     chr.name <-
       check_chromosome_names(vcf_file, as.character(unique(map[, 1])), chr.name)
     selected <- map[, 1] == chr.name
-    map <- map[selected,]
+    map <- map[selected, ]
     
     if (polarize_vcf) {
       if (verbose)
@@ -845,7 +846,7 @@ read.vcf <-
           ),
           stringsAsFactors = FALSE,
           showProgress = FALSE,
-        )[selected,]
+        )[selected, ]
       ))
     }
     
@@ -978,9 +979,9 @@ read.vcf <-
       
       # if only one marker then matrix must be explicitly coerxed
       if (nrow(hh@haplo) == 1) {
-        hh@haplo <- as.matrix(hh@haplo[,!is.na(aan)])
+        hh@haplo <- as.matrix(hh@haplo[, !is.na(aan)])
       } else{
-        hh@haplo <- hh@haplo[,!is.na(aan)]
+        hh@haplo <- hh@haplo[, !is.na(aan)]
       }
       hh@positions <- hh@positions[!is.na(aan)]
       

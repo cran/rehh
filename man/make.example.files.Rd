@@ -15,6 +15,9 @@ This function copies the following example files to the current working director
 \item \code{example2.hap} "example 2" haplotype file in "standard format"
 \item \code{example2.map} "example 2" marker information file
 \item \code{example2.vcf} "example 2" as vcf file
+\item \code{example_neutral.vcf} "example neutral evolution" as vcf file
+\item \code{example_sweep.vcf} "example for a selective sweep (without recombination)"
+\item \code{example_sweep_with_recombination.vcf} "example for a selective sweep with recombination
 \item \code{ms.out output} from a small simulation by the program 'ms'
 \item \code{bta12_cgu.hap} an haplotype file in "standard format"
 \item \code{bta12_cgu.thap} an haplotype file in "transposed format"
@@ -24,6 +27,8 @@ This function copies the following example files to the current working director
 Example 1 was used in (Gautier 2017) to explain the various EHH derived statistics calculated by this package.
 Example 2 is an extension containing multi-allelic markers and missing values.
 
+Examples for neutral data and sweeps are discussed in a supplement of Klassmann (2020).
+
 The bta12 files contain data for 280 haplotypes, originating from 140 individuals belonging to the
 Creole cattle breed from Guadeloupe, at 1.424 markers mapping to bovine chromosome 12 (BTA12) (Gautier 2011).
 }
@@ -31,6 +36,10 @@ Creole cattle breed from Guadeloupe, at 1.424 markers mapping to bovine chromoso
 Gautier, M. and Naves, M. (2011). Footprints of selection in the ancestral admixture of a New World Creole cattle breed. \emph{Molecular Ecology}, \strong{20}, 3128-3143.
 
 Gautier, M., Klassmann,  A. and Vitalis, R. (2017). rehh 2.0: a reimplementation of the R package rehh to detect positive selection from haplotype structure. \emph{Molecular Ecology Resources}, \strong{17}, 78-90.
+
+Klassmann, A. and Gautier, M. (2020). Detecting selection using Extended Haplotype
+Homozygosity-based statistics on unphased or unpolarized data (preprint). 
+https://doi.org/10.22541/au.160405572.29972398/v1
 }
 \seealso{
 \code{\link{data2haplohh}}, \code{\link{remove.example.files}}

@@ -10,8 +10,8 @@
  * Interface between R and C.
  * R objects are marked by a trailing underscore.
  */
-SEXP CALL_SCAN_HH2(SEXP data_, SEXP nbr_chr_, SEXP nbr_mrk_, SEXP first_allele_, SEXP second_allele_,
-                   SEXP map_, SEXP max_gap_, SEXP phased_, SEXP discard_integration_at_border_, 
+SEXP CALL_SCAN_HH_FULL(SEXP data_, SEXP nbr_chr_, SEXP nbr_mrk_, SEXP first_allele_, SEXP second_allele_,
+                   SEXP map_, SEXP max_gap_, SEXP max_extend_, SEXP phased_, SEXP discard_integration_at_border_, 
                    SEXP geometric_mean_, SEXP nbr_threads_) {
   
   //get pointer to R data vectors
@@ -24,6 +24,7 @@ SEXP CALL_SCAN_HH2(SEXP data_, SEXP nbr_chr_, SEXP nbr_mrk_, SEXP first_allele_,
   int nbr_chr = asInteger(nbr_chr_);
   int nbr_mrk = asInteger(nbr_mrk_);
   int max_gap = asInteger(max_gap_);
+  int max_extend = asInteger(max_extend_);
   bool phased = asLogical(phased_);
   bool discard_integration_at_border = asLogical(discard_integration_at_border_);
   bool geometric_mean = asLogical(geometric_mean_);
@@ -73,7 +74,7 @@ SEXP CALL_SCAN_HH2(SEXP data_, SEXP nbr_chr_, SEXP nbr_mrk_, SEXP first_allele_,
       pairwise_haplen[i] = 0;
     }
     
-    bool discard = calc_pairwise_haplen(data, nbr_chr, nbr_mrk, map, j, max_gap, 
+    bool discard = calc_pairwise_haplen(data, nbr_chr, nbr_mrk, map, j, max_gap, max_extend, BOTH,
                                         phased, discard_integration_at_border, pairwise_haplen) == 1;
     
     if(discard){

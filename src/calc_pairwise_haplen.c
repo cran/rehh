@@ -8,19 +8,23 @@
  */
 int extend_haplen(const int* const data, const int nbr_chr, const double* map, const int foc_mrk, const int end_mrk,
                   int* const hap, int* const nbr_hap, int* const nbr_chr_with_hap,
-                  const int max_gap, const bool discard_integration_at_border, double* const pairwise_haplen) {
+                  const int maxgap, const int max_extend, const bool discard_integration_at_border, double* const pairwise_haplen) {
   
   int increment = foc_mrk <= end_mrk ? 1 : -1;
   int mrk;
   for (mrk = foc_mrk + increment; mrk != end_mrk + increment; mrk += increment) { // walk along the chromosome, away from the focal SNP
     double gap = increment * (map[mrk] - map[mrk - increment]);
-    if(gap > max_gap){
+    if(gap > maxgap){
       if(discard_integration_at_border){
         return(1);
       }
       break;
     }
+    
     double length = increment * (map[mrk] - map[foc_mrk]);
+    if(length > max_extend){
+      break;
+    }
     if (update_hap_with_lengths(data, nbr_chr, mrk, hap, nbr_hap, nbr_chr_with_hap, length, pairwise_haplen)) {
       
       int tot_nbr_chr_in_hap = 0;
@@ -65,8 +69,9 @@ int extend_haplen(const int* const data, const int nbr_chr, const double* map, c
  * Computes furcation trees on both sides of the focal marker.
  */
 int calc_pairwise_haplen(const int* const data, const int nbr_chr, const int nbr_mrk, 
-                         const double* map, const int foc_mrk, const int max_gap,
-                         const bool phased, const bool discard_integration_at_border, 
+                         const double* map, const int foc_mrk, const int maxgap,
+                         const int max_extend, const int side, const bool phased, 
+                         const bool discard_integration_at_border, 
                          double* const pairwise_haplen) {
   
   int nbr_hap;                                                  //number of distinct haplotypes
@@ -75,16 +80,20 @@ int calc_pairwise_haplen(const int* const data, const int nbr_chr, const int nbr
   int *hap = (int*) malloc(nbr_chr * sizeof(int));              //vector index to chromosomes, ordered by haplotype
   int *nbr_chr_with_hap = (int*) malloc(nbr_chr * sizeof(int)); //for each haplotype gives the number of chromosomes sharing it
   
-  init_site_hap(data, nbr_chr, foc_mrk, phased, hap, &nbr_hap, nbr_chr_with_hap); 
-  
-  discard = extend_haplen(data, nbr_chr, map, foc_mrk, 0, hap, &nbr_hap, nbr_chr_with_hap,
-                             max_gap, discard_integration_at_border, pairwise_haplen);
-  if(!discard){
+  if(side == BOTH || side == LEFT){
     init_site_hap(data, nbr_chr, foc_mrk, phased, hap, &nbr_hap, nbr_chr_with_hap); 
-    discard = extend_haplen(data, nbr_chr, map, foc_mrk, nbr_mrk - 1, hap, &nbr_hap, nbr_chr_with_hap,
-                               max_gap, discard_integration_at_border, pairwise_haplen);
+    
+    discard = extend_haplen(data, nbr_chr, map, foc_mrk, 0, hap, &nbr_hap, nbr_chr_with_hap,
+                            maxgap, max_extend, discard_integration_at_border, pairwise_haplen);
   }
   
+  if(side == BOTH || side == RIGHT){
+    if(!discard){
+      init_site_hap(data, nbr_chr, foc_mrk, phased, hap, &nbr_hap, nbr_chr_with_hap); 
+      discard = extend_haplen(data, nbr_chr, map, foc_mrk, nbr_mrk - 1, hap, &nbr_hap, nbr_chr_with_hap,
+                              maxgap, max_extend, discard_integration_at_border, pairwise_haplen);
+    }
+  }
   free(hap);
   free(nbr_chr_with_hap);
   return(discard ? 1 : 0);

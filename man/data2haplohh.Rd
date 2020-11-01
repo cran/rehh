@@ -70,7 +70,7 @@ Low confidence ancestral alleles are usually coded by lower-case letters. If \co
 changed to upper case before the alleles of the sample are matched for polarization.}
 
 \item{vcf_reader}{library used to read vcf. By default, low-level parsing is
-performed using the generic package \code{data.table}. In order to read compressed files, 
+performed using the generic package \code{data.table}. In order to read compressed files,
 the package \code{R.utils} must be installed, too.
 If the specialized package \code{vcfR} is available, set this parameter to \code{"vcfR"}.}
 

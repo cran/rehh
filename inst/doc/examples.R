@@ -1,5 +1,39 @@
 ## ----setup, include=FALSE-----------------------------------------------------
-knitr::opts_chunk$set(comment = ">", fig.height = 4.5, fig.width = 4.5, fig.show = "hold")
+knitr::opts_chunk$set(comment = ">", fig.align = 'center', fig.height = 4.5, fig.width = 4.5, fig.show = "hold")
+
+## ----echo = FALSE, fig.height = 3, fig.width = 3------------------------------
+oldpar = par(mar = rep(0.1, 4))
+plot.new()
+seq = c(
+  "AACTCAGACGA",
+  "AAGCGACAACT",
+  "ACGTCACACCA",
+  "AACCCAGCACT",
+  "AAGCCGGACCA",
+  "AAGCCGGACCA",
+  "GAGCCGGACCT",
+  "AAGCCGGACCT"
+)
+for (i in seq_along(seq)) {
+  n = strsplit(seq[i], "")[[1]]
+  text(((0:10) + 0.5) / 11, (8 - i) / 8 + 1 / 16, n)
+}
+transparent_red <- adjustcolor("red", alpha.f = 0.5)
+transparent_blue <- adjustcolor("blue", alpha.f = 0.5)
+polygon(
+  c(0, 11, 11, 0, 0, 1, 1, 0,  0) / 11,
+  c(4, 4, 0, 0, 1, 1, 2, 2, 4) / 8,
+  border = transparent_red,
+  col = transparent_red
+)
+polygon(
+  c(3, 7, 7, 8, 8, 7, 7, 4, 4, 3, 3, 5, 5, 3) / 11,
+  c(8, 8, 7, 7, 5, 5, 4, 4, 5, 5, 6, 6, 7, 7) / 8,
+  border = transparent_blue,
+  col = transparent_blue
+)
+polygon(c(5, 6, 6, 5) / 11, c(8, 8, 0, 0) / 8, border = "black")
+par(oldpar)
 
 ## ----library, message = FALSE-------------------------------------------------
 library(rehh)
@@ -40,7 +74,7 @@ hh_vcf <- data2haplohh(hap_file = "example1.vcf",
                        verbose = FALSE)
 identical(hh, hh_vcf)
 
-## -----------------------------------------------------------------------------
+## ----hhplot1, fig.cap = "Graphical output of the plot.haplohh() function"-----
 plot(hh)
 
 ## -----------------------------------------------------------------------------
@@ -88,7 +122,7 @@ cr
 ## ----manhattan11, fig.align = 'center', fig.cap = "Graphical output of the manhattanplot() function", fig.pos = '!h', fig.lp = 'fig:'----
 manhattanplot(ihs, threshold = c(-1.5,1.5), cr = cr, ylim = c(-2.5,2.5), pch = 20)
 
-## ----furcation11, fig.align = 'center', fig.cap = "Graphical output of the plot.furcation() function", fig.pos = '!h', fig.lp = 'fig:'----
+## ----furcation11, fig.cap = "Graphical output of the plot.furcation() function", fig.pos = '!h', fig.lp = 'fig:'----
 f <- calc_furcation(hh, mrk = "rs6")
 # set equal plot margins on left and right side and save old ones
 oldpar <- par(mar = (c(5, 3, 4, 3) + 0.1))
@@ -103,7 +137,7 @@ plot(f,
 # reset old margins
 par(oldpar)
 
-## ----newick1, , eval = requireNamespace("ape", quietly = TRUE), fig.align = 'center', fig.cap = "Graphical output of the plot.phylo() function of package ape", fig.pos = '!h', fig.lp = 'fig:'----
+## ----newick1, eval = requireNamespace("ape", quietly = TRUE), fig.align = 'center', fig.cap = "Graphical output of the plot.phylo() function of package ape", fig.pos = '!h', fig.lp = 'fig:'----
 newick <- as.newick(f, 
                     allele = 0, 
                     side = "left", 
@@ -183,7 +217,7 @@ hh_vcf <- data2haplohh(hap_file = "example2.vcf",
                        verbose = FALSE)
 identical(hh, hh_vcf)
 
-## -----------------------------------------------------------------------------
+## ----hhplot2, fig.cap = "Graphical output of the plot.furcation() function"----
 plot(hh)
 
 ## -----------------------------------------------------------------------------
@@ -233,11 +267,11 @@ hh_subset = subset(hh,
 scan <- scan_hh(hh_subset, discard_integration_at_border = FALSE)
 scan
 
-## ----manhattan22, fig.align = 'center', fig.cap = "Graphical output of the manhattanplot() function", fig.pos = '!h', fig.lp = 'fig:'----
+## ----manhattan22, fig.cap = "Graphical output of the manhattanplot() function", fig.pos = '!h', fig.lp = 'fig:'----
 ihs <- ihh2ihs(scan, freqbin = 1, verbose = FALSE)
 manhattanplot(ihs, threshold = c(-1.5, 1.5), ylim = c(-2.5,2.5), pch = 20)
 
-## ----furcation21, fig.align = 'center', fig.cap = "Graphical output of the plot.furcation() function", fig.pos = '!h', fig.lp = 'fig:'----
+## ----furcation21, fig.cap = "Graphical output of the plot.furcation() function", fig.pos = '!h', fig.lp = 'fig:'----
 f <- calc_furcation(hh, mrk = "rs6")
 # set equal plot margins on left and right side and save old ones
 oldpar <- par(mar = (c(5, 3, 4, 3) + 0.1))
@@ -248,7 +282,7 @@ plot(f,
      legend.xy.coords = "none")
 par(oldpar)
 
-## ----newick2, , eval = requireNamespace("ape", quietly = TRUE), fig.align = 'center', fig.cap = "Graphical output of the plot.phylo() function of package ape", fig.pos = '!h', fig.lp = 'fig:'----
+## ----newick2, eval = requireNamespace("ape", quietly = TRUE), fig.align = 'center', fig.cap = "Graphical output of the plot.phylo() function of package ape", fig.pos = '!h', fig.lp = 'fig:'----
 newick <- as.newick(f, 
                     allele = 0, 
                     side = "left", 

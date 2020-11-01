@@ -4,7 +4,14 @@
 \alias{calc_pairwise_haplen}
 \title{Calculate pairwise shared haplotype length between all chromosomes}
 \usage{
-calc_pairwise_haplen(haplohh, mrk, phased = TRUE, maxgap = NA)
+calc_pairwise_haplen(
+  haplohh,
+  mrk,
+  phased = TRUE,
+  maxgap = NA,
+  max_extend = NA,
+  side = "both"
+)
 }
 \arguments{
 \item{haplohh}{an object of class \code{haplohh} (see \code{\link{data2haplohh}}).}
@@ -13,11 +20,17 @@ calc_pairwise_haplen(haplohh, mrk, phased = TRUE, maxgap = NA)
 or string representing its ID/name.}
 
 \item{phased}{logical. If \code{TRUE} (default) chromosomes are expected to be phased. If \code{FALSE}, the haplotype data is assumed to
-consist of pairwise ordered chromosomes belonging to diploid individuals and only the two chromosomes of 
+consist of pairwise ordered chromosomes belonging to diploid individuals and only the two chromosomes of
 each individual are compared.}
 
 \item{maxgap}{maximum allowed gap in bp between two markers. If exceeded, further calculation is stopped at the gap
-(default=\code{NA}, i.e no limitation).}
+(default=\code{NA}, i.e. no limitation).}
+
+\item{max_extend}{maximum distance in bp to extend shared haplotypes away from the focal marker.
+(default \code{NA}, i.e. no limitation).}
+
+\item{side}{side to consider, either "left" (positions lower than focal position), "right" (positions higher than focal position)
+or "both" (default).}
 }
 \value{
 The returned value is a matrix with pairwise shared haplotype lengths.
@@ -27,7 +40,7 @@ Calculate pairwise shared haplotype length between all chromosomes at a focal ma
 }
 \details{
 The function computes the length of shared haplotypes (stretches of identical sequence) around
-the focal marker. 
+the focal marker.
 
 Note that the function \code{\link{calc_haplen}} calculates for each chromosome
 the boundaries of its longest shared haplotype; separately upstream and downstream of

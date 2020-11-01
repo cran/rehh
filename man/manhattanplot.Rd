@@ -25,6 +25,7 @@ manhattanplot(
   cex = 0.5,
   las = 1,
   pch = 20,
+  inset = 5e+06,
   resolution = NULL,
   ...
 )
@@ -76,6 +77,8 @@ Values of 1, 2, 3 and 4, respectively indicate positions below, to the left of, 
 
 \item{pch}{type of the points representing markers in the plot(s) (see \code{\link[graphics]{points}}).}
 
+\item{inset}{inset (in bases) between chromosomes to avoid overlap of data points. Default: 5,000,000 bases.}
+
 \item{resolution}{Rasterize data points to the specified resolution and remove
 duplicate points. Defaults to NULL, i.e. no rasterization. A typical value might be \code{c(1E5, 0.01)},
 meaning that resolution on the x-axis (chromosomal position) is 100000 and on the y-axis (score or p-value) is 0.01.}
@@ -93,6 +96,9 @@ The color of chromosomes is taken from the "Graphics Palette", see \code{\link[g
 
 If a single chromosome is plotted, a genomic region can be specified by
 argument \code{xlim}.
+
+Other statistics can be plotted as well, although a warning is issued. They must be given by a data.frame
+with columns CHR and POSITION and the statistic in the third column.
 }
 \examples{
 library(rehh.data)

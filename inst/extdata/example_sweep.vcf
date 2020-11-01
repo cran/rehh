@@ -1,0 +1,17 @@
+##fileformat=VCFv4.2
+##reference=NCBI38
+##contig=<ID=chr1,length=120000>
+##INFO=<ID=AA,Number=1,Type=String,Description="Ancestral Allele">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	HG1	HG2	HG3	HG4
+chr1	10000	s1	G	T	100	PASS	AA=G	GT	0|0	0|0	0|0	0|0
+chr1	20000	s2	G	A	100	PASS	AA=G	GT	0|1	1|1	1|1	1|1
+chr1	30000	s3	T	C	100	PASS	AA=T	GT	1|0	0|0	0|0	0|0
+chr1	40000	s4	A	C	100	PASS	AA=A	GT	0|1	1|1	1|1	1|1
+chr1	50000	s5	T	G	100	PASS	AA=T	GT	1|0	0|0	0|0	0|0
+chr1	60000	s6	G	A	100	PASS	AA=A	GT	1|0	0|0	0|0	0|0
+chr1	70000	s7	C	T	100	PASS	AA=C	GT	0|1	1|1	1|1	1|1
+chr1	80000	s8	C	T	100	PASS	AA=C	GT	1|0	0|0	0|0	0|0
+chr1	90000	s9	T	A	100	PASS	AA=T	GT	0|1	1|1	1|1	1|1
+chr1	100000	s10	A	G	100	PASS	AA=A	GT	1|0	0|0	0|0	0|0
+chr1	110000	s11	C	T	100	PASS	AA=T	GT	1|1	1|1	1|1	1|1

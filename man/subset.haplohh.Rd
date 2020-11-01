@@ -11,6 +11,7 @@
   min_perc_geno.hap = NA,
   min_perc_geno.mrk = 100,
   min_maf = NA,
+  max_alleles = NA,
   verbose = TRUE,
   ...
 )
@@ -35,6 +36,9 @@ This value cannot be set to \code{NA} or zero.}
 In case of multi-allelic markers the second-most frequent allele is referred to as minor allele.
 Setting this value to zero eliminates monomorphic sites. Default is \code{NA},
 hence no constraint.}
+
+\item{max_alleles}{threshold for the maximum number of different alleles at a site. Default is \code{NA},
+hence no restriction. In order to retain only bi-allelic markers, set this parameter to 2.}
 
 \item{verbose}{logical. If \code{TRUE} (default), report verbose progress.}
 

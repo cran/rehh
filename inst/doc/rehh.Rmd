@@ -1,20 +1,25 @@
 ---
-title: "Vignette for package *rehh* (version 3.1.2)"
+title: "Vignette for package *rehh*"
 author: "Alexander Klassmann, Renaud Vitalis and Mathieu Gautier"
 date: "`r Sys.Date()`"
 output:
   bookdown::html_document2:
     base_format: rmarkdown::html_vignette
     toc: yes
-  bookdown::pdf_book:
+  bookdown::pdf_document2:
     toc: yes
     fig_caption: yes
     number_sections: yes
+fontsize: 12 pt
+urlcolor: blue
 bibliography: vignette.bib
 csl: genetics.csl
+header-includes:
+    - \numberwithin{equation}{section}
 vignette: >
   \usepackage[utf8]{inputenc}
-  %\VignetteIndexEntry{How to use rehh}
+  \usepackage{amsmath}
+  %\VignetteIndexEntry{Vignette for package *rehh*}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
@@ -25,7 +30,7 @@ knitr::opts_chunk$set(comment = ">",fig.height = 4.5, fig.width = 4.5, fig.show 
 \clearpage
 # About the package
 
-This vignette describes how the R package *rehh* can be applied to perform whole genome scans for footprints of selection using statistics related to *Extended Haplotype Homozygosity (EHH)* [@Sabeti2002].
+This vignette describes comprehensively how the R package *rehh* can be applied to perform whole genome scans for footprints of selection using statistics related to *Extended Haplotype Homozygosity (EHH)* [@Sabeti2002]. The vignette *Examples in detail* explains basic usage and methodology with the help of two tiny artificial data sets.
 
 The package accepts multi-allelic genetic markers as input. Typically, albeit not necessarily, these will be bi-allelic SNPs.
 
@@ -35,28 +40,14 @@ library(rehh)
 ```
 
 ## Background
-The analysis of molecular population genetic data often comprises the search for genomic regions that might have experienced recent selection. Diverse approaches have been developed, reviewed e.g. in [@Oleksyk2010] and [@Vitti2013], however only a few have found wide-spread application [@Cadzow2014], [@Haasl2016]. To the latter belong *iHS* [Voight2006], *Rsb* [@Tang2007] and *XP-EHH* [@Sabeti2007], all of which are *summary statistics* aimed to distill a certain aspect of the genetic data into a single score and constructed in a way that extreme values are indicative of positive or "Darwinian" selection. *iHS* is intended for application on a single (presumably homogeneous) population, while *XP-EHH* and *Rsb* are targeted to differential selection between two populations. All three statistics are based on the concept of *Extended Haplotype Homozygosity (EHH)* as formulated by [@Sabeti2002].
+The analysis of molecular population genetic data often comprises the search for genomic regions that might have experienced recent selection. Diverse approaches have been developed; for reviews on methodology see [@Sabeti2006], [@Oleksyk2010] and [@Vitti2013] and for
+practical advice [@Cadzow2014], [@Utsunomiya2015] and [@Weigand2018]. However only a few have found wide-spread application [@Haasl2016]. To the latter belong *iHS* [@Voight2006], *Rsb* [@Tang2007] and *XP-EHH* [@Sabeti2007], all of which are *summary statistics* aimed to distill a certain aspect of the genetic data into a single score and constructed in a way that extreme values are indicative of positive or "Darwinian" selection. *iHS* is intended for application on a single (presumably homogeneous) population, while *XP-EHH* and *Rsb* are targeted to differential selection between two populations. All three statistics are based on the concept of *Extended Haplotype Homozygosity (EHH)* as formulated by [@Sabeti2002].
 
 *iHS* and *XP-EHH* can be calculated by the independent C++ command line tool *Hapbin* [@Maclean2015], which has been optimized for speed by exploiting bit-wise machine-level operations. The package *rehh* cannot compete on performance, but has the advantage of being able to work with multi-allelic markers and missing values. Moreover, it possesses a broader range of input and output options, including several graphical representations.
 
 ## Changes between versions 2.X and 3.X
-The C routines responsible for the bulk of calculations have been rewritten and all of the R code has been largely revised and streamlined yielding the following new features:
 
-- the package accepts multi-allelic markers.
-- support for input files in *variant call format* as well as the output format of the simulation program *ms* [@Hudson2002]. 
-- computation of statistics and their visualization has become separated into different functions.
-- graphical plots are more customizable.
-- furcation diagrams can be labeled and a related visualization of "haplotype length" was added.
-- a function to define candidate regions of selection.
-- adaptations for unphased haplotypes or unpolarized alleles.
-- output in form of matrices has been replaced by data frames; some columns have become optional.
-- all names of data frames are now in lower case letters while all column names contain exclusively capital letters and underscores.
-- a new internal representation of alleles: previously, an ancestral allele was coded by 1, a derived allele by 2 and a missing value by 0. These codings have been replaced by 0, 1 and `NA`, respectively. Furthermore, the numbers are now explicitly of type "integer" instead of "numeric".
-- a second vignette to explain the statistics involved and the functionality of the package using an invented tiny data set.
-- additional options to yield virtually identical results with the program *hapbin* (see section \@ref(hapbin)).
-- an inconsistency between implementation and documentation concerning the calculation of one-sided p-values has been cleared.
-
-**Due to changes in the API, although mostly small, the versions 3.X are not compatible with versions 2.X!**
+Due to changes in the API, although mostly small, the versions 3.X are not compatible with versions 2.X.
 
 Data objects of class `haplohh` (see below) created by versions up to 2.0.4 must be updated via the command `update_haplohh()` (see its documentation by typing `?update_haplohh`) in order to be accepted by the functions of the current version.
 
@@ -68,9 +59,11 @@ For illustration purposes, several example input files as well as R objects are 
   
   - Two tiny invented examples, each in our "standard" haplotype format (see section \@ref(input)) and in *variant call format* (*vcf*). The first example was used in [@Gautier2017] for the explanation of the various statistics calculated by this package. The second example is an extension of the former including multi-allelic markers and missing values. Both sets are discussed in depth in a second vignette.
     
+  - Further three tiny examples used for the supplement on Site Frequency Spectrum-based methods of [@Klassmann2020].
+  
   - An output file of the program *ms* containing two small simulated haplotype samples. 
   
-  - Input files in different formats that originate from a study on the "Creole cattle breed from Guadeloupe" (CGU) [@Gautier2011]. All files contain the same set of phased SNPs of *Bos taurus* chromosome 12 from 140 individuals.
+  - A data set in various formats that originated from a study on the "Creole cattle breed from Guadeloupe" (CGU) [@Gautier2011]. All files contain the same set of phased SNPs of *Bos taurus* chromosome 12 from 140 individuals.
     
 All of the above files are copied into the current working directory via the command
 ```{r make_examples, results = 'hide'}
@@ -81,7 +74,7 @@ make.example.files()
 
 ### R objects
 
-  - The data for chromosome 12 of the cattle study mentioned above as object of the *rehh* data class `haplohh`. This object becomes available by the command `data(haplohh_cgu_bta12)`.
+  - The data set for chromosome 12 of the cattle study mentioned above as object of the *rehh* data class `haplohh`. This object becomes available by the command `data(haplohh_cgu_bta12)`.
 
   - The scores *iHH* and *iES* as obtained by the function `scan_hh()` applied on SNPs of the whole genome for the population CGU (defined above) and another population EUT ("European taurine"). They reside in the accompanying package `rehh.data` and are obtained by `library(rehh.data)` followed by `data(wgscan.cgu)` resp. `data(wgscan.eut)`.
 
@@ -91,15 +84,16 @@ The sequence of alleles on a chromosome is referred to as its *haplotype* and so
 
 ## Overview
 
-The package calculates three statistics by the following steps:
+The package calculates three statistics which can be used to perform whole-genome scans for selection: *iHS*, *XP-EHH* and *Rsb*. *iHS* compares alleles within a single population while the other two compare sites between populations. The calculation proceeds technically in five steps which are performed by running two commands and combining tables:
 
-- each marker is taken in turn as a "focal marker" around which the extended haplotype homozygosity (*EHH*) is measured
-- *EHH* is summerized into a number by integration
-- two integrals are compared by taking their log ratio (two alleles for within-population or two populations for cross-population statistics)
-- the genome-wide distribution of these log-ratios is normalized
+- each marker is taken in turn as a "focal marker" around which the extended haplotype homozygosity is computed at further markers in increasing distance to the focal marker up to some stop criterion
+- for each focal marker these quantities are "integrated" over the surrounding markers
+- these integrals have to be calculated for each chromosome separately and the resulting tables to be combined to yields whole-genome statistics
+- at each focal position, two such integrals are compared (either from two alleles or from two populations) by taking their log ratio
+- the distribution of these log-ratios is standardized
 
-Here is a minimal code example for a single population and a single chromossome:
-```{r minimalcodeexample, results = "hide"}
+Here is a minimal code example for calculating *iHS* on a single chromosome:
+```{r minimalcodeexample, fig.align = 'center', results = "hide"}
 hh <-                  # data input
   data2haplohh(
     hap_file = "bta12_cgu.hap",
@@ -108,14 +102,15 @@ hh <-                  # data input
     allele_coding = "map"
   )
 scan <- scan_hh(hh)    # calculation of EHH and integration
-ihs <- ihh2ihs(scan)   # log ratio for alleles and normalization
+                       # (combine results from different chromosomes)
+ihs <- ihh2ihs(scan)   # log ratio for alleles and standardization
 manhattanplot(ihs)     # plot of the statistics
 ```
 
 # Data input {#input}
 The package *rehh* requires as input:
 
- - a haplotype data file for each population of interest (see section \@ref(hapfile)).
+ - a haplotype data file (see section \@ref(hapfile)).
 
 and, if the haplotype data file is neither in *variant call format* nor in the format of *ms* output,
 
@@ -130,8 +125,8 @@ Five haplotype input file formats are supported:
  - a *standard* haplotype format. Each row represents a haplotype with marker genotype in columns as in the example file `bta12_cgu.hap` containing 280 haplotypes with 1424 SNPs each (see section \@ref(LoadDataEx1)). The first element of each row is taken as a haplotype identifier.
 -  a *transposed* format with haplotypes in columns and markers in rows as in the example file `bta12_cgu.thap`. This format is similar to the one produced by the phasing program *SHAPEIT2* [@OConnell2014]. This format assumes neither row nor column names and hence no haplotype identifiers can be specified (see section \@ref(LoadDataEx2)).
  - the output file format from the phasing program *fastPHASE* [@Scheet2006] as in the `bta12_hapguess_switch.out` example file. Note that this file format allows to include haplotypes from several populations (if the -u *fastPHASE* option was used) (see section \@ref(LoadDataEx3)).
- - *variant call format (vcf)*, comprising both haplotype and marker information. In order to read files in this format, the package *vcfR* or the packages *data.table* and *R.utils* (the latter is needed for compressed files) have to be installed (see section \@ref(LoadDataEx4)).
- - The output of the simulation program *ms* [@Hudson2002] and its derivatives *msHOT* [@Hellenthal2007],  *ms^2^* [@Ewing2010] and *ms'* [@Kelleher2016]. In order to read these files, the package *gap* has to be installed (see section \@ref(LoadDataEx5)).
+ - *variant call format (vcf)*, comprising both haplotype and marker information. In order to read files in this format, the package [vcfR](https://cran.r-project.org/package=vcfR) or the packages [data.table](https://cran.r-project.org/package=data.table) and [R.utils](https://cran.r-project.org/package=R.utils) (the latter is needed for compressed files) have to be installed (see section \@ref(LoadDataEx4)).
+ - The output of the simulation program *ms* [@Hudson2002] and its derivatives *msHOT* [@Hellenthal2007],  *ms^2^* [@Ewing2010] and *ms'* [@Kelleher2016]. In order to read these files, the package [gap](https://cran.r-project.org/package=gap) has to be installed (see section \@ref(LoadDataEx5)).
 
 Alleles in standard or transposed haplotype format can be provided either coded (by integer numbers) or without coding (e.g. as nucleotides) (see section \@ref(LoadData)). 
 
@@ -224,7 +219,7 @@ hh <- data2haplohh(hap_file = "bta12_cgu.hap",
 
 ### Example 2: reading haplotype file in transposed format (*SHAPEIT2*--like) {#LoadDataEx2}
 
-If the haplotype input file `bta12_cgu.thap`  is in "transposed" format, the option `haplotype.in.columns` has to be set to `TRUE` while all other parameters remain unaffected with respect to example 1. Note that this is the only format that has to be explicitly declared by the user.
+If the haplotype input file is in "transposed" format (like `bta12_cgu.thap`), the option `haplotype.in.columns` has to be set to `TRUE` while all other parameters remain unaffected with respect to example 1. This is the only format which is not recognized automatically, but has to be explicitly declared by the user.
 
 ```{r example2}
 hh <- data2haplohh(hap_file = "bta12_cgu.thap",
@@ -247,7 +242,7 @@ hh <- data2haplohh(hap_file = "bta12_hapguess_switch.out",
                    allele_coding = "map")
 ```
 
-If no value is specified for the `popsel` argument and more than one population is detected in the *fastPHASE* output file, an error in produced and the available population numbers printed:
+If no value is specified for the `popsel` argument and more than one population is detected in the *fastPHASE* output file, an error is produced and the available population numbers printed:
 
 ```{r error = TRUE}
 hh <- data2haplohh(hap_file = "bta12_hapguess_switch.out",
@@ -263,11 +258,10 @@ Ancestral alleles are sometimes marked by upper case as "high confident" and by 
 
 If the `AA` key is absent, the option `polarize_vcf` should be set to `FALSE` and the allele coding of the *vcf* file is directly used as internal coding.
 
-If there is data for more than one chromosome in the file, the chromosome of interest has to be specified by `chr.name`. Since always the whole file is read in, it may be advisable for large data sets to create chromosome-specific files.
+If there is data for more than one chromosome in the file, the chromosome of interest has to be specified by `chr.name`. Since always the whole file is read in, it is advisable to split large data sets into chromosome-specific files.
 
 In order to process *vcf* files, the package [vcfR](https://cran.r-project.org/package=vcfR) or the package
-[data.table](https://cran.r-project.org/package=data.table) (which in turn needs [R.utils](https://cran.r-project.org/package=R.utils) to read compressed files) have to be installed. The parameter `vcf_reader` has to be set to either `"vcfR"` or `"data.table"`. [Note: at the time of writing, the package *vcfR* has been removed from CRAN, but can still be installed from https://github.com/knausb/vcfR, following instructions there.]
-
+[data.table](https://cran.r-project.org/package=data.table) (which in turn needs [R.utils](https://cran.r-project.org/package=R.utils) to read compressed files) have to be installed. The parameter `vcf_reader` has to be set to either `"vcfR"` or `"data.table"`.
 
 In the file `bta12_cgu.vcf.gz` the ancestral allele was set as reference and hence no further polarizing is necessary.
 
@@ -280,11 +274,13 @@ hh <- data2haplohh(hap_file = "bta12_cgu.vcf.gz",
 ### Example 5: reading ms output {#LoadDataEx5}
 The function `data2haplohh()` automatically checks whether the haplotype file is in the output format of the simulation program *ms* [@Hudson2002]. If this is the case, the parameters `map_file` and `allele_coding` are ignored. If the file contains several 'runs' (as referred to by the parameter `nrep` of *ms*), it is necessary to specify the number of the run in option `chr.name`. Note that always the whole file is read, so that it might be advisable to spread large simulations over separate files. 
 
-One argument of the `data2haplohh` function is specifically dedicated to *ms* output, although it works with other formats as well: *ms* gives chromosomal positions as fractions of the interval [0,1] and in order to obtain more realistic values, these positions can be multiplied by a factor, set by `position_scaling_factor`. 
+One argument of the `data2haplohh` function is specifically dedicated to *ms* output, although it works with other formats as well: *ms* gives chromosomal positions as fractions of the interval [0,1] and in order to obtain more realistic values, these positions can be multiplied by a factor, set by `position_scaling_factor`.
 
-Note that *rehh* does not accept multiple markers with the same position and hence it is highly recommended to increase the numerical precision for chromosomal positions in the *ms* output. 
+Note that *ms* output can contain multiple markers with the same (rounded) position, which *rehh* does not accept. In this case the numerical precision for chromosomal positions in the *ms* output should be increased (option `-p` of *ms*, option `-oformat` of *msms*). 
 
-In order to read this format, the package [gap](https://cran.r-project.org/package=gap) has to be installed. 
+Setting `remove_multiple_markers` to `TRUE` entails that from consecutive markers with the same position only the first one is retained and a warning containing the number of removed markers is printed. Note that this effectively transforms the "infinite sites model" used for simulations by *ms* into a "finite sites model".
+
+In order to read the *ms* format, the package [gap](https://cran.r-project.org/package=gap) has to be installed. 
 
 ```{r ms_example, eval = requireNamespace("gap", quietly = TRUE)}
 hh <- data2haplohh(hap_file = "ms.out",
@@ -309,7 +305,7 @@ hh_subset = subset(hh, select.mrk = -1)
 ## Definition and computation
 
 ### The (allele-specific) *Extended Haplotype Homozygosity (EHH)* {#EHH}
-For any given allele $a$ of a focal marker $s$, sometimes referred to as a *core* allele, the *Extended Haplotype Homozygosity (EHH)* is defined as the probability that two randomly chosen chromosomes, carrying the core allele, are homozygous over a given surrounding chromosomal region [@Sabeti2002]. It is estimated from a sample by calculating the homozygosity of the chromosomal chunk between the focal marker and another marker $t$ by the formula
+For an allele $a$ of a focal marker $s$, sometimes referred to as a *core* allele, the *Extended Haplotype Homozygosity (EHH)* is defined as the probability that two randomly chosen chromosomes, carrying the core allele, are homozygous over a given surrounding chromosomal region [@Sabeti2002]. It is estimated from a sample by calculating the homozygosity of the chromosomal chunk between the focal marker and another marker $t$ by the formula
 \begin{equation}
 \mathrm{EHH}_{s,t}^a=\frac{1}{n_{a}(n_a-1)}\sum\limits_{k=1}^{K^a_{s,t}}n_k(n_k-1)
 (\#eq:ehh)
@@ -317,19 +313,21 @@ For any given allele $a$ of a focal marker $s$, sometimes referred to as a *core
 where $n_a$ represents the number of chromosomes carrying the core allele $a$, $K^a_{s,t}$ represents the number of **different** shared haplotypes and $n_k$ refers to the number of chromosomes pertaining to the $k$-th such shared haplotype. If there is no missing data, it holds that $n_a=\sum\limits_{k=1}^{K^a_{s,t}}n_k$.
 
 In the case of unphased chromosomes from diploid individuals (see section \@ref(phasing)) the extended haplotype homozygosity can be calculated as follows [@Tang2007]:
-we consider only chromosomes from individuals that are homozygous for the allele $a$ at the focal marker $s$ and estimate *EHH* at some marker $t$ by the fraction of individuals that are (still) homozygous over the entire chromosomal stretch between $s$ and $t$. Let $I^a_{s,t}$ denote the number of individuals that are homozygous from marker $s$ til marker $t$. We can reformulate the fraction of individuals in terms of the fraction of shared haplotypes: since haplotypes of different individuals are not compared they can be regarded as distinct by definition, hence $K_{s,s}^a=I_{s,s}^a=\frac{1}{2}n_a$. With increasing distance of $t$ from $s$, any increase in $K_{s,t}^a$ is tantamount to a decrease of the number of homozygous individuals, yielding
+we consider only chromosomes from individuals that are homozygous for the allele $a$ at the focal marker $s$ and estimate *EHH* at some marker $t$ by the fraction of individuals that are (still) homozygous over the entire chromosomal stretch between $s$ and $t$. Let $I^a_{s,t}$ denote the number of individuals that are homozygous from marker $s$ til marker $t$. 
 \begin{equation}
-\mathrm{EHH}_{s,t}^a=\frac{I_{s,t}^a}{I_{s,s}^a}=\frac{n_a-K_{s,t}^a}{\frac{1}{2}n_a}\;.
+\mathrm{EHH}_{s,t}^a=\frac{I_{s,t}^a}{I_{s,s}^a}\;.
 (\#eq:ehh2)
 \end{equation}
 
-No matter which of the two definitions is used, it is common practice to stop computation when *EHH* reaches a certain lower threshold, e.g. 0.05.
+*EHH* is usually computed only for a region it surpasses a given threshold (e.g., $EHH > 0.05$).
 
 ### The integrated *EHH* (*iHH*) {#iHH}
-By definition, irrespective of the allele considered, *EHH* starts at 1 and decays to 0 with increasing distance of *t* from the focal marker *s*. For a given core allele, the integrated *EHH* (*iHH*) is defined as the area under the *EHH* curve which, in turn, is defined by the *EHH* values and associated chromosomal positions [@Voight2006]. The integral is computed with a simple standard method, called the *trapezoidal rule*. 
+By definition, *EHH* starts at 1 and decays to 0 with increasing distance of *t* from the focal marker *s*. For a given core allele, the integrated *EHH* (*iHH*) is defined as the area under the *EHH* curve which, in turn, is defined by the *EHH* values and associated chromosomal positions [@Voight2006]. The integral is computed with a simple numerical method, called the *trapezoidal rule*. 
+
+Note that, technical details aside, the *iHH* value is nothing else than the average length of shared haplotypes. 
 
 ### The (site-specific) Extended Haplotype Homozygosity (*EHHS*) {#EHHS}
-An extended haplotype homozygosity can be defined as well without reference to core alleles. In this case, 
+An extended haplotype homozygosity can be defined as well without regard to core alleles. In this case, 
 the quantity is aimed to reflect the probability that any two randomly chosen chromosomes from a population are homozygous over a given surrounding chromosomal region of a focal marker. In contrast to the allele-specific *EHH* defined in the previous section, the chromosomes are not required to carry a specific allele at the focal marker. We adopt the naming by [@Tang2007] as *site--specific* EHH, abbreviated by *EHHS*. Note, however that this quantity is sometimes referred to as *EHH*, too, and there is no agreed notation in the literature.
 
 *EHHS* was used in genome scans in two versions: un-normalized by [@Sabeti2007] and normalized by [@Tang2007].
@@ -357,7 +355,7 @@ $\mathrm{EHHS}_{s,t}=1-h_{s,t}$ and hence
 \begin{equation*}
 \mathrm{nEHHS}_{s,t}=\frac{\mathrm{EHHS}_{s,t}}{\mathrm{EHHS}_{s,s}}\;.
 \end{equation*}
-Thus $\mathrm{nEHHS}_{s,t}$ is just normalized in order to yield 1 at the focal marker $s$. Note that the normalization factor depends on the frequency of the alleles at the focal marker and consequently is in general not the same for different focal markers.
+Thus $\mathrm{nEHHS}_{s,t}$ is just normalized in order to yield 1 at the focal marker $s$. Note that the normalization factor depends on the frequency of the alleles at the focal marker and consequently is not necessarily the same for different focal markers.
 
 Furthermore, we note that *EHHS* and *EHH* are related by
 \begin{equation*}
@@ -365,9 +363,9 @@ Furthermore, we note that *EHHS* and *EHH* are related by
 \end{equation*}
 where for the sake of simplicity we assume that the focal marker has only two alleles $a1$ and $a2$. *EHHS* might hence be viewed as a linear combination of the *EHH*'s of the focal alleles, weighted by roughly the square of the focal allele frequencies.
 
-In the case of unphased chromosomes from diploid individuals (see section \@ref(phasing)) *EHHS* can be calculated like *EHH* using equation \@ref(eq:ehh2)  without the restriction to core alleles: 
+In the case of unphased chromosomes from diploid individuals (see section \@ref(phasing)) *EHHS* can be calculated like *EHH* in Equation \@ref(eq:ehh2), just without reference to core alleles: 
 \begin{equation}
-\mathrm{EHHS}_{s,t}=\frac{I_{s,t}}{I_{s,s}}=\frac{n-K_{s,t}}{\frac{1}{2}n}\;.
+\mathrm{EHHS}_{s,t}=\frac{I_{s,t}}{I_{s,s}}\;.
 (\#eq:ehhs2)
 \end{equation}
 Note that defined this way, *EHHS* is always 1 at the focal marker. Hence there is no distinction between $\mathrm{EHHS}$ and $\mathrm{nEHHS}$. 
@@ -378,21 +376,23 @@ Again, unphased *EHHS* can be related to unphased *EHH* by
 \end{equation}
 where for the sake of simplicity we assumed a bi-allelic focal marker with alleles $a1$ and $a2$. 
 
-As with *EHH*, the *EHHS* is usually computed only for the region where its value surpasses a given threshold (e.g., *EHHS*>0.05). 
+As with *EHH*, the *EHHS* is usually computed only for the region where its value surpasses a given threshold (e.g., $EHHS > 0.05$). 
 
 ### The integrated *EHHS* (*iES*) {#iES}
 Like *EHH*, *EHHS* has its maximum at the focal marker and decays to 0 with increasing distance from the focal marker. For a given focal marker, analogously to *iHH*, *iES* is defined as the integrated *EHHS* [@Tang2007]. Depending on whether *EHHS* or *nEHHS* is integrated, we yield *iES* and *inES* respectively. As with *iHH*, the numerical integration uses the *trapezoidal rule*.
+
+Note that, technical details aside, the *iES* and *inES* values represent the average length of shared haplotypes. The length of shared haplotypes with different core alleles yields zero and these are included in the former but not the latter. 
 
 ## The function `calc_ehh()` {#calcehh}
 The function `calc_ehh()` computes *EHH* for all alleles of a focal marker $s$ relative to markers $t$ upstream and downstream. For each allele the corresponding integral *iHH* of the *EHH* curve is calculated as well. 
 
 Three options can be specified to constrain the computation of *EHH*:
 
-- `limehh` sets a threshold below which further calculation of *EHH* is stopped. Its default value is 0.05. Note that lowering this cut-off, although increasing the accuracy of *EHH* estimates, might actually decrease the power to detect selective events since under neutrality a tiny fraction (<<0.05) of very long shared haplotypes can be expected, too. 
+- `limehh` sets a threshold below which further calculation of *EHH* is stopped. Its default value is 0.05. Note that lowering this cut-off might actually decrease the power to detect selective events since under neutrality a tiny fraction of sequences has very long shared haplotypes which, if not capped, confound the signal of selection [@Klassmann2020].
 
 - `limhaplo` defines the smallest acceptable number of evaluated chromosomes and has a default (and mimimum) value of 2. This parameter might be increased if missing values are suspected to be non-randomly distributed leading to a biased drop-out of evaluated chromosomes.
 
-- `limhomohaplo` sets a minimum number of homozygous chromosomes below which calculation of *EHH* is stopped (or not even started). Its default (and minimum) value is 2. This number should be increased to 4 for small samples of unphased haplotypes in order to limit the influence of a single pair of shared haplotypes (see section \@ref(phasing).)
+- `limhomohaplo` sets a minimum number of homozygous chromosomes below which calculation of *EHH* is stopped (or not even started). Its default (and minimum) value is 2. This number should be increased to 4 for small samples of unphased haplotypes in order to limit the influence of a single shared haplotype (see section \@ref(phasing).)
 
 Several parameters influence the *IHH* values (the integral over *EHH*):
 
@@ -404,7 +404,7 @@ Several parameters influence the *IHH* values (the integral over *EHH*):
 
 - integration is performed by default over the area between the graph defined by the *EHH* values and the horizontal line y = `limehh`. If numerical agreement with the program *Hapbin* is wanted, this area should be extended to the x-axis by setting `lower_y_bound` to zero.
 
-- by default the *EHH* curve is defined by linearly interpolating *EHH* values between consecutive markers, yielding a continuous curve. However in particular for full re-sequencing data, it is more accurate to let this function decrease step-wise at each marker by setting `interpolate`to `FALSE` (although the effect is likely to be minor).
+- by default, the *EHH* curve is defined by linearly interpolating *EHH* values between consecutive markers, yielding a continuous curve. However, in particular for full re-sequencing data, it is more accurate to let this function decrease step-wise at each marker by setting `interpolate` to `FALSE` (although the difference is likely to be minor).
 
 The option `polarized`, `TRUE` by default, in this function merely affects the order and labeling of alleles. 
 
@@ -464,7 +464,7 @@ plot(calc_ehh(haplohh_cgu_bta12,
 ```
 
 ## The function `calc_ehhs()`
-The `calc_ehhs()` function computes $\mathrm{EHHS}$ and $\mathrm{nEHHS}$ around the focal marker $s$ relative to another marker $t$. This function also computes the corresponding integrals $\mathrm{iES}$ and $\mathrm{inES}$ respectively. The options are identical to those of the function `calc_ehh` (see previous section), except that `polarized` is not needed here. Details are available by the command:
+The `calc_ehhs()` function computes *EHHS* and normalized *EHHS* around the focal marker $s$ relative to another marker $t$. This function also computes the corresponding integrals *iES* and *inES* respectively. The options are identical to those of the function `calc_ehh` (see previous section), except that `polarized` is absent, because variant ancestry status does not figure in the formulas. Details are available by the command:
 ```{r, eval=FALSE}
 ?calc_ehhs
 ```
@@ -477,7 +477,7 @@ res <- calc_ehhs(haplohh_cgu_bta12,
                  include_nhaplo = TRUE)
 ```
 
-The output is similar to that of `calc_ehh` except that there are no alleles to be distinguished, but instead the normalized and non-normalized versions of *EHHS*. A list with four elements is obtained: 
+The output is similar to that of `calc_ehh()`, except that there are no alleles to be distinguished, but instead the wether *EHHS* is normalized or not. A list with four elements is obtained: 
 
 1. `mrk.name`: the name/identifier of the focal marker.
 2. `ehhs`: a data frame with *EHHS* and *nEHHS* values along the chromosome around the focal marker. Optionally, the column `NHAPLO` can be included to show how many chromosomes were evaluated at each marker.
@@ -610,14 +610,16 @@ p^\text{right}_\text{iHS}=-\log_{10}\left(1-\Phi\left(\text{iHS}\right)\right)
 \end{equation*}
 for the opposite case.
 
-In case of unpolarized alleles, the *iHH* values of major and minor alleles are opposed to obtain *uniHS*. Since derived allele frequency cannot be accounted for, no binning should be performed. The resulting standardized *iHS* cannot be expected to follow a normal distribution and p-values are not meaningful. 
+Note that this procedure is controversial, because we identify the empirical distribution with the distribution under the null hypothesis of neutrality. This is an approximation at best and only warranted when it can be assumed that there are so few selected sites that their influence on the overall shape of the distribution can be neglected.
+
+In case of unpolarized alleles, the *uniHS* is taken as the ratio of *iHH* from minor to major allele. Since derived allele frequency cannot be accounted for, no binning should be performed. The resulting standardized *iHS* cannot be expected to follow a normal distribution and p-values as defined above are not meaningful. 
 
 ### The function `ihh2ihs()` {#ihh2ihs}
 The `ihh2ihs()` function computes *iHS* using a data frame containing the *iHH* values for ancestral and derived (resp. major and minor) alleles as obtained by the `scan_hh()` function (see section \@ref(scanhh)). The argument `min_maf` allows to exclude focal markers according to their minor allele frequency (by default `min_maf`=0.05). The argument `freqbin` controls the size (or number) of the allele frequency bins used to perform standardization (see section \@ref(ihs)). More precisely, allele frequency bins are built from `min_maf` to 1-`min_maf` in steps of size `freqbin` (by default `freqbin`=0.025). If an integer of 1 or greater is specified, a corresponding number of equally spaced bins is created. If `freqbin` is set to 0, standardization is performed considering each observed frequency as a discrete frequency class, which is useful when there are only a few distinct haplotypes.
 
 For unphased data, *iHH* is calculated using only haplotypes of individuals which are homozygous at the focal marker. This number can be considerably lower than the absolute allele frequency. Hence, in addition to `min_maf`, the option `min_nhaplo` (default `NA`) should be used to reduce statistical noise arising from too few evaluated haplotypes.
 
-Optionally, the allele frequencies of the input data frame can be included into the output data frame by setting `include_freq` to `TRUE`.
+Optionally, the allele frequencies of the input data frame can be included into the output by setting `include_freq` to `TRUE`.
 
 A p-value is calculated for standardized *iHS* values. By default, it is two-sided, but a side can be chosen by setting argument `p.side` to `"left"` or `"right"`.
 
@@ -840,6 +842,8 @@ The colors of the chromosomes in Figures \@ref(fig:manhattanplot) and \@ref(fig:
 
 Candidate regions as obtained by the function `calc_candidate_regions()` can be added to the plot as parameter `cr`. Individual markers can be highlighted by setting argument `mrk` to a vector of marker IDs or a data frame with positions (containing columns with name `CHR` and `POSITION`).
 
+By default, chromosomes are separated by an inset of 5,000,000 bases. This value can be increased by the corresponding parameter in order to further reduce overlap between data points of neighboring chromosomes.
+
 In order to reduce the number of plotted data points, the data set can be rasterized in both dimensions by parameter `resolution`. The data points are then rounded to the specified resolution and duplicate points removed. 
 
 Furthermore, it is possible to specify a subset or a re-ordering of chromosomes with help of parameter `chr.name` as in Figure \@ref(fig:manhattanplotsub). 
@@ -853,6 +857,7 @@ manhattanplot(wgscan.ihs.cgu,
               main = "iHS (CGU cattle breed)", 
               cr = cr.cgu,
               mrk = "F1205400",
+              inset = 1E+7,
               resolution = c(200000, 0.05))
 # set back to default colors
 palette("default")
@@ -860,7 +865,7 @@ palette("default")
 
 ## Genome wide score plots: the function `manhattan()` of package `qqman`
 
-The package [qqman](https://cran.r-project.org/package=qqman) contains a function `manhattan()` which is similar to the function `manhattanplot()` of this package. The input data frame is expected to have a slightly different format, though. Hence, before plotting we need to "translate" our data as in the following example with *ihs* values:
+The package [qqman](https://cran.r-project.org/package=qqman) contains a function `manhattan()` which is similar to the function `manhattanplot()` of this package. The input data frame is expected to have a slightly different format, though. Hence, before plotting we need to "translate" our data as in the following example with *iHS* values:
 
 ```{r rehh2qqman}
 # extract data frame from result list
@@ -954,7 +959,7 @@ newick <- as.newick(furcation,
                     hap.names = hap.names(haplohh_cgu_bta12))
 ```
 Such a string can be rendered graphically e.g. by the R package [ape](https://cran.r-project.org/package=ape) yielding Figure \@ref(fig:newick):
-```{r newick, , eval = requireNamespace("ape", quietly = TRUE), fig.align = 'center', fig.width = 6, fig.height = 6, fig.lp = 'fig:', fig.cap = 'Graphical output of the ape::plot.phylo() function', fig.pos = "!h"}
+```{r newick, eval = requireNamespace("ape", quietly = TRUE), fig.align = 'center', fig.width = 6, fig.height = 6, fig.lp = 'fig:', fig.cap = 'Graphical output of the ape::plot.phylo() function', fig.pos = "!h"}
 library(ape)
 tree <- ape::read.tree(text = newick)
 plot(tree, 
@@ -967,7 +972,7 @@ plot(tree,
 
 ## The functions `calc_haplen()` and `plot.haplen()`
 
-The length of a particular extended shared haplotype in a sample can be defined as the range that a chromosome shares a haplotype with at least one other chromosome. For a given chromosome it corresponds to the maximal extension of the inner branches to both sides of the focal marker in a furcation diagram. The function `calc_haplen()` calculates this quantity:
+To each haplotype in the sample the length of its longest shared haplotype is assigned, i.e. the range over which it is identical to at least one other haplotype (the latter might be different left and right to the focal marker). It corresponds to the maximal extension of the inner branches to both sides of the focal marker in a furcation diagram. The function `calc_haplen()` calculates this quantity:
 ```{r}
 haplen <- calc_haplen(furcation)
 ```
@@ -1033,12 +1038,12 @@ remove.example.files()
 # Data considerations
 
 ## Multi-allelic markers {#multiallelic}
-For many species, a low per-site mutation rate ensures that the vast majority of Single Nucleotide Polymorphisms (SNPs) appears only with two alleles in a sample. Hence bi-allelic SNPs will constitute the foremost kind of data to apply our package onto. However, we think the ability to calculate the statistics for multi-allelic markers might be useful
+For many species, a low per-site mutation rate ensures that the vast majority of Single Nucleotide Polymorphisms (SNPs) is observed with only two alleles in a sample. Hence bi-allelic SNPs will constitute the foremost kind of data to apply our package onto. However, we think the ability to calculate the statistics for multi-allelic markers might be useful
 
 - for species and/or genomic regions with a high per-site mutation rate
 - for genetic variation in form of (short) tandem repeats or (larger) copy number variations which are multi-allelic by definition and may carry information not captured by SNP markers
 - because the relative rarity of multi-allelic SNPs might make these particularly interesting
-- since the original approach of [@Sabeti2002] was not to compare *extended haplotype homozygosity* between *core alleles* of a single SNP, but between multiple *core haplotypes* defined by several neighboring SNPs; such a partition could be created in *rehh* by adding an artificial multi-allelic marker.
+- since the original approach of [@Sabeti2002] did not compare *EHH* on the two *core alleles* of a single SNP, but for multiple *core haplotypes* defined by several neighboring SNPs; such a partition could be created in *rehh* by adding an artificial multi-allelic marker.
 
 ## Dealing with gaps {#gaps}
 Certain genomic regions such as centromeres are difficult to sequence and can give rise to large gaps between consecutive markers. If not accounted for, these will cause spuriously inflated values of the "integrals" *iHH* and *iES*. [@Voight2006] applied two corrections for gaps. First, they introduced a penalty proportional to physical distance that resulted in any gap being greater than 20 kb to be re-scaled to this number. Second, they discarded integration, if two consecutive markers with a distance greater than 200 kb were encountered. Both methods are implemented in *rehh*, yet turned off by default, since the corresponding thresholds should be adapted manually to the specific data set.
@@ -1059,23 +1064,21 @@ Errors or typos aside, there are several possibilities how multiple markers with
 - The *variant call format* allows to specify different kinds of markers in the same file. Hence at a certain position one might observe a SNP as well as an Insertion/Deletion or a tandem repeat. 
 - In output of *ms* the positions are given with a pre-set precision and consequently the positions of two different segregating sites might be rounded to the same number. 
 
-Since it is unclear how *rehh* should handle such markers, they are not accepted as input. Ideally, multiple markers should be dealt with by a pre-processing of the data outside of the package. As a quick-and-dirty work-around, we offer the option `remove_multiple_markers`, which, if set to `TRUE`, removes all but the first marker with identical positions.
+Since it is unclear how *rehh* should handle such markers, they are not accepted as input. Ideally, multiple markers should be dealt with by a pre-processing of the data outside of the package. As a quick-and-dirty work-around, we offer the option `remove_multiple_markers` in function `data2haplohh()`, which, if set to `TRUE`, removes all but the first marker with identical positions.
 
 ## Dealing with unphased data {#phasing}
-Notwithstanding expensive experimental methods, current high-throughput genotyping / sequencing technologies cannot directly assign alleles to specific chromosomes of a heterozygous diploid (or multiploid) individual. Instead, this task of *phasing* is typically performed by specialized bioinformatic tools like the previously mentioned *SHAPEIT* [@OConnell2014] and *fastPHASE* [@Scheet2006]. Although computationally demanding, the application of these tools is straight-forward and the results usually of sufficient quality for the calculation of *EHH* based statistics. Typically, the tools interpolate missing values away. 
+Notwithstanding expensive experimental methods, current high-throughput genotyping / sequencing technologies cannot directly assign alleles to specific chromosomes of a heterozygous diploid (or multiploid) individual. Instead, this task of *phasing* is typically performed by specialized bioinformatic tools like *SHAPEIT* [@OConnell2014] and *fastPHASE* [@Scheet2006]. Although computationally demanding, the application of these tools is straight-forward and the results usually of sufficient quality for the calculation of *EHH* based statistics. Typically, the tools interpolate missing values away. 
 
 In the presumably rare cases where phasing is not feasible, *EHH* or *EHHS* can only be meaningfully estimated by reducing the set of compared chromosomes to those of homozygous (at the focal marker) individuals (assuming that the input data is ordered correspondingly). However, this reduction entails a substantial loss of power; even by an adapted parameter setting (see below) at the very minimum 10, but better up to 30 sequences are needed to obtain at least moderately accurate estimations. 
 
 For the within-population statistic *iHS*, the latter requirement concerns both major and minor alleles of a marker and scans should not be performed on samples comprising less than 100 sequences. Even for sample sizes of 200 sequences, meaningful estimation of *iHS* is hence restricted to variants of intermediate frequencies, i.e. high minor frequency.
 
 For the cross-population statistics *Rsb* and *XP-EHH* a minimum number of 30 sequences from homozygous individuals is usually fulfilled if the sample size of each population exceeds 60 sequences. 
-
-
-For unphased sequences
+Hence, for unphased sequences the following parameters shoudl be set:
 
 - the option `phased` of the functions `calc_ehh()`, `calc_ehhs()` and `scan_hh()` must be set to `FALSE`. However, if the data is actually phased, this entails a substantial loss of power to detect selection!
 
-Most of the variance (and hence "noise") comes at any marker from the longest shared haplotypes. To limit their contribution
+A few shared haplotypes of extreme length are usually encountered in neutrally evolving regions. In order to limit this "statistical noise", cut-off rules are for unphased sequences even more important than they are for phased ones
 
 - the cut-off for the calculation of *EHH* resp. *EHHS* defined by option `limehh` resp. `limehhs` should be increased from the default value of 0.05 to 0.1.
 - in function `ihh2ihs()`, hence for a within-population scan using *iHH* values, in addition to the filtering by the MAF of core alleles (parameter `min_maf`, default 0.05), a minimum absolute number of evaluated haplotypes should be set by parameter `min_nhaplo`; this value should never be lower than 10 and, if the sample size allows, be as high as 30. 
@@ -1085,9 +1088,9 @@ See [@Klassmann2020] for a study on estimating *iHS*, *Rsb* and *XP-EHH* using u
 
 
 ## Dealing with unpolarized data {#polarizing}
-The designation of alleles as 'ancestral' or 'derived' is referred to as *polarization*. Since sequences of ancient genomes are available only for a few species and restricted to a limited time back to the past, the 'ancestral' allele is usually inferred to be the one carried by one or more outgroup species such as chimpanzees or gorillas for humans. However, this presupposes the existence of a reference sequence of suitable 'neighbor' species of sufficient quality as well as reliable genome-wide alignments. These requirements are not trivial and even if they are fulfilled, any alignment will not cover the whole genome and the covered part will contain mis-specified alleles due to invisible secondary or back-mutations [@Baudry2003], possibly causing spurious signals of selection [@Hernandez2007].
+The designation of alleles as 'ancestral' or 'derived' is referred to as *polarization*. Since sequences of ancient genomes are available only for a few species and restricted to a limited time back to the past, the 'ancestral' allele is usually inferred to be the one carried by one or more outgroup species such as chimpanzees or gorillas for humans. However, this presupposes the existence of a reference sequence of a suitable 'neighbor' species of sufficient quality as well as reliable genome-wide alignments. These requirements are not trivial and even if they are fulfilled, any alignment will not cover the whole genome and the covered part will contain mis-specified alleles due to invisible secondary or back-mutations [@Baudry2003], possibly causing spurious signals of selection [@Hernandez2007].
 
-Note that the bin-wise standardization of $iHS$ is the only calculation step within our package where the information about ancestry is exploited. The information of ancestry status is valuable since the expected values under neutral evolution depend on the respective allele frequencies at the focal marker (see Figure \@ref(fig:freqbin) of this vignette and Figure 4 of [@Voight2006]). The binning of markers by frequency before its standardization (see section \@ref(ihh2ihs)) is aimed to eliminate most of this dependence. For unpolarized alleles this correction cannot be done. 
+Note that the bin-wise standardization of *iHS* is the only calculation step within our package where the information about ancestry is exploited. The information of ancestry status is valuable since the expected values under neutral evolution depend on the respective allele frequencies at the focal marker (see Figure \@ref(fig:freqbin) of this vignette and Figure 4 of [@Voight2006]). The binning of markers by frequency before its standardization (see section \@ref(ihh2ihs)) is aimed to eliminate most of this dependence. For unpolarized alleles this correction cannot be done. 
 
 Hence two parameters are important when dealing with unpolarized data:
 
@@ -1113,19 +1116,39 @@ $\sqrt{\frac{1}{n}\sum(x_i-\bar{x})^2}$ for the standard deviation while *rehh* 
 
 6. The default number of bins is 50 in *hapbin*, yielding a bin width of 0.02. The default width in *rehh* is 0.025 (yielding 36 bins, see point above!). Setting the number of bins in *hapbin* to 40 with option `-b` or `--bin` yields a bin width of 0.025.
 
-7. If run in default mode, *hapbin* calculates *EHH* by (notation as in section \@ref(EHH))
-\begin{equation*}
-\mathrm{EHH}^a_{s,t}=\sum_{k=1}^{K^a_{s,t}}\left(\frac{n_k}{n_a}\right)^2\;.
-\end{equation*}
-For a set of $n$ chromosomes this estimator reaches its minimum value of $\frac{1}{n}$ if all of them are distinct. Yet formula \@ref(eq:ehh) used by *rehh* and applied by *hapbin* if run with option `-a` or `--binom` returns zero in this case. The difference reflects distinct sampling strategies, either with replacement or without. For increasing sample size both converge.
-The same holds for *EHHS*.
+7. *hapbin* uses by default another estimator for homozygosity than *rehh* (see section \@ref(estimation)).
+If run with option `-a` or `--binom`, it uses the same as *rehh*.
 
 8. Integration over *EHH* resp. *EHHS* is performed by *hapbin* on the area between the curve spanned by these quantities and the x-axis (y=0) while *rehh* by default integrates only over the part of that area that is above the threshold set by the parameters `limehh` resp. `limehhs`, i.e. the area between the curve and the line y=threshold. This is not to be confused with the condition for truncation at left and right ends of the curve which is (for all practical purposes) handled identically by both programs. Setting in *rehh* the parameter `lower_y_bound` to zero makes the integration identical to that of *hapbin*. As mentioned above, `limehh(s)` of *rehh* corresponds to `-c` or `--cutoff` of *hapbin*.
 
 9. By default, the parameter `discard_integration_at_border` is `TRUE` in *rehh*. It has to be set to `FALSE` in order to conform to *hapbin*. 
 
 10. Large differences can arise from different handling of gaps during the integration of *EHH* resp. *EHHS* yielding *iHH* resp. *iES*. *Hapbin* has a parameter `-s` or `--scale` to "down-weight" large gaps by capping them to the specified value. Its default value is 20000 while the corresponding option in *rehh* is turned off by default, but can be set by `scalegap`.
-The option `maxgap` within *rehh* leads to a stop of the integration and if the parameter `discard_integration_at_border` is set to `TRUE`, then no value is reported. This has no counterpart in *hapbin*. Instead, *hapbin* allows to specify a maximum length of Extended Haplotypes (disabled by default) which is not possible in *rehh*.
+The option `maxgap` within *rehh* leads to a stop of the integration and if the parameter `discard_integration_at_border` is set to `TRUE`, then no value is reported. This has no counterpart in *hapbin*. Instead, *hapbin* allows to specify a maximum length of Extended Haplotypes (disabled by default) which is available as option of the function `scan_hh_full()` in *rehh*.
+
+\clearpage
+# About estimating homozygosity {#estimation}
+
+The term *homozygosity* as component of the abbreviation *EHH* refers to the probability that two arbitrarily chosen chromosomes from a large population are identical at a given locus or in a given region. It does not make any statement about homozygosity of individuals or even presuppose that individuals are diploid. One might even argue, whether the term *homogeneity* would have been more appropriate. 
+
+If there are $K$ alleles in the population and each allele has a population frequency of $f_k$, then this probability is given by
+$$H=\sum_{k=1}^{K}f_k^2\;.$$
+For each allele $k$, its population frequency can be estimated by its sample frequency $x_k$: if the sample contains $n$ chromosomes and allele $k$ is observed $n_k$ times, then 
+$$\hat{f_k}=\frac{n_k}{n}=x_k\;.$$
+It seems straightforward to estimate the population homozygosity from a sample by
+$$\hat{H_1}=\sum_{k=1}^Kx_k^2=\sum_{k=1}^K\left(\frac{n_k}{n}\right)^2\;.$$
+However, it turns out that this estimator is biased (it yields values that tend to be slightly too high). The following estimator, instead, is unbiased [@Nei1974]:
+$$\hat{H_2}=\frac{n}{n-1}\sum_{k=1}^{K_{s,t}}x_k^2-\frac{1}{n-1}\;.$$
+The latter is used by *rehh*. We can see this e.g. in Equation \@ref(eq:ehhssab), when we consider each (shared) haplotype in the region between markers $s$ and $t$ as an allele. We get
+
+$$EHHS=\frac{1}{n(n-1)}\sum_{k=1}^{K_{s,t}}n_k(n_k-1)=\frac{n}{n-1}\frac{1}{n^2}\sum_{k=1}^{K_{s,t}}(n_k^2-n_k)=\frac{n}{n-1}\left(\sum_{k=1}^{K_{s,t}}\frac{n_k^2}{n^2}-\frac{n}{n^2}\right)=\hat{H_2}\;.$$
+*hapbin*, in constrast, uses by default estimator $\hat{H_1}$ and refers to $\hat{H_2}$ as the "alternative" estimator. Evidently, for large $n$, the difference between the two becomes negligible. For small $n$ this is not necessarily so. If we consider a minimal sample of two non-identical chromosomes, hence $n=2$ and $K=2$, then we have
+$$\hat{H_1}=\left(\frac{1}{2}\right)^2+\left(\frac{1}{2}\right)^2=\frac{1}{2}$$
+and 
+$$\hat{H_2}=\frac{1}{2\cdot 1}(1\cdot 0+1\cdot 0)=0\;.$$
+Interestingly, although $\hat{H_1}$ is biased, it yields values which are on average closer to the population value than $\hat{H_2}$, since the variance of $\hat{H_1}$ is smaller than that of $\hat{H_2}$ [@Nei1974]. 
+
+It is unlikely, though, that the choice of the estimator has a major effect on detecting selection.
 \clearpage
 
 # References

@@ -10,6 +10,10 @@
 #'Gautier M., Klassmann A., and Vitalis R. (2017). rehh 2.0: a reimplementation of the R package
 #'rehh to detect positive selection from haplotype structure. \emph{Molecular Ecology Resources}, \strong{17}, 78-90.
 #'
+#'Klassmann, A. and Gautier, M. (2020). Detecting selection using Extended Haplotype
+#'Homozygosity-based statistics on unphased or unpolarized data (preprint). 
+#'https://doi.org/10.22541/au.160405572.29972398/v1
+#'
 #'Sabeti, P.C. et al. (2002). Detecting recent positive selection in the human genome from haplotype structure. \emph{Nature}, \strong{419}, 832-837.
 #'
 #'Sabeti, P.C. et al. (2007). Genome-wide detection and characterization of positive selection in human populations. \emph{Nature}, \strong{449}, 913-918.

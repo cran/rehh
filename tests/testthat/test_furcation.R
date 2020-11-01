@@ -106,6 +106,22 @@ test_that("checked_furcation", {
   expect_identical(as.newick(f, allele = 1, side = "left"), expected_newick[3])
   expect_identical(as.newick(f, allele = 1, side = "right"), expected_newick[4])
   
+  ## haplen calculates longest shared haplotype per chromosome,
+  ## for left and right side independently
+  h <- calc_haplen(f)
+  lengths_haplen_left <- positions(hh)["F1205400"] - h$haplen$MIN
+  lengths_haplen_right <- h$haplen$MAX - positions(hh)["F1205400"]
+  
+  ## pairwise haplen calculates length of all mutually shared haplotypes
+  ph <- calc_pairwise_haplen(hh, mrk = "F1205400", side = "left")
+  lengths_longest_pairwise_haplen_left <- apply(ph, 1, max)
+  expect_equivalent(lengths_haplen_left, lengths_longest_pairwise_haplen_left)
+  
+  ph <- calc_pairwise_haplen(hh, mrk = "F1205400", side = "right")
+  lengths_longest_pairwise_haplen_right <- apply(ph, 1, max)
+  expect_equivalent(lengths_haplen_right,
+                    lengths_longest_pairwise_haplen_right)
+  
   sink()
   file.remove("test_furcation.log")
 })

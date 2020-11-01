@@ -15,6 +15,8 @@
 #'In case of multi-allelic markers the second-most frequent allele is referred to as minor allele.
 #'Setting this value to zero eliminates monomorphic sites. Default is \code{NA},
 #'hence no constraint.
+#'@param max_alleles threshold for the maximum number of different alleles at a site. Default is \code{NA},
+#'hence no restriction. In order to retain only bi-allelic markers, set this parameter to 2.
 #'@param verbose logical. If \code{TRUE} (default), report verbose progress.
 #'@param ... further arguments are ignored.
 #'@seealso \code{\link{haplohh-class}}, \code{\link{data2haplohh}}
@@ -31,6 +33,7 @@ subset.haplohh <-
            min_perc_geno.hap = NA,
            min_perc_geno.mrk = 100,
            min_maf = NA,
+           max_alleles = NA,
            verbose = TRUE,
            ...) {
     # check parameters
@@ -51,6 +54,12 @@ subset.haplohh <-
       if (!is.numeric(min_maf) | min_maf < 0 |
           min_maf > 0.5) {
         stop("min_maf should lie in the interval [0,0.5].", call. = FALSE)
+      }
+    }
+    ### max_alleles must be at least 2
+    if (!is.na(max_alleles)) {
+      if (!is.numeric(max_alleles) | max_alleles < 2) {
+        stop("max_alleles should be at least 2.", call. = FALSE)
       }
     }
     ### check if object is valid haplohh
@@ -216,6 +225,37 @@ subset.haplohh <-
           warning(
             "No marker left after filtering on Minor Allele Frequency.\n",
             "If applicable, reduce min_maf to allow for less frequent minor alleles.",
+            call. = FALSE,
+            immediate. = TRUE
+          )
+          return(x)
+        }
+      }
+    }
+    
+    if (!is.na(max_alleles)) {
+      if (verbose)
+        cat("Discard markers with more than",
+            max_alleles,
+            "different alleles.\n")
+      mrk_sel <-
+        apply(x@haplo, 2, function(x) {
+          length(unique(na.omit(x))) <= max_alleles
+        })
+      if (sum(mrk_sel) == nmrk(x)) {
+        if (verbose)
+          cat("No marker discarded.\n")
+      } else{
+        if (verbose)
+          cat(nmrk(x) - sum(mrk_sel), "markers discarded.\n")
+        x@haplo <- x@haplo[, mrk_sel, drop = FALSE]
+        x@positions <- x@positions[mrk_sel]
+        if (verbose)
+          cat(nmrk(x), "markers remaining.\n")
+        
+        if (nmrk(x) == 0) {
+          warning(
+            "No marker left after filtering on maximal number of different alleles.\n",
             call. = FALSE,
             immediate. = TRUE
           )

@@ -26,13 +26,18 @@
 #'@param cex size of the points representing markers in the plot(s) (see \code{\link[graphics]{par}}).
 #'@param las orientation of axis labels (see \code{\link[graphics]{par}}).
 #'@param pch type of the points representing markers in the plot(s) (see \code{\link[graphics]{points}}).
+#'@param inset inset (in bases) between chromosomes to avoid overlap of data points. Default: 5,000,000 bases.
 #'@param resolution Rasterize data points to the specified resolution and remove
 #'duplicate points. Defaults to NULL, i.e. no rasterization. A typical value might be \code{c(1E5, 0.01)},
 #'meaning that resolution on the x-axis (chromosomal position) is 100000 and on the y-axis (score or p-value) is 0.01.
 #'@param ... further arguments to be passed to \code{\link[graphics]{plot.default}}.
 #'@details The color of chromosomes is taken from the "Graphics Palette", see \code{\link[grDevices]{palette}}.
-#'@details If a single chromosome is plotted, a genomic region can be specified by
+#'
+#'If a single chromosome is plotted, a genomic region can be specified by
 #'argument \code{xlim}.
+#'
+#'Other statistics can be plotted as well, although a warning is issued. They must be given by a data.frame
+#'with columns CHR and POSITION and the statistic in the third column. 
 #'@return The function returns a plot.
 #'@seealso \code{\link{ihh2ihs}}, \code{\link{ies2xpehh}}, \code{\link{ines2rsb}}, \code{\link{calc_candidate_regions}}.
 #'@examples library(rehh.data)
@@ -65,6 +70,7 @@ manhattanplot <-
            cex = 0.5,
            las = 1,
            pch = 20,
+           inset = 5E+6,
            resolution = NULL,
            ...) {
     # check parameters
@@ -131,6 +137,13 @@ manhattanplot <-
            call. = FALSE)
     }
     
+    if (is.na(inset)) {
+      inset <- 0
+    } else if (!is.numeric(inset)) {
+      stop("Inset has to be specified by a number.",
+           call. = FALSE)
+    }
+    
     # perform plot
     
     ## try to identify statistic by column name
@@ -183,8 +196,8 @@ manhattanplot <-
                      "]")
         } else {
           ylab <-
-            bquote("-" ~ log[10] ~ "[2" * Phi[ ~ "-" ~ "|" ~ scriptstyle(italic(.(statistic))) ~
-                                                 "|"] * "]")
+            bquote("-" ~ log[10] ~ "[2" * Phi[~ "-" ~ "|" ~ scriptstyle(italic(.(statistic))) ~
+                                                "|"] * "]")
         }
       } else{
         if (ignore_sign) {
@@ -216,7 +229,7 @@ manhattanplot <-
     if (!is.null(mrk)) {
       if (is.vector(mrk)) {
         nmrk <- length(mrk)
-        data_highlighted <- data[mrk, ]
+        data_highlighted <- data[mrk,]
       } else{
         nmrk <- nrow(mrk)
         ## merge erases row.names; duplicate them as column
@@ -232,7 +245,7 @@ manhattanplot <-
       
       ## remove rows with NAs (arising by empty subset)
       data_highlighted <-
-        data_highlighted[!is.na(data_highlighted$CHR), ]
+        data_highlighted[!is.na(data_highlighted$CHR),]
       
       if (nrow(data_highlighted) < nmrk) {
         warning(paste(
@@ -257,15 +270,15 @@ manhattanplot <-
         stop("Specified chromosomes not contained in data.", call. = FALSE)
       }
       chromosomes <- chr.name
-      data <- data[data$CHR %in% chromosomes, ]
+      data <- data[data$CHR %in% chromosomes,]
     }
     
     chr_max <-
       vapply(split(data, data$CHR, drop = TRUE), function(x) {
-        max(x$POSITION)
+        max(x$POSITION) + inset
       }, FUN.VALUE =  0)
     cum <- cumsum(c(0, chr_max[chromosomes]))
-    label_pos <- (cum[-length(cum)] + cum[-1]) / 2
+    label_pos <- (cum[-length(cum)] + cum[-1] - inset) / 2
     
     cum <- cum[-length(cum)]
     names(cum) <- chromosomes
@@ -294,7 +307,7 @@ manhattanplot <-
       if (!is.null(dot.args$xlim)) {
         # subset to specified positions
         data <- data[data$POSITION >= dot.args$xlim[1] &
-                       data$POSITION <= dot.args$xlim[2], ]
+                       data$POSITION <= dot.args$xlim[2],]
         
         dot.args$xlim <- dot.args$xlim / scale
       }
@@ -348,7 +361,7 @@ manhattanplot <-
     }
     
     if (!is.null(cr)) {
-      cr <- cr[cr$CHR %in% chromosomes, ]
+      cr <- cr[cr$CHR %in% chromosomes,]
       
       if (nrow(cr) > 0) {
         col <-  adjustcolor(cr.col, alpha.f = cr.opacity)

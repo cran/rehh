@@ -109,7 +109,7 @@ calc_candidate_regions <- function(scan,
   
   # perform calculation
   ## remove NA
-  scan <- scan[!is.na(scan[[score_column_nr]]), ]
+  scan <- scan[!is.na(scan[[score_column_nr]]),]
   
   if (ignore_sign) {
     score <- abs(scan[[score_column_nr]])
@@ -148,9 +148,12 @@ calc_candidate_regions <- function(scan,
       }
       
       for (offset in offsets) {
-        breaks <- seq(offset,
-                      max(chr_pos) + window_size - 1,
-                      window_size)
+        breaks <- seq(
+          floor(min(chr_pos) / window_size) * window_size + offset,
+          max(chr_pos) + window_size - 1,
+          window_size
+        )
+        
         windows <- cut(chr_pos,
                        breaks = breaks,
                        right = right,
@@ -213,7 +216,7 @@ calc_candidate_regions <- function(scan,
       
       if (nrow(chr_cand_reg) > 1) {
         # sort different offset windows by position
-        chr_cand_reg <- chr_cand_reg[order(chr_cand_reg[[2]]), ]
+        chr_cand_reg <- chr_cand_reg[order(chr_cand_reg[[2]]),]
         
         # join neighboring windows
         if (join_neighbors) {
@@ -246,7 +249,7 @@ calc_candidate_regions <- function(scan,
                                         threshold])
               #e liminate all right neighbors
               chr_cand_reg <- chr_cand_reg[-((i + 1):(i +
-                                                        j)), ]
+                                                        j)),]
             }
             i <- i + 1
           }

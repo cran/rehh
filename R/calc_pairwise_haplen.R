@@ -4,12 +4,16 @@
 #'@param mrk integer representing the number of the focal marker within the haplohh object
 #'or string representing its ID/name.
 #'@param phased logical. If \code{TRUE} (default) chromosomes are expected to be phased. If \code{FALSE}, the haplotype data is assumed to
-#'consist of pairwise ordered chromosomes belonging to diploid individuals and only the two chromosomes of 
+#'consist of pairwise ordered chromosomes belonging to diploid individuals and only the two chromosomes of
 #'each individual are compared.
 #'@param maxgap maximum allowed gap in bp between two markers. If exceeded, further calculation is stopped at the gap
-#'(default=\code{NA}, i.e no limitation).
+#'(default=\code{NA}, i.e. no limitation).
+#'@param max_extend maximum distance in bp to extend shared haplotypes away from the focal marker.
+#'(default \code{NA}, i.e. no limitation).
+#'@param side side to consider, either "left" (positions lower than focal position), "right" (positions higher than focal position)
+#'or "both" (default).
 #'@details The function computes the length of shared haplotypes (stretches of identical sequence) around
-#'the focal marker. 
+#'the focal marker.
 #'
 #'Note that the function \code{\link{calc_haplen}} calculates for each chromosome
 #'the boundaries of its longest shared haplotype; separately upstream and downstream of
@@ -28,7 +32,9 @@ calc_pairwise_haplen <-
   function(haplohh,
            mrk,
            phased = TRUE,
-           maxgap = NA) {
+           maxgap = NA,
+           max_extend = NA,
+           side = "both") {
     ##check parameters
     if (!(is.haplohh(haplohh))) {
       stop("Data is not a valid haplohh object.", call. = FALSE)
@@ -58,9 +64,23 @@ calc_pairwise_haplen <-
       }
       mrk <- which(mrk.names(haplohh) == mrk)
     }
+    if (!is.na(maxgap) & (!is.numeric(maxgap) | maxgap < 1)) {
+      stop("maxgap must be a positive integer number.", call. = FALSE)
+    }
+    if (!is.na(max_extend) &
+        (!is.numeric(max_extend) | max_extend < 1)) {
+      stop("max_extend must be a positive integer number.", call. = FALSE)
+    }
     
     if (is.na(maxgap)) {
-      maxgap <- (max(positions(haplohh)) + 1)
+      maxgap <- diff(range(positions(haplohh))) + 1
+    }
+    if (is.na(max_extend)) {
+      max_extend <- diff(range(positions(haplohh))) + 1
+    }
+    
+    if (!(side %in% c("both", "left", "right"))) {
+      stop("side must be either \"both\", \"left\" or \"right\".", call. = FALSE)
     }
     
     ##perform calculations
@@ -79,8 +99,10 @@ calc_pairwise_haplen <-
       nmrk(haplohh),
       positions(haplohh),
       mrk,
-      maxgap,
-      phased,
+      as.integer(maxgap),
+      as.integer(max_extend),
+      ifelse(side == "both", 0L, ifelse(side == "left", 1L, 2L)),
+      as.integer(phased),
       pairwise_haplen
     )
     

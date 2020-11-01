@@ -9,7 +9,7 @@
 #'the less haplotypes contribute to EHH(S).
 #'@param limhomohaplo if there are less than \code{limhomohaplo} homozygous chromosomes, the
 #'calculation is stopped. This option is intended for unphased data and should be invoked only
-#'if relatively low frequency variants are not filtered subsequently (see main vignette and Klassmann et al. 2020). 
+#'if relatively low frequency variants are not filtered subsequently (see main vignette and Klassmann et al. 2020).
 #'@param limehh limit at which EHH stops to be evaluated.
 #'@param limehhs limit at which EHHS stops to be evaluated.
 #'@param phased logical. If \code{TRUE} (default) chromosomes are expected to be phased. If \code{FALSE}, the haplotype data is assumed to
@@ -37,7 +37,7 @@
 #'for all markers. To perform a whole genome-scan this function needs
 #'to be called for each chromosome and results concatenated.
 #'
-#'Note that setting \code{limehh} or \code{limehhs} to zero is likely to reduce power, 
+#'Note that setting \code{limehh} or \code{limehhs} to zero is likely to reduce power,
 #'since even under neutrality a tiny fraction (<<0.05) of extremely long shared haplotypes is expected
 #'which, if fully accounted for, would obfuscate the signal at selected sites.
 #'
@@ -48,21 +48,22 @@
 #'\item sample frequency of the ancestral / major allele
 #'\item sample frequency of the second-most frequent remaining allele
 #'\item number of evaluated haplotypes at the focal marker for the ancestral / major allele
-#'\item number of evaluated haplotypes at the focal marker for the second-most frequent remaining allele  
+#'\item number of evaluated haplotypes at the focal marker for the second-most frequent remaining allele
 #'\item iHH of the ancestral / major allele
 #'\item iHH of the second-most frequent remaining allele
 #'\item iES (used by Sabeti et al 2007)
 #'\item inES (used by Tang et al 2007)}
 #'Note that in case of unphased data the evaluation is restricted to
 #'haplotypes of homozygous individuals which reduces the power
-#'to detect selection, particularly for iHS (for appropriate parameter setting 
+#'to detect selection, particularly for iHS (for appropriate parameter setting
 #'see the main vignette and Klassmann et al (2020)).
 #'
 #
 #'@references Gautier, M. and Naves, M. (2011). Footprints of selection in the ancestral admixture of a New World Creole cattle breed. \emph{Molecular Ecology}, \strong{20}, 3128-3143.
 #'
-#'Klassmann, A. et al. (2020). Detecting selection using Extended Haplotype
-#'Homozygosity (EHH)-based statistics on unphased or unpolarized data. (submitted).
+#'Klassmann, A. and Gautier, M. (2020). Detecting selection using Extended Haplotype
+#'Homozygosity-based statistics on unphased or unpolarized data (preprint). 
+#'https://doi.org/10.22541/au.160405572.29972398/v1
 #'
 #'Sabeti, P.C. et al. (2002). Detecting recent positive selection in the human genome from haplotype structure. \emph{Nature}, \strong{419}, 832-837.
 #'
@@ -112,12 +113,19 @@ scan_hh <-
         limehhs > 1) {
       stop("limehhs must lie between 0 and 1.", call. = FALSE)
     }
+    if (!is.na(maxgap) & (!is.numeric(maxgap) | maxgap < 1)) {
+      stop("maxgap must be a positive integer number.", call. = FALSE)
+    }
+    if (!is.na(scalegap) & (!is.numeric(scalegap) | scalegap < 1)) {
+      stop("scalegap must be a positive integer number.", call. = FALSE)
+    }
+    
     if (is.na(maxgap)) {
-      maxgap <- (max(positions(haplohh)) + 1)
+      maxgap <- diff(range(positions(haplohh))) + 1
     }
     
     if (is.na(scalegap)) {
-      scalegap <- (max(positions(haplohh)) + 1)
+      scalegap <- diff(range(positions(haplohh))) + 1
     } else if (scalegap > maxgap) {
       stop("scalegap has to be smaller than maxgap in order to have an effect.",
            call. = FALSE)

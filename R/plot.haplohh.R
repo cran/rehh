@@ -34,19 +34,21 @@
 #'@param pos.lab.mrk position of marker labels. Either \code{"top"} (default) or \code{"none"}.
 #'@param srt.hap rotation of haplotype labels (see \code{\link[graphics]{par}}).
 #'@param srt.mrk rotation of marker labels (see \code{\link[graphics]{par}}).
+#'@param highlight.mrk vector of markers to be highlighted
+#'@param highlight.mrk.col color for each allele (as coded internally) at highlighted markers.
 #'@param ... other parameters to be passed to \code{\link[graphics]{plot.default}}.
 #'@details Specifying a haplohh-object with more than 4096 haplotypes or
 #'markers produces an error.
 #'@seealso \code{\link{calc_haplen}}, \code{\link{plot.furcation}}.
 #'@examples #example haplohh object
 #'make.example.files()
-#'hh <- data2haplohh(hap_file = "example1.hap", 
+#'hh <- data2haplohh(hap_file = "example1.hap",
 #'                    map_file = "example1.map",
 #'                    allele_coding = "01")
 #'plot(hh)
-#'hh <- data2haplohh(hap_file = "example2.hap", 
-#'                    map_file = "example2.map", 
-#'                    allele_coding = "01", 
+#'hh <- data2haplohh(hap_file = "example2.hap",
+#'                    map_file = "example2.map",
+#'                    allele_coding = "01",
 #'                    min_perc_geno.mrk = 50)
 #'plot(hh)
 #'remove.example.files()
@@ -75,6 +77,8 @@ plot.haplohh <-
            pos.lab.mrk = "top",
            srt.hap = 0,
            srt.mrk = 0,
+           highlight.mrk = NULL,
+           highlight.mrk.col = c("lightgray", "black", "darkgray"),
            ...) {
     # arbitrary limit on haplotypes and markers
     MAX <- 4096L
@@ -119,6 +123,35 @@ plot.haplohh <-
           stop(paste0("Marker '", mrk, "' not found."), call. = FALSE)
         }
         mrk <- which(mrk.names(x) == mrk)
+      }
+    }
+    
+    if (!is.null(highlight.mrk)) {
+      if (is.numeric(highlight.mrk)) {
+        hightlight.mrk <- as.integer(highlight.mrk)
+        if (any(highlight.mrk < 1)) {
+          stop(paste0("No marker numbers smaller than 1 allowed."),
+               call. = FALSE)
+        }
+        if (any(highlight.mrk > nmrk(x))) {
+          stop(
+            paste0(
+              "The marker number ",
+              highlight.mrk[which(highlight.mrk > nmrk(x))],
+              " is bigger than the number of markers in the data set (",
+              nmrk(x),
+              ")"
+            ),
+            call. = FALSE
+          )
+        }
+      } else{
+        highlight.mrk <- as.character(highlight.mrk)
+        if (!all(highlight.mrk %in% mrk.names(x))) {
+          stop(paste0("Marker '", highlight.mrk[which(!(highlight.mrk %in% mrk.names(x)))], "' not found."),
+               call. = FALSE)
+        }
+        highlight.mrk <- which(mrk.names(x) %in% highlight.mrk)
       }
     }
     
@@ -265,18 +298,26 @@ plot.haplohh <-
     for (i in seq_len(nrow(hh_subset@haplo))) {
       #draw haplo-lines
       y <- 1 - (i - 0.5) / nrow(hh_subset@haplo)
+      #if marker is set lines are colored by allele, otherwise by number
+      #if colored by allele and allele is NA then use color for allele
       lines(range(hh_subset@positions) / scale,
             rep(y, 2),
-            col = linecol[ifelse(is.na(mrk), i, hh_subset@haplo[i, mrk]) %% length(linecol) +
+            col = linecol[ifelse(is.na(mrk), i, ifelse(is.na(hh_subset@haplo[i, mrk]), 0, hh_subset@haplo[i, mrk])) %% length(linecol) +
                             1L],
             lwd = lwd)
+      
+      pcol <- col[((hh_subset@haplo[i, ]) %% length(col)) + 1L]
+      if (!is.null(highlight.mrk)) {
+        pcol[highlight.mrk] <-
+          highlight.mrk.col[((hh_subset@haplo[i, highlight.mrk]) %% length(highlight.mrk.col)) + 1L]
+      }
       
       #add markers
       points(
         x = xcoord / scale,
         y = rep(y, ncol(hh_subset@haplo)),
         cex = cex,
-        col = col[((hh_subset@haplo[i, ]) %% length(col)) + 1L],
+        col = pcol,
         pch = pch[((hh_subset@haplo[i, ]) %% length(pch)) + 1L]
       )
       

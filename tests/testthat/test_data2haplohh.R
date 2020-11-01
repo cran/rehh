@@ -109,7 +109,8 @@ test_that("checked_bta", {
   
   hap4 <-
     data2haplohh(hap_file = "bta12_cgu.vcf.gz",
-                 polarize_vcf = FALSE, vcf_reader = "data.table")
+                 polarize_vcf = FALSE,
+                 vcf_reader = "data.table")
   
   expect_equal(hap3, hap4)
   
@@ -117,11 +118,46 @@ test_that("checked_bta", {
   
   hap5 <-
     data2haplohh(hap_file = "bta12_cgu.vcf.gz",
-                 polarize_vcf = FALSE, vcf_reader = "vcfR")
+                 polarize_vcf = FALSE,
+                 vcf_reader = "vcfR")
   
   expect_equal(hap3, hap5)
   
   sink()
   
   file.remove("test_bta.log")
+})
+
+test_that("data2haplohh_AA_scan", {
+  skip_if_not_installed("data.table")
+  skip_if_not_installed("vcfR")
+  sink(file = "test_AA_scan.log")
+  
+  tmp <- tempfile()
+  ## check if ancestral allele is correctly parsed
+  writeLines(
+    c(
+      "##fileformat=VCFv4.2",
+      "##INFO=<ID=AC,Number=A,Type=Integer,Description=\"Total number of alternate alleles\">",
+      "##INFO=<ID=AA,Number=1,Type=String,Description=\"Ancestral Allele\">",
+      "##INFO=<ID=VT,Number=.,Type=String,Description=\"Variant Type\">",
+      "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">",
+      "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tHG1\tHG2",
+      "chr1\t10000\trs1\tG\tT\t100\tPASS\tAA=G\tGT\t.\t0|0",
+      "chr1\t20000\trs2\tG\tA\t100\tPASS\t.\tGT\t0\t1|0",
+      "chr1\t30000\trs3\tA\tC\t100\tPASS\tAC=2;AF=0.5;AA=C;VT=SNP\tGT\t0\t1|0"
+    ),
+    tmp
+  )
+  
+  hh1 <-
+    suppressWarnings(data2haplohh(tmp, vcf_reader = "data.table", verbose = FALSE))
+  hh2 <-
+    suppressWarnings(data2haplohh(tmp, vcf_reader = "vcfR", verbose = FALSE))
+  
+  expect_equal(hh1, hh2)
+  
+  unlink(tmp)
+  sink()
+  file.remove("test_AA_scan.log")
 })

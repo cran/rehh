@@ -40,26 +40,24 @@ as.newick <-
     }
     if (!is.null(hap.names)) {
       if (length(hap.names) != furcation@nhap) {
-        stop(
-          "Number of specified haplotype names must match the number of haplotypes.",
-          call. = FALSE
-        )
+        stop("Number of specified haplotype names must match the number of haplotypes.",
+             call. = FALSE)
       }
     } else{
       hap.names <- seq_len(furcation@nhap)
     }
-
+    
     ##calculations
     if (side == "left") {
       ftree <- furcation[[allele]]@left
     } else{
       ftree <- furcation[[allele]]@right
     }
-
+    
     ## usage of temporary file is a work-around for
     ## C string streams are missing under Windows
     tmp_file_name <- tempfile()
-
+    
     #calculation and output done by C
     if (.Call(
       "CALL_ASNEWICK",
@@ -76,7 +74,7 @@ as.newick <-
     } else{
       stop("Could not write to a temporary file.", call. = FALSE)
     }
-
+    
     unlink(tmp_file_name)
     return(newick)
   }

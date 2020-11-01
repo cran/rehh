@@ -6,24 +6,72 @@ output:
   bookdown::html_document2:
     base_format: rmarkdown::html_vignette
     toc: yes
+  bookdown::pdf_document2:
+    toc: yes
+    fig_caption: yes
+    number_sections: yes
+fontsize: 12 pt
+urlcolor: blue
 bibliography: vignette.bib
 csl: genetics.csl
+header-includes:
+    - \numberwithin{equation}{section}
 vignette: >
   \usepackage[utf8]{inputenc}
+  \usepackage{amsmath}
   %\VignetteIndexEntry{Examples in detail}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(comment = ">", fig.height = 4.5, fig.width = 4.5, fig.show = "hold")
+knitr::opts_chunk$set(comment = ">", fig.align = 'center', fig.height = 4.5, fig.width = 4.5, fig.show = "hold")
 ```
 \clearpage
 # Overview
 
-This vignette focuses on two small example data sets delivered with the package *rehh* (see main vignette). They have been constructed to ease comprehension of the relevant statistics and functionality of the package. The first example has been already discussed in [@Gautier2017] while the second set is an extension to include multiple markers and missing values. 
+Despite a bewildering nomenclature, the idea of *Extended Haplotype Homozygosity* is simple. Consider the following alignment of nucleotide sequences where only bi-allelic sites have been retained:
 
-The pattern of variation seen in the sets is intended to reflect an evolutionary scenario of an "on-going selective sweep" with the derived allele of the central marker experiencing strong selection.
+```{r echo = FALSE, fig.height = 3, fig.width = 3}
+oldpar = par(mar = rep(0.1, 4))
+plot.new()
+seq = c(
+  "AACTCAGACGA",
+  "AAGCGACAACT",
+  "ACGTCACACCA",
+  "AACCCAGCACT",
+  "AAGCCGGACCA",
+  "AAGCCGGACCA",
+  "GAGCCGGACCT",
+  "AAGCCGGACCT"
+)
+for (i in seq_along(seq)) {
+  n = strsplit(seq[i], "")[[1]]
+  text(((0:10) + 0.5) / 11, (8 - i) / 8 + 1 / 16, n)
+}
+transparent_red <- adjustcolor("red", alpha.f = 0.5)
+transparent_blue <- adjustcolor("blue", alpha.f = 0.5)
+polygon(
+  c(0, 11, 11, 0, 0, 1, 1, 0,  0) / 11,
+  c(4, 4, 0, 0, 1, 1, 2, 2, 4) / 8,
+  border = transparent_red,
+  col = transparent_red
+)
+polygon(
+  c(3, 7, 7, 8, 8, 7, 7, 4, 4, 3, 3, 5, 5, 3) / 11,
+  c(8, 8, 7, 7, 5, 5, 4, 4, 5, 5, 6, 6, 7, 7) / 8,
+  border = transparent_blue,
+  col = transparent_blue
+)
+polygon(c(5, 6, 6, 5) / 11, c(8, 8, 0, 0) / 8, border = "black")
+par(oldpar)
+```
+
+The colored areas mark the maximal extension to which at least two sequences carrying the same *focal allele* are identical, i.e. homozygous to each other. The average length of all sequence-pairwise *shared haplotypes* yields the *iHH* scores for the two central alleles, respectively. The (unstandardized) *iHS* value is the log ratio of them. The statistics *XP-EHH* and *Rsb* are constructed in the same way with the two alleles replaced by two populations and while *Rsb* is normalized to 1 at the focal position, *XP-EHH* is not. That's all!
+
+This vignette analyses in great detail two small example data sets delivered with the package *rehh* (see main vignette). They have been constructed to ease comprehension of the relevant statistics and functionality of the package. The first example has been already discussed in [@Gautier2017] while the second set is an extension to include multiple markers and missing values. The modifications for unphased or unpolarized data have been described in [@Klassmann2020].
+
+The pattern of variation seen in the sets and in the alignment above is intended to reflect an evolutionary scenario of an "on-going selective sweep" with one allele of the central marker experiencing strong selection.
 
 The package has to be installed and then loaded by
 ```{r library, message = FALSE}
@@ -96,8 +144,8 @@ identical(hh, hh_vcf)
 
 ### Visualizing the sequences
 
-The haplohh-object can be visualized by a simple plot command:
-```{r}
+The haplohh-object can be visualized by a simple plot that shows ancestral alleles in blue and derived ones in red:
+```{r hhplot1, fig.cap = "Graphical output of the plot.haplohh() function"}
 plot(hh)
 ```
 
@@ -213,7 +261,7 @@ manhattanplot(ihs, threshold = c(-1.5,1.5), cr = cr, ylim = c(-2.5,2.5), pch = 2
 
 A furcation plot represents a more fine-grained visualization of the homozygosity decay. In particular, individual haplotypes can be discerned which may instigate further investigations. The labels plotted in Figure \@ref(fig:furcation11) are set in bold face, if the branches with which they are associated encompass further haplotypes. 
 
-```{r furcation11, fig.align = 'center', fig.cap = "Graphical output of the plot.furcation() function", fig.pos = '!h', fig.lp = 'fig:'}
+```{r furcation11, fig.cap = "Graphical output of the plot.furcation() function", fig.pos = '!h', fig.lp = 'fig:'}
 f <- calc_furcation(hh, mrk = "rs6")
 # set equal plot margins on left and right side and save old ones
 oldpar <- par(mar = (c(5, 3, 4, 3) + 0.1))
@@ -231,7 +279,7 @@ par(oldpar)
 
 A furcation diagram consists of trees for each allele and both sides ("left" and "right") of the marker. The individual trees can be exported into a string in *Newick* format to be rendered by external programs, e.g. the phylogenetic R-package [ape](https://cran.r-project.org/package=ape), see Figure \@ref(fig:newick1).
 
-```{r newick1, , eval = requireNamespace("ape", quietly = TRUE), fig.align = 'center', fig.cap = "Graphical output of the plot.phylo() function of package ape", fig.pos = '!h', fig.lp = 'fig:'}
+```{r newick1, eval = requireNamespace("ape", quietly = TRUE), fig.align = 'center', fig.cap = "Graphical output of the plot.phylo() function of package ape", fig.pos = '!h', fig.lp = 'fig:'}
 newick <- as.newick(f, 
                     allele = 0, 
                     side = "left", 
@@ -357,7 +405,7 @@ identical(hh, hh_vcf)
 ### Visualizing the sequences
 
 The haplohh-object can be visualized by a simple plot command:
-```{r}
+```{r hhplot2, fig.cap = "Graphical output of the plot.furcation() function"}
 plot(hh)
 ```
 
@@ -447,7 +495,7 @@ Note that the value of *EHH_D*, now representing the allele with internal coding
 
 However, with so few *EHH* values due to missing values, there is not much signal left and a standardization by `ihh2ihs()` averages the alleged outlier away as can be observed in Figure \@ref(fig:manhattan22).
 
-```{r manhattan22, fig.align = 'center', fig.cap = "Graphical output of the manhattanplot() function", fig.pos = '!h', fig.lp = 'fig:'}
+```{r manhattan22, fig.cap = "Graphical output of the manhattanplot() function", fig.pos = '!h', fig.lp = 'fig:'}
 ihs <- ihh2ihs(scan, freqbin = 1, verbose = FALSE)
 manhattanplot(ihs, threshold = c(-1.5, 1.5), ylim = c(-2.5,2.5), pch = 20)
 ```
@@ -457,7 +505,7 @@ manhattanplot(ihs, threshold = c(-1.5, 1.5), ylim = c(-2.5,2.5), pch = 20)
 
 A furcation diagram can show the pattern for all three alleles of the focal marker `rs6`. (Pseudo-)furcations that arise from the removal of chromosomes due to missing values are marked by dashed lines as depicted in Figure \@ref(fig:furcation21).
 
-```{r furcation21, fig.align = 'center', fig.cap = "Graphical output of the plot.furcation() function", fig.pos = '!h', fig.lp = 'fig:'}
+```{r furcation21, fig.cap = "Graphical output of the plot.furcation() function", fig.pos = '!h', fig.lp = 'fig:'}
 f <- calc_furcation(hh, mrk = "rs6")
 # set equal plot margins on left and right side and save old ones
 oldpar <- par(mar = (c(5, 3, 4, 3) + 0.1))
@@ -471,7 +519,7 @@ par(oldpar)
 
 Again, it is possible to export each tree into Newick format. This format, however, has no option to mark different kinds of branches. We let package *ape* render the Newick string to yield Figure \@ref(fig:newick2).
 
-```{r newick2, , eval = requireNamespace("ape", quietly = TRUE), fig.align = 'center', fig.cap = "Graphical output of the plot.phylo() function of package ape", fig.pos = '!h', fig.lp = 'fig:'}
+```{r newick2, eval = requireNamespace("ape", quietly = TRUE), fig.align = 'center', fig.cap = "Graphical output of the plot.phylo() function of package ape", fig.pos = '!h', fig.lp = 'fig:'}
 newick <- as.newick(f, 
                     allele = 0, 
                     side = "left", 

@@ -20,13 +20,8 @@ Population genetic data such as 'Single Nucleotide
         'Rsb' (Tang 2007) <doi:10.1371/journal.pbio.0050171> and 
         'XP-EHH' (Sabeti 2007) <doi:10.1038/nature06250>, targeted
         at differential selection between two populations. 
-        Various plotting functions are also included to facilitate
-        visualization and interpretation of these statistics. 
-        Due to changes in the API, albeit mostly minor, 
-        versions 3.X are not compatible with versions 2.0.X.
-        Note: optionally, vcf files can be imported using package vcfR. That package
-        is currently removed from CRAN, but can still be installed from 
-        <https://github.com/knausb/vcfR> following instructions there.
+        Various plotting functions are included to facilitate
+        visualization and interpretation of these statistics.
 }
 \details{
 See \code{vignette("rehh", package = "rehh")} for an overview of the package and
@@ -42,6 +37,10 @@ genome-wide SNP data from haplotype structure. \emph{Bioinformatics}, \strong{28
 Gautier M., Klassmann A., and Vitalis R. (2017). rehh 2.0: a reimplementation of the R package
 rehh to detect positive selection from haplotype structure. \emph{Molecular Ecology Resources}, \strong{17}, 78-90.
 
+Klassmann, A. and Gautier, M. (2020). Detecting selection using Extended Haplotype
+Homozygosity-based statistics on unphased or unpolarized data (preprint). 
+https://doi.org/10.22541/au.160405572.29972398/v1
+
 Sabeti, P.C. et al. (2002). Detecting recent positive selection in the human genome from haplotype structure. \emph{Nature}, \strong{419}, 832-837.
 
 Sabeti, P.C. et al. (2007). Genome-wide detection and characterization of positive selection in human populations. \emph{Nature}, \strong{449}, 913-918.
@@ -55,7 +54,7 @@ Useful links:
 \itemize{
   \item \url{https://CRAN.R-project.org/package=rehh}
   \item \url{https://gitlab.com/oneoverx/rehh}
-  \item Report bugs at \url{https://gitlab.com/oneoverx/rehh/issues}
+  \item Report bugs at \url{https://gitlab.com/oneoverx/rehh/-/issues}
 }
 
 }
