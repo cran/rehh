@@ -1,7 +1,7 @@
 Package: rehh
 Maintainer: Alexander Klassmann <rehh@oneoverx.eu>
 Author: Mathieu Gautier, Alexander Klassmann and Renaud Vitalis
-Version: 3.2.0
+Version: 3.2.1
 License: GPL (>= 2)
 Title: Searching for Footprints of Selection using 'Extended Haplotype
         Homozygosity' Based Tests
@@ -26,10 +26,10 @@ Suggests: ape, bookdown, data.table, gap, knitr, qqman, rmarkdown,
         R.utils, testthat, vcfR
 VignetteBuilder: knitr
 NeedsCompilation: yes
-Packaged: 2020-11-01 09:31:22 UTC; alex
+Packaged: 2020-11-03 15:53:21 UTC; alex
 RoxygenNote: 7.1.1
 URL: https://CRAN.R-project.org/package=rehh,
         https://gitlab.com/oneoverx/rehh
 BugReports: https://gitlab.com/oneoverx/rehh/-/issues
 Repository: CRAN
-Date/Publication: 2020-11-01 10:00:02 UTC
+Date/Publication: 2020-11-09 22:10:02 UTC

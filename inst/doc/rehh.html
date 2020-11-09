@@ -12,7 +12,7 @@
 
 <meta name="author" content="Alexander Klassmann, Renaud Vitalis and Mathieu Gautier" />
 
-<meta name="date" content="2020-11-01" />
+<meta name="date" content="2020-11-03" />
 
 <title>Vignette for package rehh</title>
 
@@ -331,7 +331,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Vignette for package <em>rehh</em></h1>
 <h4 class="author">Alexander Klassmann, Renaud Vitalis and Mathieu Gautier</h4>
-<h4 class="date">2020-11-01</h4>
+<h4 class="date">2020-11-03</h4>
 
 
 <div id="TOC">
@@ -1166,7 +1166,7 @@ Figure 3.5: Graphical output of the plot.ehhs() function
 <div class="sourceCode" id="cb59"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1"></a><span class="co"># perform scan using scan_hh</span></span>
 <span id="cb59-2"><a href="#cb59-2"></a><span class="kw">system.time</span>(scan &lt;-<span class="st"> </span><span class="kw">scan_hh</span>(haplohh_cgu_bta12))</span></code></pre></div>
 <pre><code>&gt;    user  system elapsed 
-&gt;   0.833   0.000   0.834</code></pre>
+&gt;   0.865   0.000   0.870</code></pre>
 <div class="sourceCode" id="cb61"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1"></a><span class="co"># perform scan applying calc_ehh and calc_ehhs to each marker</span></span>
 <span id="cb61-2"><a href="#cb61-2"></a>slow_scan_hh &lt;-<span class="st"> </span><span class="cf">function</span>(haplohh) {</span>
 <span id="cb61-3"><a href="#cb61-3"></a>  <span class="co"># create empty vectors of size nmrk</span></span>
@@ -1188,7 +1188,7 @@ Figure 3.5: Graphical output of the plot.ehhs() function
 <span id="cb61-19"><a href="#cb61-19"></a>}</span>
 <span id="cb61-20"><a href="#cb61-20"></a><span class="kw">system.time</span>(slow_scan &lt;-<span class="st"> </span><span class="kw">slow_scan_hh</span>(haplohh_cgu_bta12))</span></code></pre></div>
 <pre><code>&gt;    user  system elapsed 
-&gt;   5.094   0.000   5.095</code></pre>
+&gt;   5.237   0.000   5.287</code></pre>
 <p>Comparing columns shows that the computed values are identical:</p>
 <div class="sourceCode" id="cb63"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1"></a><span class="kw">identical</span>(slow_scan[, <span class="st">&quot;IHH_A&quot;</span>], scan[, <span class="st">&quot;IHH_A&quot;</span>])</span></code></pre></div>
 <pre><code>&gt; [1] TRUE</code></pre>

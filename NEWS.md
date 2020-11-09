@@ -1,3 +1,7 @@
+### rehh 3.2.1 (November 03, 2020)
+
+* bug-fix: memory error in function calc_sfs_tests()
+
 ### rehh 3.2.0 (October 30, 2020)
 
 * corrections and extensions of the vignettes
@@ -5,8 +9,7 @@
 * added option to highlight specific markers in plot.haplohh()
 * function subset() can filter markers on maximum number of alleles
 * option to set maximal haplotype extension (in base pairs) in function scan_hh_full()
-* added function haplohh2sweepfinder() that extracts allele frequencies which
-can serve as input for the programs SweepFinder or SweeD
+* added function haplohh2sweepfinder() that extracts allele frequencies which can serve as input for the programs SweepFinder or SweeD
 * added function calc_sfs_tests() to calculate Tajima's D and Fay & Wu's H, allowing for data with missing values
 
 ### rehh 3.1.2 (July 17, 2020)

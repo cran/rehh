@@ -76,11 +76,11 @@ void calc_sfs_tests(int* data, int nbr_chr, int nbr_mrk, double* map,
   }
   
   int start_mrk = 0;
+  /* 'windows' is a vector of size 2 * n_windows, containing the left and right window boundaries */
   for(int window = 0; window < n_windows; window++){
     /* increase marker until it exceeds left window boundary */
-    while(((right && map[start_mrk] <= windows[window])
-             ||(!right && map[start_mrk] < windows[window]))
-            && start_mrk < nbr_mrk){
+    while(start_mrk < nbr_mrk && ((right && map[start_mrk] <= windows[window])
+             ||(!right && map[start_mrk] < windows[window]))){
             start_mrk++;
     }
     
@@ -90,9 +90,8 @@ void calc_sfs_tests(int* data, int nbr_chr, int nbr_mrk, double* map,
     int n_polymorphic_mrk = 0;
     
     /* increase marker until it exceeds right window boundary */
-    while(((right && map[mrk] <= windows[n_windows + window])
-             || (!right && map[mrk] < windows[n_windows + window]))
-            && mrk < nbr_mrk){
+    while(mrk < nbr_mrk && ((right && map[mrk] <= windows[n_windows + window])
+             || (!right && map[mrk] < windows[n_windows + window]))){
             
       int x = 0; 
       int n = 0;
@@ -132,6 +131,7 @@ void calc_sfs_tests(int* data, int nbr_chr, int nbr_mrk, double* map,
     }
     
     if(n_polymorphic_mrk > min_n_mrk){
+      /* 'results' is a vector of length 6 * n_windows */
       results[window] = theta_S;
       results[n_windows + window] = theta_PI;
       results[n_windows * 2 + window] = theta_L;

@@ -1,6 +1,6 @@
-8e4fd944b954c1f38c17b5b3ce560700 *DESCRIPTION
+36b32bb5087c96ea1ac0ff9f6da263ad *DESCRIPTION
 60535cbfb654e4815b8af2877be13a28 *NAMESPACE
-481b516368c4630b1471c79c49cf4f20 *NEWS.md
+f00cbd8a8f7dd3d1cb5fc4f33278ddb0 *NEWS.md
 49fb7dde709b7d56d950cfa481eee11e *R/as.newick.R
 c489a95c70ee3f7a9b21c5e4e1701e00 *R/calc_candidate_regions.R
 a5184787be940979ca4d87c32a69a6c5 *R/calc_ehh.R
@@ -38,10 +38,10 @@ bbd50c8eb813216188dce7896d1490d3 *data/datalist
 8439f1531106aeabce40b21067a1ac5e *inst/CITATION
 ec7fb3bdabc787abe3be7512729a1e2f *inst/doc/examples.R
 4d69844ff06315aff3356db7f85edd4c *inst/doc/examples.Rmd
-dec90acf8e63ab73cfe08ef0fc212cfa *inst/doc/examples.html
+f302ed194a63104b910a55c3fece8680 *inst/doc/examples.html
 e4ac37fc09893fb1d5297d231923ba02 *inst/doc/rehh.R
 602994925b401f0fe98262d30ff9d6e8 *inst/doc/rehh.Rmd
-b9da2d6fdd34b4a4b7b0f4e4addbac14 *inst/doc/rehh.html
+d993e482746096b0acbbba51cf4870d3 *inst/doc/rehh.html
 529c33971c081bacc8d00072aac22b20 *inst/extdata/bta12_cgu.vcf.gz
 1a13676197023c7796532d96aeff7f76 *inst/extdata/example1.hap
 98aedc74c294ec4769b8e3272200fbbe *inst/extdata/example1.map
@@ -109,7 +109,7 @@ c091d180d8864d7f3eea26b915784877 *src/asnewick.h
 965b71b2edfd728a6a32472cda3e7713 *src/calc_furcation.h
 a05f2b0184ce0b035a956723f6d92eda *src/calc_pairwise_haplen.c
 3839049affccee8d202be5eb505d366d *src/calc_pairwise_haplen.h
-bbde67f562edd6b5cc23a49ca23ad99a *src/calc_sfs_tests.c
+e8a5d23d30265ed943365b58fc28f422 *src/calc_sfs_tests.c
 b779fcb22524d83657d325d4245cbc99 *src/calc_sfs_tests.h
 4c1d8febd6cd04df5b4d22a3e2bd2c09 *src/definitions.h
 d42625e6350dcad51095cf22bf571db8 *src/haplotypes.c
@@ -140,6 +140,7 @@ c5d51b0340ebb2dc628e911bcc259f82 *tests/testthat/test_furcation.R
 83461c197932114fbb6185821cdae353 *tests/testthat/test_ihh2ihs.R
 c94ab72e812c9daf632b2acb919aa436 *tests/testthat/test_scan_full.R
 06e74a8f326b2099d3ef7b77c1664a89 *tests/testthat/test_scan_hh.R
+d41d8cd98f00b204e9800998ecf8427e *tests/testthat/test_scan_hh_full.log
 2641e6bbf68bdd6c97280b3a86dfedcc *tests/testthat/test_sfs_tests.R
 4d69844ff06315aff3356db7f85edd4c *vignettes/examples.Rmd
 80ac2e78110aa3e54fb5ce824bd5574f *vignettes/genetics.csl
