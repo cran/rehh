@@ -58,3 +58,13 @@ Useful links:
 }
 
 }
+\author{
+\strong{Maintainer}: Alexander Klassmann \email{rehh@oneoverx.eu}
+
+Authors:
+\itemize{
+  \item Mathieu Gautier \email{mathieu.gautier@inrae.fr}
+  \item Renaud Vitalis
+}
+
+}

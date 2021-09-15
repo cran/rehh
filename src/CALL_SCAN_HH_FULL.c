@@ -1,10 +1,10 @@
-#include <R.h>
-#include "definitions.h"
-#include "calc_pairwise_haplen.h"
-
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+
+#include <R.h>
+#include "definitions.h"
+#include "calc_pairwise_haplen.h"
 
 /**
  * Interface between R and C.

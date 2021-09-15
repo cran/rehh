@@ -1,12 +1,13 @@
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include <R.h>
 #include "definitions.h"
 #include "calc_ehh.h"
 #include "calc_ehhs.h"
 #include "integrate.h"
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 /**
  * Interface between R and C.

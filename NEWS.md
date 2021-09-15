@@ -1,3 +1,8 @@
+### rehh 3.2.2 (September 15, 2021)
+
+* bug-fix: calc_candidate_regions() produced error if a chromosome contained only for a single site a score
+* omp libraries are included first in multi-thread C-code in order to comply to new release of Clang-13
+
 ### rehh 3.2.1 (November 03, 2020)
 
 * bug-fix: memory error in function calc_sfs_tests()

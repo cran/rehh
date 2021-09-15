@@ -1,8 +1,8 @@
-36b32bb5087c96ea1ac0ff9f6da263ad *DESCRIPTION
+156ccba1bbb911b70bd8a173242744a8 *DESCRIPTION
 60535cbfb654e4815b8af2877be13a28 *NAMESPACE
-f00cbd8a8f7dd3d1cb5fc4f33278ddb0 *NEWS.md
+497c5ef98907c537168956489cadfd53 *NEWS.md
 49fb7dde709b7d56d950cfa481eee11e *R/as.newick.R
-c489a95c70ee3f7a9b21c5e4e1701e00 *R/calc_candidate_regions.R
+731252f95a8df082c1bb5ef218d9ebe8 *R/calc_candidate_regions.R
 a5184787be940979ca4d87c32a69a6c5 *R/calc_ehh.R
 d846b662a796c555a11a05a253237219 *R/calc_ehhs.R
 7fc6137f3a9052c916c600103630f747 *R/calc_furcation.R
@@ -35,13 +35,13 @@ c8aaf488db328f7ea21ecb7ea309e4ee *R/subset.haplohh.R
 28612d69e6e3c076a5bac689ddabec2b *build/vignette.rds
 bbd50c8eb813216188dce7896d1490d3 *data/datalist
 91be48fb8754c805321891b9374459f3 *data/haplohh_cgu_bta12.RData
-8439f1531106aeabce40b21067a1ac5e *inst/CITATION
+66655409f6ea82266b980dea6adab6f9 *inst/CITATION
 ec7fb3bdabc787abe3be7512729a1e2f *inst/doc/examples.R
 4d69844ff06315aff3356db7f85edd4c *inst/doc/examples.Rmd
-f302ed194a63104b910a55c3fece8680 *inst/doc/examples.html
+b3e5ad12f23aa765e1d13bbfb0f1caec *inst/doc/examples.html
 e4ac37fc09893fb1d5297d231923ba02 *inst/doc/rehh.R
 602994925b401f0fe98262d30ff9d6e8 *inst/doc/rehh.Rmd
-d993e482746096b0acbbba51cf4870d3 *inst/doc/rehh.html
+c0b313926263cc93840ea3f92c9da56a *inst/doc/rehh.html
 529c33971c081bacc8d00072aac22b20 *inst/extdata/bta12_cgu.vcf.gz
 1a13676197023c7796532d96aeff7f76 *inst/extdata/example1.hap
 98aedc74c294ec4769b8e3272200fbbe *inst/extdata/example1.map
@@ -83,7 +83,7 @@ af0baef3fee7a181c0b995d3bc65b5e0 *man/manhattanplot.Rd
 c7933322276a4b8fa37433e050766c4d *man/plot.furcation.Rd
 939fa1dcc75eacda1eef877ee99c9e7b *man/plot.haplen.Rd
 090eca9f26b95024ee2aca3f483caf52 *man/plot.haplohh.Rd
-07fab15f3017f348fcafac0dec82ac39 *man/rehh-package.Rd
+7ed3571b7607259afac9a8fdb56cd3ea *man/rehh-package.Rd
 0b3af48394811f7b7e481ca6fd7c63fd *man/remove.example.files.Rd
 c7d8274a12c1b590ad9f210db5bfa52c *man/scan_hh.Rd
 f0afc4cb433d9c6b7fddb600605d1ef7 *man/scan_hh_full.Rd
@@ -95,8 +95,8 @@ ea195efe5e62727303defe92c7dfd337 *src/CALL_ASNEWICK.c
 af8abfa9ecc355a7bd825358ef3afe5e *src/CALL_FURCATION.c
 28bb39004e7d75cb01ff08c952148e6e *src/CALL_INTEGRAL.c
 60d65393e0384e62cb72f308058ef007 *src/CALL_PAIRWISE_HAPLEN.c
-997866feb635416dba2745e1275b33f0 *src/CALL_SCAN_HH.c
-fe0c7dcc2bb11ae05b3ea7080d5aa7d7 *src/CALL_SCAN_HH_FULL.c
+1206ac4084e2a683023e476771881615 *src/CALL_SCAN_HH.c
+307f8f701e59a3a2675f04b258c389e9 *src/CALL_SCAN_HH_FULL.c
 63feb5cece836f3ef515492d15a166af *src/CALL_SFS_TESTS.c
 95e3011e37d9dde0d75f3a3819b2acd3 *src/Makevars
 fba8f42eba26752e28b32338665d7348 *src/asnewick.c
@@ -140,7 +140,6 @@ c5d51b0340ebb2dc628e911bcc259f82 *tests/testthat/test_furcation.R
 83461c197932114fbb6185821cdae353 *tests/testthat/test_ihh2ihs.R
 c94ab72e812c9daf632b2acb919aa436 *tests/testthat/test_scan_full.R
 06e74a8f326b2099d3ef7b77c1664a89 *tests/testthat/test_scan_hh.R
-d41d8cd98f00b204e9800998ecf8427e *tests/testthat/test_scan_hh_full.log
 2641e6bbf68bdd6c97280b3a86dfedcc *tests/testthat/test_sfs_tests.R
 4d69844ff06315aff3356db7f85edd4c *vignettes/examples.Rmd
 80ac2e78110aa3e54fb5ce824bd5574f *vignettes/genetics.csl
